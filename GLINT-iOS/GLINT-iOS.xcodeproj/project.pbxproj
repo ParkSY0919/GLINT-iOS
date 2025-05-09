@@ -10,9 +10,22 @@
 		9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GLINT-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9EF71DFE2DCE577F0011A8E1 /* Exceptions for "GLINT-iOS" folder in "GLINT-iOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9EF71DE82DCE4AF50011A8E1 /* GLINT-iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				9EF71DFE2DCE577F0011A8E1 /* Exceptions for "GLINT-iOS" folder in "GLINT-iOS" target */,
+			);
 			path = "GLINT-iOS";
 			sourceTree = "<group>";
 		};
@@ -246,15 +259,18 @@
 		};
 		9EF71DF52DCE4AF60011A8E1 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 9EF71DE82DCE4AF50011A8E1 /* GLINT-iOS */;
+			baseConfigurationReferenceRelativePath = App/Setting/Secret.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/App/Preview Content\"";
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "GLINT-iOS/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -275,15 +291,18 @@
 		};
 		9EF71DF62DCE4AF60011A8E1 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 9EF71DE82DCE4AF50011A8E1 /* GLINT-iOS */;
+			baseConfigurationReferenceRelativePath = App/Setting/Secret.xcconfig;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/App/Preview Content\"";
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "GLINT-iOS/Info.plist";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
