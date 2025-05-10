@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BASE_URL</key>
+	<string>$(BASE_URL)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Pretendard-Regular.otf</string>
+		<string>Pretendard-Medium.otf</string>
+		<string>Pretendard-Bold.otf</string>
+		<string>HakgyoansimMulgyeolB.ttf</string>
+		<string>HakgyoansimMulgyeolOTFR.otf</string>
+		<string>HakgyoansimMulgyeolOTFB.otf</string>
+		<string>HakgyoansimMulgyeolR.ttf</string>
+	</array>
+	<key>SESAC_KEY</key>
+	<string>$(SESAC_KEY)</string>
+</dict>
+</plist>
