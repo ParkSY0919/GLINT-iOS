@@ -13,15 +13,30 @@ struct ContentView: View {
             Image(systemName: "globe")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text("Hello, world! - Title")
+                .font(.pointFont(.title_32))
+            Text("Hello, world! - Body")
+                .font(.pointFont(.body_20))
+            Text("Hello, world! - Caption")
+                .font(.pointFont(.caption_14))
             Button("Tap me") {
-                print(Config.baseURL)
+                // Config가 정의되지 않음. 임시 주석 처리
+                // print(Config.baseURL)
+                print("Button tapped")
             }
         }
         .padding()
+        .onAppear {
+            // 폰트 로드 확인 (디버깅용)
+            print("Available font families: \(UIFont.familyNames)")
+            let fontNames = UIFont.fontNames(forFamilyName: "Pretendard")
+                print("Available fonts: \(fontNames)")
+            
+            
+            
+        }
     }
 }
-
 #Preview {
     ContentView()
 }

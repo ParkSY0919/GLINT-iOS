@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF71E002DCF71F50011A8E1 /* Alamofire */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GLINT-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -14,7 +18,7 @@
 		9EF71DFE2DCE577F0011A8E1 /* Exceptions for "GLINT-iOS" folder in "GLINT-iOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				App/Info.plist,
 			);
 			target = 9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */;
 		};
@@ -36,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 			);
 			name = "GLINT-iOS";
 			packageProductDependencies = (
+				9EF71E002DCF71F50011A8E1 /* Alamofire */,
 			);
 			productName = "GLINT-iOS";
 			productReference = 9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */;
@@ -107,6 +113,9 @@
 			);
 			mainGroup = 9EF71DDD2DCE4AF50011A8E1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EF71DE72DCE4AF50011A8E1 /* Products */;
 			projectDirPath = "";
@@ -270,7 +279,7 @@
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "GLINT-iOS/Info.plist";
+				INFOPLIST_FILE = "GLINT-iOS/App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = GLINT;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -309,7 +318,7 @@
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "GLINT-iOS/Info.plist";
+				INFOPLIST_FILE = "GLINT-iOS/App/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = GLINT;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -357,6 +366,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9EF71E002DCF71F50011A8E1 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9EF71DDE2DCE4AF50011A8E1 /* Project object */;
 }
