@@ -24,4 +24,9 @@ extension ImageLiterals {
         static let profileSelected = Image(.personFill)
     }
     
+    struct LoginImageLiterals {
+        static let apple = Image(systemName: "apple.logo")
+        static let kakao = Image(.kakao)
+    }
+    
 }
