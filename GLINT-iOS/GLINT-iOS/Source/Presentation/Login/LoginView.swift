@@ -7,16 +7,16 @@
 
 import SwiftUI
 import AuthenticationServices
-
+import Combine
 
 struct LoginView: View {
-    @State private var email = ""
-    @State private var password = ""
+    @StateObject private var viewModel = LoginViewModel()
     
     //MARK: - Body
     var body: some View {
         NavigationView {
             ZStack {
+                // 배경 그라데이션
                 LinearGradient(
                     gradient: Gradient(colors: [.gray, .bgPoint]),
                     startPoint: .topLeading,
@@ -28,8 +28,10 @@ struct LoginView: View {
                     // 이메일 필드
                     FormFieldView(
                         label: "Email",
-                        text: $email,
-                        placeholder: "Enter your email"
+                        text: $viewModel.email,
+                        placeholder: "Enter your email",
+                        errorMessage: !viewModel.isEmailValid ?
+                        "유효한 이메일을 입력해주세요" : nil
                     )
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
@@ -37,13 +39,25 @@ struct LoginView: View {
                     // 패스워드 필드
                     FormFieldView(
                         label: "Password",
-                        text: $password,
+                        text: $viewModel.password,
                         placeholder: "Enter your password",
-                        isSecure: true
+                        isSecure: true,
+                        errorMessage: !viewModel.isPasswordValid ?
+                        "8자 이상, 특수문자를 포함해주세요" : nil
                     )
                     
                     // 계정 생성 버튼
                     createAccountButton()
+                        .padding(.top, 30)
+                    
+                        
+                    // 에러 메시지 표시
+                    if case .failure(let message) = viewModel.loginState {
+                        Text(message)
+                            .font(.system(size: 14))
+                            .foregroundColor(.red)
+                            .padding(.top, 8)
+                    }
                     
                     // Or sign in with
                     orSignInWithText()
@@ -52,21 +66,36 @@ struct LoginView: View {
                     socialLoginButtons()
                 }
                 .padding()
+                .disabled(viewModel.loginState == .loading)
+                
+                // 로딩 인디케이터
+                if viewModel.loginState == .loading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.5)
+                        .background(Color.black.opacity(0.3))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .frame(width: 80, height: 80)
+                }
+            }
+            .onChange(of: viewModel.loginState) { state in
+                if state == .success {
+                    // 로그인 성공 시 처리 로직
+                    print("로그인 성공!")
+                }
             }
         }
     }
     
-    //MARK: - ViewBuilder
-    @ViewBuilder
+    
     private func createAccountButton() -> some View {
-        Button("Create Account") {
-            // 계정 생성 로직
-            print("Email: \(email), Password: \(password)")
+        Button("Sign in") {
+            viewModel.login()
         }
         .buttonStyle(PrimaryButtonStyle())
+        .disabled(!viewModel.isEmailValid || !viewModel.isPasswordValid)
     }
     
-    @ViewBuilder
     private func orSignInWithText() -> some View {
         HStack {
             Rectangle()
@@ -74,11 +103,11 @@ struct LoginView: View {
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
             
-            Text("Or sign in with")
-                .font(.system(size: 14))
-                .foregroundColor(Color(uiColor: .systemGray4))
-                .padding(.horizontal, 10)
-                .baselineOffset(2)
+            Button {
+                viewModel.createAccount()
+            } label: {
+                signUpButton()
+            }
             
             Rectangle()
                 .fill(Color(uiColor: .systemGray4))
@@ -89,14 +118,21 @@ struct LoginView: View {
         .padding(.top, 30)
     }
     
-    @ViewBuilder
+    private func signUpButton() -> some View {
+        Text("회원가입")
+            .font(.system(size: 14))
+            .foregroundColor(Color(uiColor: .systemGray4))
+            .padding(.horizontal, 10)
+            .baselineOffset(2)
+    }
+    
     private func socialLoginButtons() -> some View {
         HStack(spacing: 20) {
             SocialLoginButtonView(type: .apple) {
-                print("Sign in with Apple")
+                viewModel.appleLogin()
             }
             SocialLoginButtonView(type: .kakao) {
-                print("Sign in with Google")
+                viewModel.kakaoLogin()
             }
         }
     }

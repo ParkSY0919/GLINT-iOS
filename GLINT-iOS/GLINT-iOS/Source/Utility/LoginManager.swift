@@ -41,8 +41,10 @@ extension LoginManager: ASAuthorizationControllerDelegate {
         }
         
         // KeyChain에 저장 (보안 강화를 위해)
-        KeyChainManager.shared.saveToken(token) //idToken
-        KeyChainManager.shared.saveAuthCode(authCode) //deviceToken
+        let saveIdToken = KeyChainManager.shared.saveToken(token) //idToken
+        let deviceToken = KeyChainManager.shared.saveAuthCode(authCode) //deviceToken
+        //TODO: Device Token 추후 수정
+        
         print("token: \(token)")
         print("authCode: \(authCode)")
         // 상태 업데이트 (예시)

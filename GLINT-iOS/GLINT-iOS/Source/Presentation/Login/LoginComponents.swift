@@ -12,21 +12,34 @@ struct FormFieldView: View {
     @Binding var text: String
     var placeholder: String = ""
     var isSecure: Bool = false
+    var errorMessage: String? = nil
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label)
                 .font(.fieldLabel)
                 .foregroundColor(.labelText)
+            
             if isSecure {
                 formFieldStyle(SecureField(placeholder, text: $text))
             } else {
                 formFieldStyle(TextField(placeholder, text: $text))
             }
+            
+            HStack {
+                Spacer()
+                
+                if let errorMessage = errorMessage, !text.isEmpty {
+                    Text(errorMessage)
+                        .font(.system(size: 12))
+                        .foregroundColor(.red)
+                        .padding(.bottom, -50)
+                        .padding(.trailing, 4)
+                }
+            }
         }
     }
     
-    @ViewBuilder
     private func formFieldStyle<Content: View>(_ content: Content) -> some View {
         content
             .padding()
