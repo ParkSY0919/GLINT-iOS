@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SocialLoginButtonStyle: ButtonStyle {
+struct GLSocialLoginButton: ButtonStyle {
     let backgroundColor: Color
     let foregroundColor: Color
 

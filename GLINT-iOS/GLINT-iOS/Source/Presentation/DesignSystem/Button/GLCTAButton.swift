@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PrimaryButtonStyle: ButtonStyle {
+struct GLCTAButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.buttonFont)

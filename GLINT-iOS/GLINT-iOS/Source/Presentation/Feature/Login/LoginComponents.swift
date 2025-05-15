@@ -57,7 +57,7 @@ struct SocialLoginButtonView: View {
         Button(action: action) {
             loginIconView()
         }
-        .buttonStyle(SocialLoginButtonStyle(
+        .buttonStyle(GLSocialLoginButton(
             backgroundColor: type.backgroundColor,
             foregroundColor: type.foregroundColor
         ))

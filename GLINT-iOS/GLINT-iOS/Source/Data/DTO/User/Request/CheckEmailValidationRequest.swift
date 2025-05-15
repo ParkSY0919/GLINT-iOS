@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct CheckEmailValidationRequest {
+struct CheckEmailValidationRequest: Encodable {
     let email: String
 }

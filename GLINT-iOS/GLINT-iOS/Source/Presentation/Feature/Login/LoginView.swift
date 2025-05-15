@@ -9,6 +9,12 @@ import SwiftUI
 import AuthenticationServices
 import Combine
 
+/**
+ - state, binding이 데이터 바인딩을 알아서 해주는 어째서 반응형 사용?
+ - Rx 카피켓
+ - 써드파티 쓸 수 없던 애플이 직접 반응형인 컴바인을 만들었고, 이렇게 만든 @State랑 @Binding을  만들어냈다
+ 
+ */
 struct LoginView: View {
     @StateObject private var viewModel = LoginViewModel()
     
@@ -92,7 +98,7 @@ struct LoginView: View {
         Button("Sign in") {
             viewModel.login()
         }
-        .buttonStyle(PrimaryButtonStyle())
+        .buttonStyle(GLCTAButton())
         .disabled(!viewModel.isEmailValid || !viewModel.isPasswordValid)
     }
     
