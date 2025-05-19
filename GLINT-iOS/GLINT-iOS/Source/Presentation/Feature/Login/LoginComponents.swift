@@ -9,30 +9,30 @@ import SwiftUI
 
 struct FormFieldView: View {
     
-    enum FormCase {
-        case Email
-        case Password
+    enum FormFieldCase {
+        case email
+        case password
         
         var label : String {
             switch self {
-            case .Email:
+            case .email:
                 return "Email"
-            case .Password:
+            case .password:
                 return "Password"
             }
         }
         
         var placeholder : String {
             switch self {
-            case .Email:
+            case .email:
                 return "Enter your email"
-            case .Password:
+            case .password:
                 return "Enter your password"
             }
         }
     }
     
-    let formCase: FormCase
+    let formCase: FormFieldCase
     var isSecure: Bool = false
     var errorMessage: String? = nil
     @Binding var text: String

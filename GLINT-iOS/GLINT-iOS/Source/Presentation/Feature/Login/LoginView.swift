@@ -26,7 +26,7 @@ struct LoginView: View {
                 
                 VStack(spacing: 20) {
                     FormFieldView(
-                        formCase: .Email,
+                        formCase: .email,
                         errorMessage: !viewModel.email.isEmpty && !viewModel.isEmailValidForUI
                         ? "유효한 이메일을 입력해주세요" : nil,
                         text: $viewModel.email
@@ -38,7 +38,7 @@ struct LoginView: View {
                      }
                     
                     FormFieldView(
-                        formCase: .Password,
+                        formCase: .password,
                         isSecure: true,
                         errorMessage: !viewModel.password.isEmpty && !viewModel.isPasswordValid
                         ? "8자 이상, 특수문자를 포함해주세요" : nil,
