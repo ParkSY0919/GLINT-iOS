@@ -8,22 +8,45 @@
 import SwiftUI
 
 struct FormFieldView: View {
-    let label: String
-    @Binding var text: String
-    var placeholder: String = ""
+    
+    enum FormCase {
+        case Email
+        case Password
+        
+        var label : String {
+            switch self {
+            case .Email:
+                return "Email"
+            case .Password:
+                return "Password"
+            }
+        }
+        
+        var placeholder : String {
+            switch self {
+            case .Email:
+                return "Enter your email"
+            case .Password:
+                return "Enter your password"
+            }
+        }
+    }
+    
+    let formCase: FormCase
     var isSecure: Bool = false
     var errorMessage: String? = nil
+    @Binding var text: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label)
+            Text(formCase.label)
                 .font(.fieldLabel)
                 .foregroundColor(.labelText)
             
             if isSecure {
-                formFieldStyle(SecureField(placeholder, text: $text))
+                formFieldStyle(SecureField(formCase.placeholder, text: $text))
             } else {
-                formFieldStyle(TextField(placeholder, text: $text))
+                formFieldStyle(TextField(formCase.placeholder, text: $text))
             }
             
             HStack {

@@ -17,68 +17,88 @@ enum LoginState: Equatable {
 }
 
 final class LoginViewModel: ObservableObject {
-    // MARK: - 입력 관련 프로퍼티
     @Published var email: String = ""
     @Published var password: String = ""
-    
-    // MARK: - 상태 관련 프로퍼티
     @Published var loginState: LoginState = .idle
-    @Published var isEmailValid: Bool = true
+    @Published var isEmailValidForUI: Bool = true
     @Published var isPasswordValid: Bool = true
-    @Published var errorMessage: String = ""
-    
-    // MARK: - Combine 관련 프로퍼티
+
     private var cancellables = Set<AnyCancellable>()
     
-    // MARK: - 초기화
-    init() {
-        setupBindings()
+    // MARK: - UseCases (Struct 기반)
+    private let userUseCase: UserUseCase
+
+    init(userUseCase: UserUseCase = .liveValue) {
+        self.userUseCase = userUseCase
+        setupEmailValidationBinding()
     }
-    
-    // MARK: - 바인딩 설정
-    private func setupBindings() {
-        // 이메일 유효성 검사
+
+    private func setupEmailValidationBinding() {
         $email
-            .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
+            .dropFirst()
+            .debounce(for: .seconds(0.8), scheduler: RunLoop.main)
             .removeDuplicates()
-            .map { [weak self] email in
-                self?.validateEmail(email) ?? false
+            .map { emailText -> String? in
+                guard !emailText.isEmpty else { return nil }
+                return emailText
             }
-            .assign(to: &$isEmailValid)
-        
-        // 비밀번호 유효성 검사
+            .compactMap { $0 }
+            .sink { [weak self] emailToValidate in
+                self?.isEmailValidForUI = self?.validateEmailFormat(emailToValidate) ?? true
+            }
+            .store(in: &cancellables)
+
         $password
+            .dropFirst()
             .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
             .removeDuplicates()
-            .map { [weak self] password in
-                self?.validatePassword(password) ?? false
+            .map { [weak self] passwordText -> Bool in
+                guard !passwordText.isEmpty else { return true }
+                return self?.validatePasswordFormat(passwordText) ?? false
             }
             .assign(to: &$isPasswordValid)
     }
-    
-    // MARK: - 유효성 검사 메서드
-    private func validateEmail(_ email: String) -> Bool {
-        guard !email.isEmpty else { return true }
-        
+
+    // MARK: - UI 피드백용 유효성 검사 메서드 (로컬)
+    private func validateEmailFormat(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
     }
-    
-    private func validatePassword(_ password: String) -> Bool {
-        guard !password.isEmpty else { return true }
-        
-        // 최소 8자 이상, 특수문자 포함
+
+    private func validatePasswordFormat(_ password: String) -> Bool {
         let passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$"
         let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
         return passwordPredicate.evaluate(with: password)
     }
-    
-    // MARK: - 로그인 메서드
-    //TODO: 로컬 이메일 로그인
-    func login() {
-        guard isEmailValid, isPasswordValid else {
-            loginState = .failure("유효하지 않은 이메일 또는 비밀번호입니다.")
+
+    // MARK: - 서버 이메일 중복/유효성 검사 (UseCase 사용)
+    @MainActor
+    func checkEmailAvailability() async {
+        guard validateEmailFormat(email) else {
+            isEmailValidForUI = false
+            return
+        }
+        isEmailValidForUI = true
+
+        loginState = .loading
+        let request = CheckEmailValidationRequest(email: email)
+        
+        do {
+            try await userUseCase.checkEmailValidation(request)
+            loginState = .idle // 성공시 idle로 돌아감
+            print("서버 이메일 유효성 검사 성공 (ViewModel)")
+        } catch {
+            loginState = .failure("이메일 검사 실패: \(error.localizedDescription)")
+            print("서버 이메일 유효성 검사 실패 (ViewModel): \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - 회원가입 메서드 (UseCase 사용)
+    @MainActor
+    func signUp() async {
+        guard isEmailValidForUI, isPasswordValid else {
+            loginState = .failure("입력 정보를 확인해주세요.")
             return
         }
         
@@ -88,34 +108,67 @@ final class LoginViewModel: ObservableObject {
         }
         
         loginState = .loading
+        let request = SignUpRequest(
+            email: email,
+            password: password,
+            nick: "psy",
+            deviceToken: "mock_psy"
+        )
         
-        // 실제 계정 생성 API 연동 코드는 여기에 구현
-        // 지금은 시뮬레이션으로 2초 후 성공으로 처리
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.loginState = .success
+        do {
+            let response = try await userUseCase.signUp(request)
+            loginState = .success
+            print("회원가입 성공 (ViewModel): \(response)")
+        } catch {
+            loginState = .failure("회원가입 실패: \(error.localizedDescription)")
+            print("회원가입 실패 (ViewModel): \(error.localizedDescription)")
         }
     }
-    
-    // MARK: - 소셜 로그인 메서드
+
+    // MARK: - 일반 로그인 메서드 (추후 구현)
+    @MainActor
+    func loginWithEmail() async {
+        guard isEmailValidForUI, isPasswordValid else {
+            loginState = .failure("입력 정보를 확인해주세요.")
+            return
+        }
+        guard !email.isEmpty, !password.isEmpty else {
+            loginState = .failure("이메일과 비밀번호를 입력해주세요.")
+            return
+        }
+        loginState = .loading
+        // 실제로는 LoginUseCase 호출
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.loginState = .success // 임시 성공
+        }
+    }
+
+    // MARK: - Apple 로그인 메서드
+    @MainActor
     func appleLogin() {
         loginState = .loading
-        
         LoginManager.shared.appleLogin()
     }
-    
-    //TODO: 카카오 로그인
+
+    // MARK: - 카카오 로그인 메서드
+    @MainActor
     func kakaoLogin() {
         loginState = .loading
-        
-        // 실제 카카오 로그인 연동 코드는 여기에 구현
-        // 지금은 시뮬레이션으로 2초 후 성공으로 처리
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.loginState = .success
+        print("카카오 로그인 로직 실행 (ViewModel)")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            self.loginState = .failure("카카오 로그인 미구현") // 임시
         }
     }
-    
-    // MARK: - 계정 생성 메서드
-    func createAccount() {
-        print("회원가입 화면 전환 예정")
+
+    // MARK: - 계정 생성 화면 이동 요청
+    func navigateToCreateAccount() {
+        print("회원가입 화면으로 이동 요청 (ViewModel)")
     }
-} 
+}
+
+// MARK: - Test/Preview용 ViewModel 생성
+extension LoginViewModel {
+    static func mock() -> LoginViewModel {
+        return LoginViewModel(userUseCase: .mockValue)
+    }
+}

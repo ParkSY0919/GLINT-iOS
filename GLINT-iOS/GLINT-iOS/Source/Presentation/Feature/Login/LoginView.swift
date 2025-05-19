@@ -9,18 +9,12 @@ import SwiftUI
 import AuthenticationServices
 import Combine
 
-/**
- - state, binding이 데이터 바인딩을 알아서 해주는 어째서 반응형 사용?
- - Rx 카피켓
- - 써드파티 쓸 수 없던 애플이 직접 반응형인 컴바인을 만들었고, 이렇게 만든 @State랑 @Binding을  만들어냈다
- 
- */
 struct LoginView: View {
     @StateObject private var viewModel = LoginViewModel()
     
     //MARK: - Body
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // 배경 그라데이션
                 LinearGradient(
@@ -31,33 +25,29 @@ struct LoginView: View {
                 .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
-                    // 이메일 필드
                     FormFieldView(
-                        label: "Email",
-                        text: $viewModel.email,
-                        placeholder: "Enter your email",
-                        errorMessage: !viewModel.isEmailValid ?
-                        "유효한 이메일을 입력해주세요" : nil
+                        formCase: .Email,
+                        errorMessage: !viewModel.email.isEmpty && !viewModel.isEmailValidForUI
+                        ? "유효한 이메일을 입력해주세요" : nil,
+                        text: $viewModel.email
                     )
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
+                     .onSubmit { // 키보드의 return 키
+                         Task { await viewModel.checkEmailAvailability() }
+                     }
                     
-                    // 패스워드 필드
                     FormFieldView(
-                        label: "Password",
-                        text: $viewModel.password,
-                        placeholder: "Enter your password",
+                        formCase: .Password,
                         isSecure: true,
-                        errorMessage: !viewModel.isPasswordValid ?
-                        "8자 이상, 특수문자를 포함해주세요" : nil
+                        errorMessage: !viewModel.password.isEmpty && !viewModel.isPasswordValid
+                        ? "8자 이상, 특수문자를 포함해주세요" : nil,
+                        text: $viewModel.password
                     )
                     
-                    // 계정 생성 버튼
-                    createAccountButton()
+                    signInButton() // 버튼 이름 변경
                         .padding(.top, 30)
                     
-                        
-                    // 에러 메시지 표시
                     if case .failure(let message) = viewModel.loginState {
                         Text(message)
                             .font(.system(size: 14))
@@ -65,80 +55,68 @@ struct LoginView: View {
                             .padding(.top, 8)
                     }
                     
-                    // Or sign in with
-                    orSignInWithText()
+                    orTextWithSignUpButton() // 함수 이름 변경
                     
-                    // 소셜 로그인 버튼
                     socialLoginButtons()
                 }
                 .padding()
                 .disabled(viewModel.loginState == .loading)
                 
-                // 로딩 인디케이터
                 if viewModel.loginState == .loading {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         .scaleEffect(1.5)
-                        .background(Color.black.opacity(0.3))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .frame(width: 80, height: 80)
                 }
             }
-            .onChange(of: viewModel.loginState) { state in
-                if state == .success {
-                    // 로그인 성공 시 처리 로직
-                    print("로그인 성공!")
+            .onChange(of: viewModel.loginState) { newState in
+                if newState == .success {
+                    print("로그인 성공! (View) - 다음 화면으로 이동 등 처리")
+                    // 예: 메인 화면으로 전환하는 로직
                 }
             }
+            .navigationTitle("로그인")
+            .navigationBarTitleDisplayMode(.large)
         }
     }
     
     
-    private func createAccountButton() -> some View {
+    private func signInButton() -> some View {
         Button("Sign in") {
-            viewModel.login()
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            Task {
+                await viewModel.loginWithEmail()
+            }
         }
-        .buttonStyle(GLCTAButton())
-        .disabled(!viewModel.isEmailValid || !viewModel.isPasswordValid)
+        .buttonStyle(GLCTAButton()) // 사용하시는 커스텀 버튼 스타일
+        .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || !viewModel.isEmailValidForUI || !viewModel.isPasswordValid || viewModel.loginState == .loading)
     }
     
-    private func orSignInWithText() -> some View {
+    // 함수 이름 변경
+    private func orTextWithSignUpButton() -> some View {
         HStack {
-            Rectangle()
-                .fill(Color(uiColor: .systemGray4))
-                .frame(height: 1)
-                .frame(maxWidth: .infinity)
-            
+            Rectangle().fill(Color(uiColor: .systemGray4)).frame(height: 1)
             Button {
-                viewModel.createAccount()
+                viewModel.navigateToCreateAccount() // ViewModel 함수 호출
             } label: {
-                signUpButton()
+                Text("회원가입") // 직접 텍스트 사용
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(uiColor: .systemGray4))
+                    .padding(.horizontal, 10)
+                    .baselineOffset(2)
             }
-            
-            Rectangle()
-                .fill(Color(uiColor: .systemGray4))
-                .frame(height: 1)
-                .frame(maxWidth: .infinity)
+            Rectangle().fill(Color(uiColor: .systemGray4)).frame(height: 1)
         }
         .padding(.horizontal, 4)
         .padding(.top, 30)
     }
     
-    private func signUpButton() -> some View {
-        Text("회원가입")
-            .font(.system(size: 14))
-            .foregroundColor(Color(uiColor: .systemGray4))
-            .padding(.horizontal, 10)
-            .baselineOffset(2)
-    }
-    
     private func socialLoginButtons() -> some View {
         HStack(spacing: 20) {
-            SocialLoginButtonView(type: .apple) {
-                viewModel.appleLogin()
+            SocialLoginButtonView(type: .apple) { // SocialLoginButtonView 정의 필요
+                viewModel.appleLogin() // ViewModel 함수 호출
             }
-            SocialLoginButtonView(type: .kakao) {
-                viewModel.kakaoLogin()
+            SocialLoginButtonView(type: .kakao) { // SocialLoginButtonView 정의 필요
+                viewModel.kakaoLogin() // ViewModel 함수 호출
             }
         }
     }
