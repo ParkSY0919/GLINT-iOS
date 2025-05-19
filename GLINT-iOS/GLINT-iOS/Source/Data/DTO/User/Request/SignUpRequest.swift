@@ -8,8 +8,5 @@
 import Foundation
 
 struct SignUpRequest: Codable {
-    let email, password, nick, name: String
-    let introduction, phoneNum: String
-    let hashTags: [String]
-    let deviceToken: String
+    let email, password, nick, deviceToken: String
 }
