@@ -11,7 +11,7 @@ enum HeaderType {
     static var basic: HTTPHeaders {
         return [
             "Content-Type": "application/json",
-            "SeSACKey": Config.Keys.sesacKey
+            "SeSACKey": Config.sesacKey
         ]
     }
     

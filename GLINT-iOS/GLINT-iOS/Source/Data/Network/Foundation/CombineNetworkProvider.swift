@@ -144,3 +144,22 @@ final class CombineNetworkProvider: NetworkServiceProvider {
     }
     
 }
+
+extension Publisher {
+    /// Output != Void
+    func firstValue() async throws -> Output {
+        for try await value in self.values {
+            return value
+        }
+        throw URLError(
+            .cannotLoadFromNetwork,
+            userInfo: [NSLocalizedDescriptionKey: "The publisher completed without emitting a value."]
+        )
+    }
+
+    /// Output == Void
+    func awaitCompletion() async throws {
+        var iterator = self.values.makeAsyncIterator()
+        let _ = try await iterator.next()
+    }
+}
