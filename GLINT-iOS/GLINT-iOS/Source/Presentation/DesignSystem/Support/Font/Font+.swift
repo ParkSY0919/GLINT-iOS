@@ -38,11 +38,11 @@ enum PointFontName {
 enum PretendardFontName {
     case title_20
     case body1_16, body2_14, body3_13
-    case caption1_12, caption2_10, caption3_8
+    case caption1_12, caption2_10, caption3_8, caption2_10_semibold
     
     var rawValue: String {
         switch self {
-        case .title_20:
+        case .title_20, .caption2_10_semibold:
             return "Pretendard-Bold"
         case .body1_16, .body2_14, .body3_13:
             return "Pretendard-Medium"
@@ -63,7 +63,7 @@ enum PretendardFontName {
             return 13
         case .caption1_12:
             return 12
-        case .caption2_10:
+        case .caption2_10, .caption2_10_semibold:
             return 10
         case .caption3_8:
             return 8
