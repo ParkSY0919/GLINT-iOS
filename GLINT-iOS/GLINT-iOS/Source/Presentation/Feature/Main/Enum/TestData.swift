@@ -17,9 +17,9 @@ struct TodayFilter: Identifiable {
 }
 
 // MARK: - 카테고리 모델
-struct FilterCategory: Identifiable, Hashable { // Hashable 추가 (버튼 식별용)
+struct FilterCategory: Identifiable { // Hashable 추가 (버튼 식별용)
     let id = UUID()
-    let iconName: String // SF Symbol 이름
+    let icon: Image // SF Symbol 이름
     let name: String
 }
 
@@ -59,14 +59,14 @@ struct DummyFilterAppData {
     )
 
     static let categories: [FilterCategory] = [
-        FilterCategory(iconName: "fork.knife", name: "푸드"),
-        FilterCategory(iconName: "person.2.fill", name: "인물"),
-        FilterCategory(iconName: "mountain.2.fill", name: "풍경"),
-        FilterCategory(iconName: "moon.stars.fill", name: "야경"),
-        FilterCategory(iconName: "sparkles", name: "별")
+        FilterCategory(icon: ImageLiterals.Main.food, name: "푸드"),
+        FilterCategory(icon: ImageLiterals.Main.person, name: "인물"),
+        FilterCategory(icon: ImageLiterals.Main.landscape, name: "풍경"),
+        FilterCategory(icon: ImageLiterals.Main.nightscape, name: "야경"),
+        FilterCategory(icon: ImageLiterals.Main.star, name: "별")
     ]
 
-    static let bannerItems: [BannerItem] = (1...12).map { BannerItem(imageName: "banner_image_\($0)") } // "banner_image_1" ... "banner_image_12"
+    static let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") } // "banner_image_1" ... "banner_image_12"
 
     static let hotTrends: [HotTrend] = [
         HotTrend(imageName: "trend_image_1", title: "어떤영화", likes: 30), // 왼쪽 어두운 이미지
@@ -85,3 +85,4 @@ struct DummyFilterAppData {
         introductionBody: "윤새싹은 자연의 섬세한 아름다움을 포착하는 데 탁월한 감각을 지닌 사진작가입니다. 그녀의 작품은 일상 속에서 쉽게 지나칠 수 있는 순간들을 특별하게 담아내며, 관람객들에게 새로운 시각을 선사합니다."
     )
 }
+
