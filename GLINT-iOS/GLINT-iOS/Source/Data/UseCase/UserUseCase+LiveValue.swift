@@ -20,11 +20,34 @@ extension UserUseCase {
                 let response = try await repository.signUp(request)
                 print("회원가입 요청 성공 (UseCase)")
                 return response
+            },
+            signIn: { request in
+                let response = try await repository.signIn(request)
+                print("이메일 로그인 요청 성공 (UseCase)")
+                return response
+            },
+            signInApple: { request in
+                let response = try await repository.signInApple(request)
+                print("애플 로그인 요청 성공 (UseCase)")
+                return response
+            },
+            signInKakao: { request in
+                let response = try await repository.signInKakao(request)
+                print("카카오 로그인 요청 성공 (UseCase)")
+                return response
             }
         )
     }()
     
     static let mockValue: UserUseCase = {
+        let signInResponse = SignInResponse(
+            userID: "mock",
+            email: "mock",
+            nick: "mock",
+            accessToken: "mock",
+            refreshToken: "mock"
+        )
+        
         return UserUseCase(
             checkEmailValidation: { request in
                 // Mock 구현 - 테스트용
@@ -44,7 +67,20 @@ extension UserUseCase {
                     accessToken: "mockUp",
                     refreshToken: "mockUp"
                 )
+            },
+            signIn: { request in
+                print("Mock: 이메일 로그인")
+                return signInResponse
+            },
+            signInApple: { request in
+                print("Mock: 카카오 로그인")
+                return signInResponse
+            },
+            signInKakao: { request in
+                print("Mock: 애플 로그인")
+                return signInResponse
             }
+            
         )
     }()
 }

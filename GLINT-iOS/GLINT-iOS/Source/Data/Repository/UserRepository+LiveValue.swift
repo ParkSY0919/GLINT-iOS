@@ -21,6 +21,18 @@ extension UserRepository {
             signUp: { request in
                 let endPoint = UserEndPoint.signUp(request)
                 return try await provider.request(target: endPoint, responseType: SignUpResponse.self, interceptor: nil).firstValue()
+            },
+            signIn: { request in
+                let endPoint = UserEndPoint.signIn(request)
+                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
+            },
+            signInApple: { request in
+                let endPoint = UserEndPoint.signInForApple(request)
+                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
+            },
+            signInKakao: { request in
+                let endPoint = UserEndPoint.signInForKakao(request)
+                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
             }
         )
     }()

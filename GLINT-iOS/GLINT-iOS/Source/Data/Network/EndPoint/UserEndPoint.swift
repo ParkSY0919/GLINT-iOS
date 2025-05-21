@@ -12,12 +12,15 @@ import Alamofire
 enum UserEndPoint {
     case checkEmailValidation(CheckEmailValidationRequest)
     case signUp(SignUpRequest)
+    case signIn(SignInRequest)
+    case signInForApple(SignInRequestForApple)
+    case signInForKakao(SignInRequestForKakao)
 }
 
 extension UserEndPoint: EndPoint {
     var headers: Alamofire.HTTPHeaders? {
         switch self {
-        case .checkEmailValidation, .signUp:
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao:
             return HeaderType.basic
         }
     }
@@ -28,7 +31,7 @@ extension UserEndPoint: EndPoint {
     
     var method: Alamofire.HTTPMethod {
         switch self {
-        case .checkEmailValidation, .signUp: .post
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao: .post
         }
     }
     
@@ -36,6 +39,9 @@ extension UserEndPoint: EndPoint {
         switch self {
         case .checkEmailValidation: utilPath + "validation/email"
         case .signUp: utilPath + "join"
+        case .signIn: utilPath + "login"
+        case .signInForApple: utilPath + "login/apple"
+        case .signInForKakao: utilPath + "login/kakao"
         }
     }
     
@@ -44,6 +50,12 @@ extension UserEndPoint: EndPoint {
         case .checkEmailValidation(let request):
             return .bodyEncodable(request)
         case .signUp(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signIn(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signInForApple(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signInForKakao(let reuqest):
             return .bodyEncodable(reuqest)
         }
     }

@@ -125,7 +125,7 @@ final class LoginViewModel: ObservableObject {
         }
     }
 
-    // MARK: - 일반 로그인 메서드 (추후 구현)
+    // MARK: - 일반 로그인 메서드
     @MainActor
     func loginWithEmail() async {
         guard isEmailValidForUI, isPasswordValid else {
@@ -138,8 +138,15 @@ final class LoginViewModel: ObservableObject {
         }
         loginState = .loading
         // 실제로는 LoginUseCase 호출
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.loginState = .success // 임시 성공
+        
+        let request = SignInRequest(email: "qhr498@naver.com", password: "sesac1234@", deviceToken: "psyDeviceToken")
+        
+        do {
+            loginState = .success
+            let response = try await userUseCase.signIn(request)
+            print("response: \n\(response)")
+        } catch {
+            loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
         }
     }
 
@@ -147,7 +154,27 @@ final class LoginViewModel: ObservableObject {
     @MainActor
     func appleLogin() {
         loginState = .loading
-        LoginManager.shared.appleLogin()
+        LoginManager.shared.appleLogin { [weak self] (result: Result<(identityToken: String?, authCode: String?), Error>) in
+            guard let self = self else { return }
+            switch result {
+            case .success(let (identityToken: token, authCode: authCode)):
+                guard let token = token else {
+                    self.loginState = .failure("토큰이 없습니다.")
+                    return
+                }
+                Task {
+                    do {
+                        let request = SignInRequestForApple(idToken: token, deviceToken: "psyDeviceToken", nick: "psy")
+                        let response = try await self.userUseCase.signInApple(request)
+                        self.loginState = .success
+                    } catch {
+                        self.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
+                    }
+                }
+            case .failure(let error):
+                self.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
+            }
+        }
     }
 
     // MARK: - 카카오 로그인 메서드
@@ -155,9 +182,14 @@ final class LoginViewModel: ObservableObject {
     func kakaoLogin() {
         loginState = .loading
         print("카카오 로그인 로직 실행 (ViewModel)")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.loginState = .failure("카카오 로그인 미구현") // 임시
-        }
+        
+//        do {
+//            loginState = .idle // 성공시 idle로 돌아감
+//            let response = try await userUseCase.signInKakao(request)
+//            print("response: \n\(response)")
+//        } catch {
+//            loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
+//        }
     }
 
     // MARK: - 계정 생성 화면 이동 요청
