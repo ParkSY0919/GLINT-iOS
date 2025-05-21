@@ -10,7 +10,18 @@
 		9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF71E002DCF71F50011A8E1 /* Alamofire */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9E26F5102DDD60CD00DA244C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9EF71DDE2DCE4AF50011A8E1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9EF71DE52DCE4AF50011A8E1;
+			remoteInfo = "GLINT-iOS";
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		9E26F50C2DDD60CD00DA244C /* GLINT-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GLINT-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GLINT-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -25,6 +36,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		9E26F50D2DDD60CD00DA244C /* GLINT-iOSTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "GLINT-iOSTests";
+			sourceTree = "<group>";
+		};
 		9EF71DE82DCE4AF50011A8E1 /* GLINT-iOS */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -36,6 +52,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		9E26F5092DDD60CD00DA244C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9EF71DE32DCE4AF50011A8E1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				9EF71DE82DCE4AF50011A8E1 /* GLINT-iOS */,
+				9E26F50D2DDD60CD00DA244C /* GLINT-iOSTests */,
 				9EF71DE72DCE4AF50011A8E1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -59,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */,
+				9E26F50C2DDD60CD00DA244C /* GLINT-iOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -66,6 +91,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		9E26F50B2DDD60CD00DA244C /* GLINT-iOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9E26F5142DDD60CD00DA244C /* Build configuration list for PBXNativeTarget "GLINT-iOSTests" */;
+			buildPhases = (
+				9E26F5082DDD60CD00DA244C /* Sources */,
+				9E26F5092DDD60CD00DA244C /* Frameworks */,
+				9E26F50A2DDD60CD00DA244C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9E26F5112DDD60CD00DA244C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9E26F50D2DDD60CD00DA244C /* GLINT-iOSTests */,
+			);
+			name = "GLINT-iOSTests";
+			packageProductDependencies = (
+			);
+			productName = "GLINT-iOSTests";
+			productReference = 9E26F50C2DDD60CD00DA244C /* GLINT-iOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9EF71DF42DCE4AF60011A8E1 /* Build configuration list for PBXNativeTarget "GLINT-iOS" */;
@@ -99,6 +147,10 @@
 				LastSwiftUpdateCheck = 1610;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
+					9E26F50B2DDD60CD00DA244C = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 9EF71DE52DCE4AF50011A8E1;
+					};
 					9EF71DE52DCE4AF50011A8E1 = {
 						CreatedOnToolsVersion = 16.1;
 					};
@@ -122,11 +174,19 @@
 			projectRoot = "";
 			targets = (
 				9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */,
+				9E26F50B2DDD60CD00DA244C /* GLINT-iOSTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		9E26F50A2DDD60CD00DA244C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9EF71DE42DCE4AF50011A8E1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +197,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		9E26F5082DDD60CD00DA244C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9EF71DE22DCE4AF50011A8E1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -146,7 +213,61 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		9E26F5112DDD60CD00DA244C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */;
+			targetProxy = 9E26F5102DDD60CD00DA244C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		9E26F5122DDD60CD00DA244C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A95XXD5WT7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.psy.GLINT-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GLINT-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GLINT-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Debug;
+		};
+		9E26F5132DDD60CD00DA244C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A95XXD5WT7;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.psy.GLINT-iOSTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = auto;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GLINT-iOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GLINT-iOS";
+				XROS_DEPLOYMENT_TARGET = 2.1;
+			};
+			name = Release;
+		};
 		9EF71DF22DCE4AF60011A8E1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -276,7 +397,7 @@
 				CODE_SIGN_ENTITLEMENTS = "GLINT-iOS/GLINT-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/App/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/Resource/Preview Content\"";
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -316,7 +437,7 @@
 				CODE_SIGN_ENTITLEMENTS = "GLINT-iOS/GLINT-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/App/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"GLINT-iOS/Resource/Preview Content\"";
 				DEVELOPMENT_TEAM = A95XXD5WT7;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -349,6 +470,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		9E26F5142DDD60CD00DA244C /* Build configuration list for PBXNativeTarget "GLINT-iOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9E26F5122DDD60CD00DA244C /* Debug */,
+				9E26F5132DDD60CD00DA244C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		9EF71DE12DCE4AF50011A8E1 /* Build configuration list for PBXProject "GLINT-iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
