@@ -17,7 +17,7 @@ struct TodayFilter: Identifiable {
 }
 
 // MARK: - 카테고리 모델
-struct FilterCategory: Identifiable { // Hashable 추가 (버튼 식별용)
+struct FilterCategory: Identifiable, Equatable { // Hashable 추가 (버튼 식별용)
     let id = UUID()
     let icon: Image // SF Symbol 이름
     let name: String
@@ -84,5 +84,3 @@ struct DummyFilterAppData {
         introductionBody: "윤새싹은 자연의 섬세한 아름다움을 포착하는 데 탁월한 감각을 지닌 사진작가입니다. 그녀의 작품은 일상 속에서 쉽게 지나칠 수 있는 순간들을 특별하게 담아내며, 관람객들에게 새로운 시각을 선사합니다."
     )
 }
-
-
