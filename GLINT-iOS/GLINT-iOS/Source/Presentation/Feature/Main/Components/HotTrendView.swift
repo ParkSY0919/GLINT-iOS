@@ -14,6 +14,12 @@ struct HotTrendView: View {
     
     var body: some View {
         hotTrendContainer()
+            .onAppear {
+                // 뷰가 나타날 때 첫 번째 아이템에 포커스 적용
+                if let firstTrend = trends.first {
+                    centralTrendID = firstTrend.id
+                }
+            }
     }
     
     // MARK: - Container
@@ -29,7 +35,7 @@ struct HotTrendView: View {
         Text("핫 트렌드")
             .font(.pretendardFont(.body_bold, size: 16))
             .foregroundStyle(.gray60)
-            .padding(.horizontal)
+            .padding(.leading, 20)
     }
     
     // MARK: - Trends Scroll View
@@ -40,7 +46,6 @@ struct HotTrendView: View {
         .scrollTargetBehavior(.viewAligned)
         .scrollPosition(id: $centralTrendID, anchor: .center)
         .frame(height: 300)
-        .background(.gray)
     }
     
     // MARK: - Horizontal Stack
