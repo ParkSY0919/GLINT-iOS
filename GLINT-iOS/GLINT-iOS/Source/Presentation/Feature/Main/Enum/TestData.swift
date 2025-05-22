@@ -40,10 +40,10 @@ struct HotTrend: Identifiable {
 // MARK: - 오늘의 작가 모델
 struct Artist: Identifiable {
     let id = UUID()
-    let profileImageName: String
+    let profileImage: ImageResource
     let name: String
     let nickname: String
-    let worksImageNames: [String] // 작가 작품 이미지 이름 배열
+    let worksImage: [ImageResource] // 작가 작품 이미지 이름 배열
     let tags: [String]
     let introductionTitle: String
     let introductionBody: String
@@ -75,13 +75,14 @@ struct DummyFilterAppData {
     ]
 
     static let todayArtist = Artist(
-        profileImageName: "artist_profile",
+        profileImage: .artistMock,
         name: "윤새싹",
         nickname: "SESAC YOON",
-        worksImageNames: ["artist_work_1", "artist_work_2", "artist_work_3"],
+        worksImage: [.workImageMock1, .workImageMock2, .workImageMock3],
         tags: ["#섬세할", "#자연", "#미니멀"],
         introductionTitle: "\"자연의 섬세함을 담아내는 감성 사진작\"",
         introductionBody: "윤새싹은 자연의 섬세한 아름다움을 포착하는 데 탁월한 감각을 지닌 사진작가입니다. 그녀의 작품은 일상 속에서 쉽게 지나칠 수 있는 순간들을 특별하게 담아내며, 관람객들에게 새로운 시각을 선사합니다."
     )
 }
+
 
