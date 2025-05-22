@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct BannerView: View {
     let items: [BannerItem]
     @State private var currentIndex = 0
