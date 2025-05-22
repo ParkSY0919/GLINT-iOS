@@ -14,11 +14,11 @@ struct ContentView: View {
                 .imageScale(.large)
                 .foregroundStyle(.tint)
             Text("Hello, world! - Title")
-                .font(.pointFont(.title_32))
+                .font(.pointFont(.title, size: 32))
             Text("Hello, world! - Body")
-                .font(.pointFont(.body_20))
+//                .font(.pointFont(.body_20))
             Text("Hello, world! - Caption")
-                .font(.pointFont(.caption_14))
+//                .font(.pointFont(.caption_14))
             Button("Tap me") {
                 // Config가 정의되지 않음. 임시 주석 처리
                 // print(Config.baseURL)

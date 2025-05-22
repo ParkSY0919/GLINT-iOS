@@ -51,13 +51,13 @@ struct TodayFilterView: View {
    
    private func smallTitleView() -> some View {
        Text(filter.smallTitle)
-           .font(.pretendardFont(.body3_13))
+           .font(.pretendardFont(.body_medium, size: 13))
            .foregroundColor(.white.opacity(0.8))
    }
    
    private func largeTitleView() -> some View {
        Text(filter.largeTitle)
-           .font(.pointFont(.title_32))
+           .font(.pointFont(.title, size: 32))
            .foregroundColor(.white)
            .lineLimit(2, reservesSpace: true)
            .padding(.top, 0.4)
@@ -66,7 +66,7 @@ struct TodayFilterView: View {
    
    private func descriptionView() -> some View {
        Text(filter.description)
-           .font(.pretendardFont(.caption1_12))
+           .font(.pretendardFont(.caption, size: 12))
            .foregroundColor(.white.opacity(0.9))
            .lineLimit(4, reservesSpace: true)
    }

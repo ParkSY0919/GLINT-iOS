@@ -78,7 +78,7 @@ struct CategoryButtonsView: View {
     // MARK: - Label
     private func categoryLabel(for category: FilterCategory) -> some View {
         Text(category.name)
-            .font(.pretendardFont(.caption2_10_semibold))
+            .font(.pretendardFont(.caption_semi, size: 10))
             .foregroundColor(.gray60)
     }
     

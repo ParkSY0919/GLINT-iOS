@@ -8,76 +8,46 @@
 import SwiftUI
 
 enum PointFontName {
-    case title_32
-    case body_20
-    case caption_14
+    case title
+    case body
+    case caption
     
     var rawValue: String {
         switch self {
-        case .title_32:
+        case .title:
             return "TTHakgyoansimMulgyeolB"
-        case .body_20:
+        case .body:
             return "OTHakgyoansimMulgyeolB"
-        case .caption_14:
+        case .caption:
             return "TTHakgyoansimMulgyeolR"
-        }
-    }
-    
-    var size: CGFloat {
-        switch self {
-        case .title_32:
-            return 32
-        case .body_20:
-            return 20
-        case .caption_14:
-            return 14
         }
     }
 }
 
 enum PretendardFontName {
-    case title_20
-    case body1_16, body2_14, body3_13
-    case caption1_12, caption2_10, caption3_8, caption2_10_semibold
+    case title_bold
+    case body_bold, body_medium
+    case caption, caption_semi
     
     var rawValue: String {
         switch self {
-        case .title_20, .caption2_10_semibold:
+        case .title_bold, .body_bold, .caption_semi:
             return "Pretendard-Bold"
-        case .body1_16, .body2_14, .body3_13:
+        case .body_medium:
             return "Pretendard-Medium"
-        case .caption1_12, .caption2_10, .caption3_8:
+        case .caption:
             return "Pretendard-Regular"
-        }
-    }
-    
-    var size: CGFloat {
-        switch self {
-        case .title_20:
-            return 20
-        case .body1_16:
-            return 16
-        case .body2_14:
-            return 14
-        case .body3_13:
-            return 13
-        case .caption1_12:
-            return 12
-        case .caption2_10, .caption2_10_semibold:
-            return 10
-        case .caption3_8:
-            return 8
         }
     }
 }
 
 extension Font {
-    static func pointFont(_ style: PointFontName) -> Font {
-        return Font.custom(style.rawValue, size: style.size)
+    static func pointFont(_ style: PointFontName, size: CGFloat) -> Font {
+        return Font.custom(style.rawValue, size: size)
     }
     
-    static func pretendardFont(_ style: PretendardFontName) -> Font {
-        return Font.custom(style.rawValue, size: style.size)
+    static func pretendardFont(_ style: PretendardFontName, size: CGFloat) -> Font {
+        return Font.custom(style.rawValue, size: size)
     }
 }
 
