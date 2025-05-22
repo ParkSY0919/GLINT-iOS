@@ -23,12 +23,15 @@ struct CategoryButtonsView: View {
     
     // MARK: - Container View
     private func categoryButtonsContainer() -> some View {
-        HStack(spacing: 17.5) {
+        HStack(spacing: 0) {
             ForEach(categories) { category in
                 categoryButton(for: category)
+                
+                if categories.last != category {
+                    Spacer()
+                }
             }
         }
-        .padding(.horizontal)
         .frame(height: buttonSize)
     }
     
@@ -44,18 +47,18 @@ struct CategoryButtonsView: View {
     
     // MARK: - Button Content
     private func categoryButtonContent(for category: FilterCategory) -> some View {
-        ZStack {
-            categoryBackgroundShape()
-            categoryContentStack(for: category)
-        }
-        .frame(width: buttonSize, height: buttonSize)
+        categoryContentStack(for: category)
+            .padding(.horizontal, 12)
+            .frame(height: buttonSize)
+            .background {
+                categoryBackgroundShape()
+            }
     }
     
     // MARK: - Background Shape
     private func categoryBackgroundShape() -> some View {
         RoundedRectangle(cornerRadius: 12)
-            .fill(Color.gray75.opacity(0.2))
-            .frame(width: buttonSize, height: buttonSize)
+            .fill(Color.gray75.opacity(0.4))
     }
     
     // MARK: - Content Stack
