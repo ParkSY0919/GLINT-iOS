@@ -30,6 +30,7 @@ struct BannerView: View {
             .onReceive(timer) { _ in
                 handleTimerUpdate()
             }
+            .padding(.horizontal, 20)
     }
     
     // MARK: - Banner TabView
@@ -76,6 +77,6 @@ struct BannerView: View {
 }
 #Preview {
     BannerView(items: DummyFilterAppData.bannerItems)
-        .padding()
+//        .padding()
 }
 
