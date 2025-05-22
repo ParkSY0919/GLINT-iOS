@@ -27,13 +27,13 @@ enum PointFontName {
 enum PretendardFontName {
     case title_bold
     case body_bold, body_medium
-    case caption, caption_semi
+    case caption, caption_medium, caption_semi
     
     var rawValue: String {
         switch self {
         case .title_bold, .body_bold, .caption_semi:
             return "Pretendard-Bold"
-        case .body_medium:
+        case .body_medium, .caption_medium:
             return "Pretendard-Medium"
         case .caption:
             return "Pretendard-Regular"
