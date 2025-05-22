@@ -39,6 +39,7 @@ extension UserUseCase {
         )
     }()
     
+    //TODO: 이거 테스트 코드에서 바로 불러와쓰자.
     static let mockValue: UserUseCase = {
         let signInResponse = SignInResponse(
             userID: "mock",

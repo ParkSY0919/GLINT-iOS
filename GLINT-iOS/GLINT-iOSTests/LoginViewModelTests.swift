@@ -64,7 +64,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_이메일_형식_검증() {
         print("\nㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
         print(#function)
-        viewModel = LoginViewModel(userUseCase: mockSuccessUserUseCase)
+        viewModel = LoginViewModel(userUseCase: UserUseCase.mockValue)
         viewModel.email = "invalid-email"
         // debounce가 있으므로 직접 검증 메서드 호출
 //        let isValid = viewModel.value(forKey: "validateEmailFormat:") as? ((String) -> Bool)
