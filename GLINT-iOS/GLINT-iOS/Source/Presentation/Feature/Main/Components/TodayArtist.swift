@@ -29,7 +29,8 @@ struct TodayArtistView: View {
     private func sectionTitle() -> some View {
         Text("오늘의 작가 소개")
             .font(.pretendardFont(.body_bold, size: 16))
-            .padding(.horizontal)
+            .padding(.leading, 20)
+            
     }
     
     // MARK: - Artist Profile Section
@@ -38,8 +39,8 @@ struct TodayArtistView: View {
             artistProfileImage()
             artistNameSection()
         }
-        .padding(.horizontal)
         .padding(.top, 14)
+        .padding(.leading, 20)
     }
     
     private func artistProfileImage() -> some View {
@@ -75,6 +76,7 @@ struct TodayArtistView: View {
         }
         .frame(height: 80)
         .padding(.top, 10)
+        .padding(.horizontal, 20)
     }
     
     private func artistWorksHorizontalStack() -> some View {
@@ -83,7 +85,6 @@ struct TodayArtistView: View {
                 artistWorkImage(image: image)
             }
         }
-        .padding(.horizontal)
     }
     
     private func artistWorkImage(image: ImageResource) -> some View {
@@ -101,7 +102,7 @@ struct TodayArtistView: View {
                 artistTag(tag: tag)
             }
         }
-        .padding(.horizontal)
+        .padding(.leading, 20)
         .padding(.top, 10)
     }
     
@@ -120,7 +121,7 @@ struct TodayArtistView: View {
             artistIntroductionTitle()
             artistIntroductionBody()
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 20)
         .padding(.top, 20)
     }
     
