@@ -7,43 +7,73 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct BannerView: View {
     let items: [BannerItem]
     @State private var currentIndex = 0
-    private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect() // 10초 타이머
-
+    private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    
     var body: some View {
-        TabView(selection: $currentIndex) { // 페이징 TabView 사용
-            ForEach(items.indices, id: \.self) { index in
-                Image(items[index].imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .tag(index)
-                    .onTapGesture {
-                        print("배너 \(index + 1) 탭됨")
-                    }
+        bannerContainer()
+    }
+    
+    // MARK: - Container
+    private func bannerContainer() -> some View {
+        bannerTabView()
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 100)
+            .clipShape(RoundedRectangle(cornerRadius: 15))
+            .overlay(alignment: .bottomTrailing) {
+                pageIndicator()
             }
-        }
-        .tabViewStyle(.page(indexDisplayMode: .never))
-        .frame(height: 100)
-        .clipShape(RoundedRectangle(cornerRadius: 15))
-        .overlay(alignment: .bottomTrailing) {
-            Text("\(currentIndex + 1) / \(items.count)")
-                .font(.caption2)
-                .padding(EdgeInsets(top: 3, leading: 6, bottom: 3, trailing: 6))
-                .background(.black.opacity(0.5))
-                .foregroundColor(.white)
-                .clipShape(Capsule())
-                .padding(10)
-        }
-        .onReceive(timer) { _ in
-            withAnimation(.default) {
-                currentIndex = (currentIndex + 1) % items.count // 다음 인덱스로 (순환)
+            .onReceive(timer) { _ in
+                handleTimerUpdate()
+            }
+    }
+    
+    // MARK: - Banner TabView
+    private func bannerTabView() -> some View {
+        TabView(selection: $currentIndex) {
+            ForEach(items.indices, id: \.self) { index in
+                bannerItem(at: index)
             }
         }
     }
+    
+    // MARK: - Banner Item
+    private func bannerItem(at index: Int) -> some View {
+        Image(items[index].imageName)
+            .resizable()
+            .scaledToFill()
+            .tag(index)
+            .onTapGesture {
+                handleBannerTap(at: index)
+            }
+    }
+    
+    // MARK: - Page Indicator
+    private func pageIndicator() -> some View {
+        Text("\(currentIndex + 1) / \(items.count)")
+            .font(.caption2)
+            .padding(EdgeInsets(top: 3, leading: 6, bottom: 3, trailing: 6))
+            .background(.black.opacity(0.5))
+            .foregroundColor(.white)
+            .clipShape(Capsule())
+            .padding(10)
+    }
+    
+    // MARK: - Actions
+    private func handleBannerTap(at index: Int) {
+        print("배너 \(index + 1) 탭됨")
+    }
+    
+    private func handleTimerUpdate() {
+        withAnimation(.default) {
+            currentIndex = (currentIndex + 1) % items.count
+        }
+    }
 }
-
 #Preview {
     BannerView(items: DummyFilterAppData.bannerItems)
         .padding()
