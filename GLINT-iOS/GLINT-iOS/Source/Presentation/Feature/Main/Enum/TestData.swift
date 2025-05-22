@@ -32,7 +32,7 @@ struct BannerItem: Identifiable {
 // MARK: - 핫 트렌드 모델
 struct HotTrend: Identifiable {
     let id = UUID()
-    let imageName: String
+    let image: Image
     let title: String
     let likes: Int
 }
@@ -69,10 +69,9 @@ struct DummyFilterAppData {
     static let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") } // "banner_image_1" ... "banner_image_12"
 
     static let hotTrends: [HotTrend] = [
-        HotTrend(imageName: "trend_image_1", title: "어떤영화", likes: 30), // 왼쪽 어두운 이미지
-        HotTrend(imageName: "trend_image_2", title: "소낙새", likes: 121), // 가운데 밝은 이미지
-        HotTrend(imageName: "trend_image_3", title: "화양연화", likes: 88), // 오른쪽 어두운 이미지 (다음 슬라이드 시 가운데로 올 이미지)
-        HotTrend(imageName: "trend_image_4", title: "다른느낌", likes: 55)
+        HotTrend(image: Image(.hotTrandDummy3), title: "어떤영화", likes: 30), // 왼쪽 어두운 이미지
+        HotTrend(image: Image(.hotTrandDummy2), title: "소낙새", likes: 121), // 가운데 밝은 이미지
+        HotTrend(image: Image(.hotTrandDummy3), title: "화양연화", likes: 88), //오른쪽
     ]
 
     static let todayArtist = Artist(
