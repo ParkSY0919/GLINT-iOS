@@ -11,9 +11,25 @@ import Foundation
 struct SignInResponse: Codable {
     let userID, email, nick: String
     let accessToken, refreshToken: String
-
+    
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
         case email, nick, accessToken, refreshToken
     }
 }
+
+extension SignInResponse {
+    func toEntity() -> SignInEntity {
+        .init(
+            userID: self.userID,
+            email: self.email,
+            nick: self.nick,
+            accessToken: self.accessToken,
+            refreshToken: self.refreshToken
+        )
+    }
+}
+
+
+
+

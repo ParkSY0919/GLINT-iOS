@@ -16,3 +16,15 @@ struct SignUpResponse: Decodable {
         case email, nick, accessToken, refreshToken
     }
 }
+
+extension SignUpResponse {
+    func toEntity() -> SignUpEntity {
+        .init(
+            userID: userID,
+            email: email,
+            nick: nick,
+            accessToken: accessToken,
+            refreshToken: refreshToken
+        )
+    }
+}
