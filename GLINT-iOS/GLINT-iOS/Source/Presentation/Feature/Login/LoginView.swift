@@ -6,12 +6,12 @@
 //
 
 import SwiftUI
-import AuthenticationServices
 import Combine
 
 struct LoginView: View {
     @StateObject private var viewModel = LoginViewModel()
-//    @Environment(\.userUseCase.)
+    //TODO: 추후 이런 형식으로 수정하기
+//    @Environment(\.userUseCase) var userUseCase
     
     //MARK: - Body
     var body: some View {

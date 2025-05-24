@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Combine
-import AuthenticationServices
 
 enum LoginState: Equatable {
     case idle
