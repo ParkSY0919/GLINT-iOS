@@ -20,19 +20,15 @@ final class GLogger {
     private let dateFormatter: DateFormatter
     
     private init() {
-        // Modern Logger 초기화 (iOS 14+)
         self.generalLogger = Logger(subsystem: "com.yourapp.glint", category: "General")
         self.networkLogger = Logger(subsystem: "com.yourapp.glint", category: "Network")
         self.authLogger = Logger(subsystem: "com.yourapp.glint", category: "Auth")
         self.uiLogger = Logger(subsystem: "com.yourapp.glint", category: "UI")
         self.dataLogger = Logger(subsystem: "com.yourapp.glint", category: "Data")
         
-        // DateFormatter 초기화
         self.dateFormatter = DateFormatter()
         self.dateFormatter.dateFormat = "HH:mm:ss.SSS"
     }
-    
-    // MARK: - General Logging Methods
     
     /// 일반적인 정보 로그
     func i(_ message: String, file: String = #file, line: Int = #line) {
@@ -115,8 +111,6 @@ final class GLogger {
         #endif
     }
     
-    // MARK: - Network Specific Logging (Modern)
-    
     /// 네트워크 요청 시작 로그
     func networkRequest(_ url: String, method: String = "GET", file: String = #file, line: Int = #line) {
         #if DEBUG
@@ -167,8 +161,6 @@ final class GLogger {
         #endif
     }
     
-    // MARK: - Auth Specific Logging (Modern)
-    
     /// 인증 정보 로그 (민감 정보 제외)
     func auth(_ message: String, file: String = #file, line: Int = #line) {
         #if DEBUG
@@ -198,8 +190,6 @@ final class GLogger {
         }
         #endif
     }
-    
-    // MARK: - UI Specific Logging (Modern)
     
     /// UI 이벤트 로그
     func ui(_ message: String, file: String = #file, line: Int = #line) {
