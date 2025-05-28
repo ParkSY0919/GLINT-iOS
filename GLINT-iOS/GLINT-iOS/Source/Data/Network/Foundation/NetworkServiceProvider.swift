@@ -12,16 +12,10 @@ import Alamofire
 
 // MARK: - Network Service Provider 프로토콜
 protocol NetworkServiceProvider {
-    // 응답 바디가 있는 요청 (Decodable)
-    func request<T: EndPoint, R: Decodable>(
-        target: T,
-        responseType: R.Type,
-        interceptor: RequestInterceptor?
-    ) -> AnyPublisher<R, T.ErrorType>
-
-    // 응답 바디가 없는 요청 (성공 여부만)
-    func request<T: EndPoint>(
-        target: T,
-        interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Void, T.ErrorType>
+    func requestAsync<T: EndPoint, R: Decodable>(target: T, responseType: R.Type, interceptor: RequestInterceptor?) async throws -> R
+    func requestAsync<T: EndPoint>(target: T, interceptor: RequestInterceptor?) async throws
+    
+    // 인증 없이 요청 (로그인 등)
+    func requestWithoutAuth<T: EndPoint, R: Decodable>(target: T, responseType: R.Type) async throws -> R
+    func requestWithoutAuth<T: EndPoint>(target: T) async throws
 }

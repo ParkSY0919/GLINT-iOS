@@ -20,16 +20,22 @@ struct SignInResponse: Codable {
 
 extension SignInResponse {
     func toEntity() -> SignInEntity {
-        .init(
-            userID: self.userID,
-            email: self.email,
-            nick: self.nick,
-            accessToken: self.accessToken,
-            refreshToken: self.refreshToken
+        return SignInEntity(
+            userID: userID,
+            email: email,
+            nick: nick,
+            accessToken: accessToken,
+            refreshToken: refreshToken
         )
     }
 }
 
-
-
-
+struct SocialLoginResponse {
+    let idToken: String
+    let authorizationCode: String
+    
+    init(idToken: String, authorizationCode: String) {
+        self.idToken = idToken
+        self.authorizationCode = authorizationCode
+    }
+}
