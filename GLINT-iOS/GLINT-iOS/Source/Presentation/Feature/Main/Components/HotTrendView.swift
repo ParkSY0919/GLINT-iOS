@@ -10,6 +10,8 @@ import SwiftUI
 // MARK: - HotTrendView
 struct HotTrendView: View {
     let trends: [HotTrend]
+    let router: NavigationRouter<MainTabRoute>
+    
     @State private var centralTrendID: HotTrend.ID?
     
     var body: some View {
@@ -78,7 +80,7 @@ struct HotTrendView: View {
 
 //MARK: - Preview
 #Preview {
-    HotTrendView(trends: DummyFilterAppData.hotTrends)
+    HotTrendView(trends: DummyFilterAppData.hotTrends, router: NavigationRouter<MainTabRoute>())
 //        .preferredColorScheme(.dark)
 }
 

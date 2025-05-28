@@ -8,30 +8,43 @@
 import SwiftUI
 
 struct MainView: View {
+    let router: NavigationRouter<MainTabRoute>
+    
     var body: some View {
-        NavigationStack {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading) {
-                    TodayFilterView(filter: DummyFilterAppData.todayFilter)
-                    
-                    BannerView(items: DummyFilterAppData.bannerItems)
-                        .padding(.top, -15)
-                    
-                    HotTrendView(trends: DummyFilterAppData.hotTrends)
-                        .padding(.top, 30)
-                    
-                    TodayArtistView(artist: DummyFilterAppData.todayArtist)
-                        .padding(.top, 30)
-                }
-                .padding(.bottom, 20)
+        ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading) {
+                TodayFilterView(
+                    filter: DummyFilterAppData.todayFilter,
+                    router: router
+                )
+                
+                BannerView(
+                    items: DummyFilterAppData.bannerItems,
+                    router: router
+                )
+                .padding(.top, -15)
+                
+                HotTrendView(
+                    trends: DummyFilterAppData.hotTrends,
+                    router: router
+                )
+                .padding(.top, 30)
+                
+                TodayArtistView(
+                    artist: DummyFilterAppData.todayArtist,
+                    router: router
+                )
+                .padding(.top, 30)
             }
-            .ignoresSafeArea(.all, edges: .top)
+            .padding(.bottom, 20)
         }
+        .ignoresSafeArea(.all, edges: .top)
+        .background(.gray100)
     }
 }
 
+
 #Preview {
-    MainView()
+    MainView(router: NavigationRouter<MainTabRoute>())
         .preferredColorScheme(.dark)
 }
-

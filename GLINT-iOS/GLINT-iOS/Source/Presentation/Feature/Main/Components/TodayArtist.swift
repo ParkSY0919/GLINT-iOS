@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TodayArtistView: View {
     let artist: Artist
+    let router: NavigationRouter<MainTabRoute>
     
     var body: some View {
         artistContainer()
@@ -30,6 +31,7 @@ struct TodayArtistView: View {
         Text("오늘의 작가 소개")
             .font(.pretendardFont(.body_bold, size: 16))
             .padding(.leading, 20)
+            .foregroundColor(.gray60)
             
     }
     
@@ -61,12 +63,13 @@ struct TodayArtistView: View {
     private func artistName() -> some View {
         Text(artist.name)
             .font(.pointFont(.body, size: 20))
+            .foregroundColor(.gray30)
     }
     
     private func artistNickname() -> some View {
         Text(artist.nickname)
             .font(.pretendardFont(.body_medium, size: 16))
-            .foregroundColor(.gray)
+            .foregroundColor(.gray75)
     }
     
     // MARK: - Artist Works Scroll View
@@ -109,6 +112,7 @@ struct TodayArtistView: View {
     private func artistTag(tag: String) -> some View {
         Text(tag)
             .font(.pointFont(.caption, size: 10))
+            .foregroundColor(.gray60)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(.quaternary)
@@ -128,17 +132,18 @@ struct TodayArtistView: View {
     private func artistIntroductionTitle() -> some View {
         Text(artist.introductionTitle)
             .font(.pointFont(.body, size: 14))
+            .foregroundColor(.gray60)
     }
     
     private func artistIntroductionBody() -> some View {
         Text(artist.introductionBody)
             .font(.pretendardFont(.caption, size: 12))
-            .foregroundColor(.secondary)
+            .foregroundColor(.gray60)
     }
 }
 
 #Preview {
-    TodayArtistView(artist: DummyFilterAppData.todayArtist)
+    TodayArtistView(artist: DummyFilterAppData.todayArtist, router: NavigationRouter<MainTabRoute>())
         .preferredColorScheme(.dark)
 }
 

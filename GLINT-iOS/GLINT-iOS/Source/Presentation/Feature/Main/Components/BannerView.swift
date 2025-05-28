@@ -9,6 +9,8 @@ import SwiftUI
 
 struct BannerView: View {
     let items: [BannerItem]
+    let router: NavigationRouter<MainTabRoute>
+    
     @State private var currentIndex = 0
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
@@ -74,7 +76,7 @@ struct BannerView: View {
     }
 }
 #Preview {
-    BannerView(items: DummyFilterAppData.bannerItems)
+    BannerView(items: DummyFilterAppData.bannerItems, router: NavigationRouter<MainTabRoute>())
 //        .padding()
 }
 

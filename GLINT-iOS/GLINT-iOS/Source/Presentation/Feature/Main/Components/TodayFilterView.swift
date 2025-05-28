@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TodayFilterView: View {
     let filter: TodayFilter
+    let router: NavigationRouter<MainTabRoute>
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -98,6 +99,6 @@ struct TodayFilterView: View {
 }
 
 #Preview {
-    TodayFilterView(filter: DummyFilterAppData.todayFilter)
+    TodayFilterView(filter: DummyFilterAppData.todayFilter, router: NavigationRouter<MainTabRoute>())
 }
 

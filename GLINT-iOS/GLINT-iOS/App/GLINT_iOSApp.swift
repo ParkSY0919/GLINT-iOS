@@ -11,7 +11,7 @@ import SwiftUI
 struct GLINT_iOSApp: App {
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            ContentView()
         }
     }
 }
