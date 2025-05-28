@@ -115,8 +115,6 @@ struct CustomTabBar: View {
         let indicatorWidth = currentIndicatorWidth
         let newXOffset = selectedItemFrame.midX - (indicatorWidth / 2)
 
-        print("Updating indicator to X: \(newXOffset) for tab \(selectedTab) (Frame: \(selectedItemFrame))")
-
         if animated {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 indicatorXOffset = newXOffset
