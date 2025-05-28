@@ -5,8 +5,10 @@
 //  Created by 박신영 on 5/27/25.
 //
 
-import os
 import Foundation
+import os
+
+import Alamofire
 
 final class GLogger {
     static let shared = GLogger()
@@ -32,61 +34,61 @@ final class GLogger {
     
     /// 일반적인 정보 로그
     func i(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.info("ℹ️ [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Debug 로그
     func d(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.debug("🛠 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Error 로그
     func e(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.error("⚠️ [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Warning 로그
     func w(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.warning("⚠️ [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Critical 로그 (시스템 레벨 중요 오류)
     func critical(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.critical("🚨 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Fault 로그 (복구 불가능한 오류)
     func fault(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         generalLogger.fault("💥 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Decodable 객체 로깅 (Modern 방식)
     func dump<T: Encodable>(_ object: T, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         
@@ -108,21 +110,21 @@ final class GLogger {
         // Fallback: 기본 String 변환
         let objectDescription = String(describing: object)
         generalLogger.debug("🖨 [\(timestamp)] [\(fileName):\(line)] \(objectDescription)")
-        #endif
+#endif
     }
     
     /// 네트워크 요청 시작 로그
     func networkRequest(_ url: String, method: String = "GET", file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         networkLogger.info("🚀 [\(timestamp)] [\(fileName):\(line)] \(method) \(url)")
-        #endif
+#endif
     }
     
     /// 네트워크 응답 성공 로그
     func networkSuccess(_ url: String, statusCode: Int = 200, duration: TimeInterval? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         if let duration = duration {
@@ -130,12 +132,12 @@ final class GLogger {
         } else {
             networkLogger.info("✅ [\(timestamp)] [\(fileName):\(line)] \(url) (\(statusCode))")
         }
-        #endif
+#endif
     }
     
     /// 네트워크 응답 실패 로그
     func networkFailure(_ url: String, error: String, statusCode: Int? = nil, duration: TimeInterval? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         
@@ -149,36 +151,98 @@ final class GLogger {
         logMessage += " - \(error)"
         
         networkLogger.error("\(logMessage)")
-        #endif
+#endif
     }
     
     /// 네트워크 응답 바디 로그 (상세 디버깅용)
     func networkResponseBody(_ url: String, statusCode: Int, body: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         networkLogger.debug("📄 [\(timestamp)] [\(fileName):\(line)] \(url) (\(statusCode))\nResponse Body:\n\(body)")
-        #endif
+#endif
+    }
+    
+    /// DataResponse 전체 정보를 로깅 (디버깅용)
+    func networkDataResponse<T>(_ dataResponse: DataResponse<T, AFError>, file: String = #file, line: Int = #line) {
+#if DEBUG
+        let fileName = (file as NSString).lastPathComponent
+        let timestamp = dateFormatter.string(from: Date())
+        
+        let statusCode = dataResponse.response?.statusCode ?? 0
+        let httpMethod = dataResponse.request?.httpMethod ?? "Unknown"
+        let headers = dataResponse.response?.allHeaderFields ?? [:]
+        
+        var logMessage = "🔍 [\(timestamp)] [\(fileName):\(line)] DataResponse Debug:\n"
+        logMessage += "  Method: \(httpMethod)\n"
+        logMessage += "  Status Code: \(statusCode)\n"
+        logMessage += "  Headers: \(headers)\n"
+        
+        // Response Data
+        if let data = dataResponse.data {
+            if data.isEmpty {
+                logMessage += "  Response Data: Empty\n"
+            } else {
+                let dataSize = data.count
+                logMessage += "  Response Data Size: \(dataSize) bytes\n"
+                
+                if let responseString = String(data: data, encoding: .utf8) {
+                    if responseString.count > 1000 {
+                        let truncated = String(responseString.prefix(1000))
+                        logMessage += "  Response Body (truncated): \(truncated)...\n"
+                    } else {
+                        logMessage += "  Response Body: \(responseString)\n"
+                    }
+                } else {
+                    logMessage += "  Response Body: Unable to decode as UTF-8\n"
+                }
+            }
+        } else {
+            logMessage += "  Response Data: nil\n"
+        }
+        
+        // Error Information
+        if let error = dataResponse.error {
+            logMessage += "  Error: \(error.localizedDescription)\n"
+            logMessage += "  Error Type: \(type(of: error))\n"
+        } else {
+            logMessage += "  Error: None\n"
+        }
+        
+        // Request Information
+        if let request = dataResponse.request {
+            logMessage += "  Request Headers: \(request.allHTTPHeaderFields ?? [:])\n"
+            if let httpBody = request.httpBody {
+                if let bodyString = String(data: httpBody, encoding: .utf8) {
+                    logMessage += "  Request Body: \(bodyString)\n"
+                } else {
+                    logMessage += "  Request Body: \(httpBody.count) bytes (binary)\n"
+                }
+            }
+        }
+        
+        networkLogger.debug("\(logMessage)")
+#endif
     }
     
     /// 인증 정보 로그 (민감 정보 제외)
     func auth(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         authLogger.info("🔐 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// 토큰 관련 로그 (민감 정보 제외)
-    func token(_ action: String, success: Bool, details: String? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+    func token(_ action: KeychainKey, success: Bool, details: String? = nil, file: String = #file, line: Int = #line) {
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         let status = success ? "SUCCESS" : "FAILED"
         let icon = success ? "✅" : "❌"
         
-        var message = "\(icon) [\(timestamp)] [\(fileName):\(line)] Token \(action): \(status)"
+        var message = "\(icon) [\(timestamp)] [\(fileName):\(line)] Token \(action.rawValue): \(status)"
         if let details = details {
             message += " - \(details)"
         }
@@ -188,30 +252,30 @@ final class GLogger {
         } else {
             authLogger.error("\(message)")
         }
-        #endif
+#endif
     }
     
     /// UI 이벤트 로그
     func ui(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         uiLogger.info("🎨 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// 화면 전환 로그
     func navigation(_ from: String, to: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         uiLogger.info("🧭 [\(timestamp)] [\(fileName):\(line)] \(from) → \(to)")
-        #endif
+#endif
     }
     
     /// 사용자 인터랙션 로그
     func userAction(_ action: String, target: String? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         if let target = target {
@@ -219,23 +283,23 @@ final class GLogger {
         } else {
             uiLogger.info("👆 [\(timestamp)] [\(fileName):\(line)] User \(action)")
         }
-        #endif
+#endif
     }
     
     // MARK: - Data Specific Logging (Modern)
     
     /// 데이터 작업 로그
     func data(_ message: String, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         dataLogger.info("💾 [\(timestamp)] [\(fileName):\(line)] \(message)")
-        #endif
+#endif
     }
     
     /// Repository 작업 로그
     func repository(_ action: String, entity: String, success: Bool, duration: TimeInterval? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         let status = success ? "✅" : "❌"
@@ -250,12 +314,12 @@ final class GLogger {
         } else {
             dataLogger.error("\(message)")
         }
-        #endif
+#endif
     }
     
     /// 캐시 작업 로그
     func cache(_ action: String, key: String, hit: Bool? = nil, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         
@@ -265,14 +329,14 @@ final class GLogger {
         }
         
         dataLogger.debug("\(message)")
-        #endif
+#endif
     }
     
     // MARK: - Performance Logging (New)
     
     /// 성능 측정 로그
     func performance(_ operation: String, duration: TimeInterval, file: String = #file, line: Int = #line) {
-        #if DEBUG
+#if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
         let durationString = String(format: "%.3fs", duration)
@@ -283,7 +347,7 @@ final class GLogger {
         } else {
             generalLogger.debug("⏱️ [\(timestamp)] [\(fileName):\(line)] \(operation): \(durationString)")
         }
-        #endif
+#endif
     }
     
     // MARK: - Convenience Static Methods (기존 호환성)
