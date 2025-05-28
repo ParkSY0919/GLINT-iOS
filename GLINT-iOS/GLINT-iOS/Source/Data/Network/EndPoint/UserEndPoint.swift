@@ -15,6 +15,7 @@ enum UserEndPoint {
     case signIn(SignInRequest)
     case signInForApple(SignInRequestForApple)
     case signInForKakao(SignInRequestForKakao)
+//    case todayArtist
 }
 
 extension UserEndPoint: EndPoint {

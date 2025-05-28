@@ -5,6 +5,14 @@
 //  Created by 박신영 on 5/10/25.
 //
 
+//TODO: 해야할 일
+/// 1. 인터셉터 O
+/// 1-1. Keychain Manager O
+/// 1-2. LoginManager O
+/// 2. 라우터
+/// 3. 옵저버블 매크로 적용
+/// 4. 뉴크
+
 import Foundation
  
 enum Config {
