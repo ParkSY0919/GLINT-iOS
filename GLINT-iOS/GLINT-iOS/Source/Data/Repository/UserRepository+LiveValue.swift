@@ -9,35 +9,35 @@ import Foundation
 
 import Alamofire
 
+
 extension UserRepository {
     static let liveValue: UserRepository = {
         let provider: NetworkServiceProvider = CombineNetworkProvider()
-
+        
         return UserRepository(
             checkEmailValidation: { request in
                 let endPoint = UserEndPoint.checkEmailValidation(request)
-                try await provider.request(target: endPoint, interceptor: nil).awaitCompletion()
+                // 이메일 검증은 인증이 필요 없으므로 인터셉터 없이 요청
+                try await provider.requestWithoutAuth(target: endPoint)
             },
             signUp: { request in
                 let endPoint = UserEndPoint.signUp(request)
-                return try await provider.request(target: endPoint, responseType: SignUpResponse.self, interceptor: nil).firstValue()
+                // 회원가입도 인증이 필요 없으므로 인터셉터 없이 요청
+                return try await provider.requestWithoutAuth(target: endPoint, responseType: SignUpResponse.self)
             },
             signIn: { request in
                 let endPoint = UserEndPoint.signIn(request)
-                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
+                // 로그인도 인증이 필요 없으므로 인터셉터 없이 요청
+                return try await provider.requestWithoutAuth(target: endPoint, responseType: SignInResponse.self)
             },
             signInApple: { request in
                 let endPoint = UserEndPoint.signInForApple(request)
-                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
+                return try await provider.requestWithoutAuth(target: endPoint, responseType: SignInResponse.self)
             },
             signInKakao: { request in
                 let endPoint = UserEndPoint.signInForKakao(request)
-                return try await provider.request(target: endPoint, responseType: SignInResponse.self, interceptor: nil).firstValue()
+                return try await provider.requestWithoutAuth(target: endPoint, responseType: SignInResponse.self)
             }
         )
     }()
 }
-
-
-
-
