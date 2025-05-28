@@ -97,7 +97,7 @@ struct LoginView: View {
         HStack {
             Rectangle().fill(Color(uiColor: .systemGray4)).frame(height: 1)
             Button {
-                viewModel.navigateToCreateAccount() // ViewModel 함수 호출
+//                viewModel.navigateToCreateAccount() // ViewModel 함수 호출
             } label: {
                 Text("회원가입") // 직접 텍스트 사용
                     .font(.system(size: 14))
@@ -117,7 +117,7 @@ struct LoginView: View {
                 viewModel.appleLogin() // ViewModel 함수 호출
             }
             SocialLoginButtonView(type: .kakao) { // SocialLoginButtonView 정의 필요
-                viewModel.kakaoLogin() // ViewModel 함수 호출
+//                viewModel.kakaoLogin() // ViewModel 함수 호출
             }
         }
     }

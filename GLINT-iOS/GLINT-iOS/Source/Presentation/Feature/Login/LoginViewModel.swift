@@ -8,30 +8,33 @@
 import SwiftUI
 import Combine
 
-enum LoginState: Equatable {
-    case idle
-    case loading
-    case success
-    case failure(String)
-}
-
 final class LoginViewModel: ObservableObject {
+    enum LoginState: Equatable {
+        case idle
+        case loading
+        case success
+        case failure(String)
+    }
+    
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var loginState: LoginState = .idle
     @Published var isEmailValidForUI: Bool = true
     @Published var isPasswordValid: Bool = true
-
+    
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - UseCases (Struct 기반)
     private let userUseCase: UserUseCase
-
-    init(userUseCase: UserUseCase = .liveValue) {
+    private let keychain: KeychainProvider
+    
+    init(userUseCase: UserUseCase = .liveValue, keychain: KeychainProvider = .shared) {
         self.userUseCase = userUseCase
+        self.keychain = keychain
         setupEmailValidationBinding()
+        keychain.saveDeviceUUID()
     }
-
+    
     private func setupEmailValidationBinding() {
         $email
             .dropFirst()
@@ -46,7 +49,7 @@ final class LoginViewModel: ObservableObject {
                 self?.isEmailValidForUI = self?.validateEmailFormat(emailToValidate) ?? true
             }
             .store(in: &cancellables)
-
+        
         $password
             .dropFirst()
             .debounce(for: .seconds(0.5), scheduler: RunLoop.main)
@@ -57,20 +60,20 @@ final class LoginViewModel: ObservableObject {
             }
             .assign(to: &$isPasswordValid)
     }
-
+    
     // MARK: - UI 피드백용 유효성 검사 메서드 (로컬)
     private func validateEmailFormat(_ email: String) -> Bool {
         let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
         return emailPredicate.evaluate(with: email)
     }
-
+    
     private func validatePasswordFormat(_ password: String) -> Bool {
         let passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$"
         let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
         return passwordPredicate.evaluate(with: password)
     }
-
+    
     // MARK: - 서버 이메일 중복/유효성 검사 (UseCase 사용)
     @MainActor
     func checkEmailAvailability() async {
@@ -79,12 +82,12 @@ final class LoginViewModel: ObservableObject {
             return
         }
         isEmailValidForUI = true
-
+        
         loginState = .loading
         let request = CheckEmailValidationRequest(email: email)
         
         do {
-            try await userUseCase.checkEmailValidation(request)
+            let response = try await userUseCase.checkEmailValidation(request)
             loginState = .idle // 성공시 idle로 돌아감
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {
@@ -92,7 +95,7 @@ final class LoginViewModel: ObservableObject {
             print("서버 이메일 유효성 검사 실패 (ViewModel): \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - 회원가입 메서드 (UseCase 사용)
     @MainActor
     func signUp() async {
@@ -123,7 +126,7 @@ final class LoginViewModel: ObservableObject {
             print("회원가입 실패 (ViewModel): \(error.localizedDescription)")
         }
     }
-
+    
     // MARK: - 일반 로그인 메서드
     @MainActor
     func loginWithEmail() async {
@@ -138,64 +141,51 @@ final class LoginViewModel: ObservableObject {
         loginState = .loading
         // 실제로는 LoginUseCase 호출
         
-        let request = SignInRequest(email: "qhr498@naver.com", password: "sesac1234@", deviceToken: "psyDeviceToken")
-        
-        do {
-            loginState = .success
-            let response = try await userUseCase.signIn(request)
-            print("response: \n\(response)")
-        } catch {
-            loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
+        if let deviceId = keychain.getDeviceUUID() {
+            let request = SignInRequest(email: email, password: password, deviceToken: deviceId)
+            
+            do {
+                loginState = .success
+                let response = try await userUseCase.signIn(request)
+                print("response: \n\(response)")
+            } catch {
+                loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
+            }
+        } else {
+            print("deviceId 없음")
         }
     }
-
+    
     // MARK: - Apple 로그인 메서드
     @MainActor
     func appleLogin() {
         loginState = .loading
-        LoginManager.shared.appleLogin { [weak self] (result: Result<(identityToken: String?, authCode: String?), Error>) in
-            guard let self = self else { return }
-            switch result {
-            case .success(let (identityToken: token, authCode: authCode)):
-                guard let token = token else {
-                    self.loginState = .failure("토큰이 없습니다.")
-                    return
-                }
-                Task {
-                    do {
-                        let request = SignInRequestForApple(idToken: token, deviceToken: "psyDeviceToken", nick: "psy")
-                        let response = try await self.userUseCase.signInApple(request)
-                        self.loginState = .success
-                    } catch {
-                        self.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
-                    }
-                }
-            case .failure(let error):
-                self.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
-            }
+        
+        Task {
+            // 애플 로그인 요청
+            let manager = LoginManager()
+            let socialLoginResponse = try await manager.appleLogin()
+            
+            // SocialLoginResponse에서 필요한 데이터 추출
+            let request = SignInRequestForApple(
+                idToken: socialLoginResponse.idToken,
+                deviceToken: "psyDeviceToken",
+                nick: "psy"
+            )
+            
+            // 서버에 로그인 요청
+            let response = try await self.userUseCase.signInApple(request)
+            self.loginState = .success
+            
         }
     }
-
-    // MARK: - 카카오 로그인 메서드
-    @MainActor
-    func kakaoLogin() {
-        loginState = .loading
-        print("카카오 로그인 로직 실행 (ViewModel)")
-        
-//        do {
-//            loginState = .idle // 성공시 idle로 돌아감
-//            let response = try await userUseCase.signInKakao(request)
-//            print("response: \n\(response)")
-//        } catch {
-//            loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
-//        }
-    }
-
-    // MARK: - 계정 생성 화면 이동 요청
-    func navigateToCreateAccount() {
-        print("회원가입 화면으로 이동 요청 (ViewModel)")
-    }
 }
+
+// MARK: - 계정 생성 화면 이동 요청
+func navigateToCreateAccount() {
+    print("회원가입 화면으로 이동 요청 (ViewModel)")
+}
+
 
 // MARK: - Test/Preview용 ViewModel 생성
 extension LoginViewModel {
