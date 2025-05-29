@@ -7,6 +7,7 @@
 
 import Foundation
 
+//MARK: - TodayArtistEntity
 struct TodayArtistEntity {
     let author: TodayAuthorEntity
     let filters: [TodayArtistFilterEntity]
@@ -26,7 +27,7 @@ extension TodayArtistEntity {
     struct TodayArtistFilterEntity {
         let filterID, category, title, description: String
         let files: [String]
-        let creator: TodayArtistEntity
+        let creator: TodayAuthorEntity
         let isLiked: Bool
         let likeCount, buyerCount: Int
         let createdAt, updatedAt: String

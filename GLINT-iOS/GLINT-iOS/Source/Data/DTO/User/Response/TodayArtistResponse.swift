@@ -11,12 +11,17 @@ import Foundation
 struct TodayArtistResponse: Decodable {
     let author: TodayAuthor
     let filters: [TodayArtistFilter]
+    
+    func toEntity() -> TodayArtistEntity {
+        return TodayArtistEntity(
+            author: author.toEntity(),
+            filters: filters.map { $0.toEntity() }
+        )
+    }
 }
 
 extension TodayArtistResponse {
-
-
-    // MARK: - TodayArtist
+    // MARK: - TodayAuthor
     struct TodayAuthor: Decodable {
         let userID, nick, name, introduction: String
         let description: String?
@@ -29,7 +34,7 @@ extension TodayArtistResponse {
         }
         
         func toEntity() -> TodayArtistEntity.TodayAuthorEntity {
-            return .init(
+            return TodayArtistEntity.TodayAuthorEntity(
                 userID: self.userID,
                 nick: self.nick,
                 name: self.name,
@@ -59,8 +64,21 @@ extension TodayArtistResponse {
             case createdAt, updatedAt
         }
         
+        func toEntity() -> TodayArtistEntity.TodayArtistFilterEntity {
+            return TodayArtistEntity.TodayArtistFilterEntity(
+                filterID: self.filterID,
+                category: self.category,
+                title: self.title,
+                description: self.description,
+                files: self.files,
+                creator: self.creator.toEntity(),
+                isLiked: self.isLiked,
+                likeCount: self.likeCount,
+                buyerCount: self.buyerCount,
+                createdAt: self.createdAt,
+                updatedAt: self.updatedAt
+            )
+        }
     }
-    
-    
 }
 
