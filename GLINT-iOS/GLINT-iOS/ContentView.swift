@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var rootRouter = RootRouter()  // ✅ 상태 유지
+    @State private var rootRouter = RootRouter()
     
     var body: some View {
         rootView

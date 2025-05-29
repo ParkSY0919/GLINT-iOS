@@ -9,7 +9,6 @@ import Foundation
 
 import Alamofire
 
-
 extension UserRepository {
     static let liveValue: UserRepository = {
         let provider: NetworkServiceProvider = CombineNetworkProvider()
