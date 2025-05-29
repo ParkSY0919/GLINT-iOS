@@ -8,9 +8,9 @@
 import Foundation
 
 struct UserUseCase {
-    var checkEmailValidation: (_ request: CheckEmailValidationRequest) async throws -> Bool
-    var signUp: (_ request: SignUpRequest) async throws -> SignInResponseEntity
-    var signIn: (_ request: SignInRequest) async throws -> SignInResponseEntity
-    var signInApple: (_ request: SignInRequestForApple) async throws -> SignInResponseEntity
-    var signInKakao: (_ request: SignInRequestForKakao) async throws -> SignInResponseEntity
+    var checkEmailValidation: (_ request: CheckEmailValidationRequestEntity) async throws -> Bool
+    var signUp: (_ request: SignUpRequestEntity) async throws -> SignInResponseEntity
+    var signIn: (_ request: SignInRequestEntity) async throws -> SignInResponseEntity
+    var signInApple: (_ request: SignInRequestAppleEntity) async throws -> SignInResponseEntity
+    var signInKakao: (_ request: SignInRequestKakaoEntity) async throws -> SignInResponseEntity
 }

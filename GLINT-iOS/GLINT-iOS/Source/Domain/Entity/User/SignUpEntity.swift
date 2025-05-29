@@ -7,6 +7,20 @@
 
 import Foundation
 
+struct SignUpRequestEntity: Codable {
+    let email, password: String
+    let deviceToken: String
+    
+    func toRequest() -> SignUpRequest {
+        return .init(
+            email: email,
+            password: password,
+            nick: "psy",
+            deviceToken: deviceToken
+        )
+    }
+}
+
 struct SignUpResponseEntity {
     let userID: String
     let email: String

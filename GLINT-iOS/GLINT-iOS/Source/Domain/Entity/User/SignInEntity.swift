@@ -7,6 +7,38 @@
 
 import Foundation
 
+struct SignInRequestAppleEntity {
+    let idToken, deviceToken, nick: String
+    
+    func toAppleRequest() -> SignInRequestForApple {
+        return .init(
+            idToken: idToken,
+            deviceToken: deviceToken,
+            nick: nick
+        )
+    }
+}
+
+struct SignInRequestKakaoEntity {
+    let oauthToken, deviceToken: String
+    
+    func toKakaoRequest() -> SignInRequestForKakao {
+        return .init(oauthToken: oauthToken, deviceToken: deviceToken)
+    }
+}
+
+struct SignInRequestEntity: Codable {
+    let email, password, deviceToken: String
+    
+    func toRequest() -> SignInRequest {
+        return .init(
+            email: email,
+            password: password,
+            deviceToken: deviceToken
+        )
+    }
+}
+
 struct SignInResponseEntity {
     let userID: String
     let email: String
