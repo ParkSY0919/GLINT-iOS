@@ -12,8 +12,8 @@ struct TodayArtistResponse: Decodable {
     let author: TodayAuthor
     let filters: [TodayArtistFilter]
     
-    func toEntity() -> TodayArtistEntity {
-        return TodayArtistEntity(
+    func toEntity() -> TodayArtistResponseEntity {
+        return TodayArtistResponseEntity(
             author: author.toEntity(),
             filters: filters.map { $0.toEntity() }
         )
@@ -33,8 +33,8 @@ extension TodayArtistResponse {
             case nick, name, introduction, description, profileImage, hashTags
         }
         
-        func toEntity() -> TodayArtistEntity.TodayAuthorEntity {
-            return TodayArtistEntity.TodayAuthorEntity(
+        func toEntity() -> TodayArtistResponseEntity.TodayAuthorEntity {
+            return TodayArtistResponseEntity.TodayAuthorEntity(
                 userID: self.userID,
                 nick: self.nick,
                 name: self.name,
@@ -64,8 +64,8 @@ extension TodayArtistResponse {
             case createdAt, updatedAt
         }
         
-        func toEntity() -> TodayArtistEntity.TodayArtistFilterEntity {
-            return TodayArtistEntity.TodayArtistFilterEntity(
+        func toEntity() -> TodayArtistResponseEntity.TodayArtistFilterEntity {
+            return TodayArtistResponseEntity.TodayArtistFilterEntity(
                 filterID: self.filterID,
                 category: self.category,
                 title: self.title,

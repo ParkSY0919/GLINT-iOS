@@ -13,4 +13,5 @@ struct UserRepository {
     var signIn: (_ request: SignInRequest) async throws -> SignInResponse
     var signInApple: (_ request: SignInRequestForApple) async throws -> SignInResponse
     var signInKakao: (_ request: SignInRequestForKakao) async throws -> SignInResponse
+    var todayAuthor: () async throws -> TodayArtistResponse
 }

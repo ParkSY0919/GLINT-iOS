@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SignUpEntity {
+struct SignUpResponseEntity {
     let userID: String
     let email: String
     let nick: String
@@ -15,8 +15,8 @@ struct SignUpEntity {
     let refreshToken: String
 }
 
-extension SignUpEntity {
-    static let mock = SignUpEntity(
+extension SignUpResponseEntity {
+    static let mock = SignUpResponseEntity(
         userID: "1234567890",
         email: "test@test.com",
         nick: "test",

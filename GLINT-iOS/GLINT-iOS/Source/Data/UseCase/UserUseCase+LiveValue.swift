@@ -24,7 +24,7 @@ extension UserUseCase {
                 
                 print("회원가입 요청 성공 (UseCase)")
                 
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -38,7 +38,7 @@ extension UserUseCase {
                 
                 print("이메일 로그인 요청 성공 (UseCase)")
                 
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -52,7 +52,7 @@ extension UserUseCase {
                 
                 print("애플 로그인 요청 성공 (UseCase)")
                 
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -66,7 +66,7 @@ extension UserUseCase {
                 
                 print("카카오 로그인 요청 성공 (UseCase)")
                 
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -78,7 +78,7 @@ extension UserUseCase {
     }()
     
     static let mockValue: UserUseCase = {
-        let mockEntity = SignInEntity(
+        let mockEntity = SignInResponseEntity(
             userID: "mock_user_id",
             email: "mock@test.com",
             nick: "MockUser",
@@ -98,7 +98,7 @@ extension UserUseCase {
             
             signUp: { request in
                 print("Mock: 회원가입 - \(request.email)")
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: "mock_signup_id",
                     email: request.email,
                     nick: "nickname",
@@ -114,7 +114,7 @@ extension UserUseCase {
             
             signInApple: { result in
                 print("Mock: 애플 로그인 - \(result.nick)")
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: "mock_apple_id",
                     email: "apple@mock.com",
                     nick: result.nick,
@@ -125,7 +125,7 @@ extension UserUseCase {
             
             signInKakao: { accessToken in
                 print("Mock: 카카오 로그인")
-                return SignInEntity(
+                return SignInResponseEntity(
                     userID: "mock_kakao_id",
                     email: "kakao@mock.com",
                     nick: "Kakao User",

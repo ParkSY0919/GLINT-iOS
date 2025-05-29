@@ -19,8 +19,8 @@ struct SignInResponse: Codable {
 }
 
 extension SignInResponse {
-    func toEntity() -> SignInEntity {
-        return SignInEntity(
+    func toEntity() -> SignInResponseEntity {
+        return SignInResponseEntity(
             userID: userID,
             email: email,
             nick: nick,

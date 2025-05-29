@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct SignInEntity {
+struct SignInResponseEntity {
     let userID: String
     let email: String
     let nick: String
@@ -15,8 +15,8 @@ struct SignInEntity {
     let refreshToken: String
 }
 
-extension SignInEntity {
-    static let mock = SignInEntity(
+extension SignInResponseEntity {
+    static let mock = SignInResponseEntity(
         userID: "psyyy",
         email: "test@test.com",
         nick: "test",

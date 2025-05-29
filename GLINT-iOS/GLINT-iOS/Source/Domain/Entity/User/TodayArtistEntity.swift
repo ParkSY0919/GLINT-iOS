@@ -8,12 +8,12 @@
 import Foundation
 
 //MARK: - TodayArtistEntity
-struct TodayArtistEntity {
+struct TodayArtistResponseEntity {
     let author: TodayAuthorEntity
     let filters: [TodayArtistFilterEntity]
 }
 
-extension TodayArtistEntity {
+extension TodayArtistResponseEntity {
     
     //MARK: - Author
     struct TodayAuthorEntity {
