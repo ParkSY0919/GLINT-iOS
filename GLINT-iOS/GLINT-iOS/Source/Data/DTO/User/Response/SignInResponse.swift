@@ -33,9 +33,11 @@ extension SignInResponse {
 struct SocialLoginResponse {
     let idToken: String
     let authorizationCode: String
+    let nick: String
     
-    init(idToken: String, authorizationCode: String) {
+    init(idToken: String, authorizationCode: String, nick: String) {
         self.idToken = idToken
         self.authorizationCode = authorizationCode
+        self.nick = nick
     }
 }

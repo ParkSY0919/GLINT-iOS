@@ -13,13 +13,15 @@ extension UserUseCase {
         let keychain = KeychainProvider.shared
         
         return UserUseCase(
-            checkEmailValidation: { request in
+            checkEmailValidation: { entity in
+                let request = entity.toRequest()
                 try await repository.checkEmailValidation(request)
                 print("이메일 유효성 검사 요청 성공 (UseCase)")
                 return true
             },
             
-            signUp: { request in
+            signUp: { entity in
+                let request = entity.toRequest()
                 let response = try await repository.signUp(request)
                 
                 print("회원가입 요청 성공 (UseCase)")
@@ -33,7 +35,8 @@ extension UserUseCase {
                 )
             },
             
-            signIn: { request in
+            signIn: { entity in
+                let request = entity.toRequest()
                 let response = try await repository.signIn(request)
                 
                 print("이메일 로그인 요청 성공 (UseCase)")
@@ -47,7 +50,8 @@ extension UserUseCase {
                 )
             },
             
-            signInApple: { request in
+            signInApple: { entity in
+                let request = entity.toAppleRequest()
                 let response = try await repository.signInApple(request)
                 
                 print("애플 로그인 요청 성공 (UseCase)")
@@ -61,7 +65,8 @@ extension UserUseCase {
                 )
             },
             
-            signInKakao: { request in
+            signInKakao: { entity in
+                let request = entity.toKakaoRequest()
                 let response = try await repository.signInKakao(request)
                 
                 print("카카오 로그인 요청 성공 (UseCase)")

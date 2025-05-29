@@ -63,7 +63,7 @@ final class LoginViewModel {
         isEmailValidForUI = true
         
         loginState = .loading
-        let request = CheckEmailValidationRequest(email: email)
+        let request = CheckEmailValidationRequestEntity(email: email)
         
         do {
             isEmailValidForUI = try await userUseCase.checkEmailValidation(request)
@@ -75,7 +75,7 @@ final class LoginViewModel {
         }
     }
     
-    // MARK: - 회원가입 메서드 (UseCase 사용)
+    // MARK: - 회원가입 메서드
     @MainActor
     func signUp() async {
         validateInputs()
@@ -98,10 +98,9 @@ final class LoginViewModel {
             return
         }
         
-        let request = SignUpRequest(
+        let request = SignUpRequestEntity(
             email: email,
             password: password,
-            nick: "psy",  // TODO: 실제 닉네임 입력받기
             deviceToken: deviceToken
         )
         
@@ -138,7 +137,11 @@ final class LoginViewModel {
             return
         }
         
-        let request = SignInRequest(email: email, password: password, deviceToken: deviceId)
+        let request = SignInRequestEntity(
+            email: email,
+            password: password,
+            deviceToken: deviceId
+        )
         
         do {
             let response = try await userUseCase.signIn(request)
@@ -165,18 +168,16 @@ final class LoginViewModel {
                 return
             }
             
-            // SocialLoginResponse에서 필요한 데이터 추출
-            let request = SignInRequestForApple(
+            // SignInRequestAppleEntity 생성
+            let request = SignInRequestAppleEntity(
                 idToken: socialLoginResponse.idToken,
                 deviceToken: deviceToken,
-                nick: "psy"  // TODO: 실제 닉네임 또는 Apple에서 받은 이름 사용
+                nick: socialLoginResponse.nick
             )
             
             // 서버에 로그인 요청
-            let response = try await userUseCase.signInApple(request)
+            _ = try await userUseCase.signInApple(request)
             loginState = .success
-            
-            
         } catch {
             loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
             print("Apple 로그인 실패: \(error.localizedDescription)")
@@ -186,7 +187,6 @@ final class LoginViewModel {
     // MARK: - 계정 생성 화면 이동 요청
     func navigateToCreateAccount() {
         print("회원가입 화면으로 이동 요청 (ViewModel)")
-        // TODO: 실제 네비게이션 로직 구현
     }
 }
 

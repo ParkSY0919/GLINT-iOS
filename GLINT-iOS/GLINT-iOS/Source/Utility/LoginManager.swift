@@ -51,13 +51,15 @@ extension LoginManager: ASAuthorizationControllerDelegate, ASAuthorizationContro
             let idTokenString = String(data: idToken, encoding: .utf8),
             let authorizationCodeString = String(data: authorizationCode, encoding: .utf8)
         else { return }
-        
+    
         print("🍎 [appleLogin] token: \(idTokenString)")
         print("🍎 [appleLogin] authorizationCode: \(authorizationCodeString)")
+        let nick = appleIDCredential.fullName?.givenName ?? "anonymous"
         
         continuation?.resume(returning: SocialLoginResponse(
             idToken: idTokenString,
-            authorizationCode: authorizationCodeString
+            authorizationCode: authorizationCodeString,
+            nick: nick
         ))
         continuation = nil
     }
