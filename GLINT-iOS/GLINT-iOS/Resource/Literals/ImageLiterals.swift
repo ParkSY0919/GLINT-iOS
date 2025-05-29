@@ -20,8 +20,8 @@ extension ImageLiterals {
         static let sparklesSelected = Image(.sparkleFill)
         static let search = Image(.search)
         static let searchSelected = Image(.searchFill)
-        static let profile = Image(.person)
-        static let profileSelected = Image(.personFill)
+        static let profile = Image(.personTabBar)
+        static let profileSelected = Image(.personFillTabBar)
     }
     
     struct Login {

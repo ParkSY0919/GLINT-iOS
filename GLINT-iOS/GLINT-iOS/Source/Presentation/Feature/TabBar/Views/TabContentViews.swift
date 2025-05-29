@@ -1,31 +1,5 @@
 import SwiftUI
 
-// MARK: - Content Views
-struct MainContentView: View {
-    let router: NavigationRouter<MainTabRoute>
-    
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                Text("메인 화면")
-                    .font(.title)
-                
-                Button("상세보기로 이동") {
-                    router.push(.detail(id: "main-detail-1"))
-                }
-                .buttonStyle(.borderedProminent)
-                
-                Button("설정으로 이동") {
-                    router.push(.settings)
-                }
-                .buttonStyle(.bordered)
-            }
-            .padding()
-        }
-        .navigationTitle("메인")
-    }
-}
-
 struct CategoryContentView: View {
     let router: NavigationRouter<CategoryTabRoute>
     
@@ -37,6 +11,7 @@ struct CategoryContentView: View {
                 }
             }
         }
+        .detectListScroll()
         .navigationTitle("카테고리")
     }
 }
@@ -67,6 +42,7 @@ struct RecommendationsContentView: View {
             }
             .padding()
         }
+        .detectScroll()
         .navigationTitle("추천")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -97,6 +73,7 @@ struct SearchContentView: View {
             
             Spacer()
         }
+        .nonScrollable()
         .padding()
         .navigationTitle("검색")
     }
@@ -140,6 +117,7 @@ struct ProfileContentView: View {
                 }
             }
         }
+        .detectListScroll()
         .navigationTitle("마이")
     }
 }

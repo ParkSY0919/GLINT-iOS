@@ -38,6 +38,7 @@ struct MainView: View {
             }
             .padding(.bottom, 20)
         }
+        .detectScroll()
         .ignoresSafeArea(.all, edges: .top)
         .background(.gray100)
     }
