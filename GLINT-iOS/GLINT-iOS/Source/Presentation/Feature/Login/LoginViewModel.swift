@@ -47,6 +47,7 @@ final class LoginViewModel {
     }
     
     // MARK: - 실시간 유효성 검사 (View에서 호출하므로 public)
+    @MainActor
     func validateInputs() {
         isEmailValidForUI = email.isEmpty ? true : validateEmailFormat(email)
         isPasswordValid = password.isEmpty ? true : validatePasswordFormat(password)
@@ -65,7 +66,7 @@ final class LoginViewModel {
         let request = CheckEmailValidationRequest(email: email)
         
         do {
-            let response = try await userUseCase.checkEmailValidation(request)
+            isEmailValidForUI = try await userUseCase.checkEmailValidation(request)
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {

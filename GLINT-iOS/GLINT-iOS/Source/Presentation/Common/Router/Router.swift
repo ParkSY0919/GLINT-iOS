@@ -23,12 +23,13 @@ final class RootRouter: Router {
     
     var currentRoute: Route = .login
     
-    var currentView: AnyView {
+    @ViewBuilder
+    var currentView: some View {
         switch currentRoute {
         case .login:
-            AnyView(LoginView(rootRouter: self))
+            LoginView(rootRouter: self)
         case .tabBar:
-            AnyView(TabBarView())
+            TabBarView()
         }
     }
     
