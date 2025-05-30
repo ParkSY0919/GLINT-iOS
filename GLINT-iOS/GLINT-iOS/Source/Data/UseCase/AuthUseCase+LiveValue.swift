@@ -10,7 +10,6 @@ import SwiftUI
 extension AuthUseCase {
     static let liveValue: AuthUseCase = {
         let repository: AuthRepository = .liveValue
-        let keychain = KeychainManager.shared
         
         return AuthUseCase(
             checkEmailValidation: { entity in
