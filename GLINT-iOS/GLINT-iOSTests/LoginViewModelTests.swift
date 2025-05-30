@@ -5,7 +5,7 @@ final class LoginViewModelTests: XCTestCase {
     var viewModel: LoginViewModel!
     
     // 성공 케이스용 Mock
-    let mockSuccessUserUseCase = UserUseCase(
+    let mockSuccessUserUseCase = AuthUseCase(
         checkEmailValidation: { _ in },
         signUp: { _ in
             return SignUpResponse(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
@@ -21,7 +21,7 @@ final class LoginViewModelTests: XCTestCase {
         }
     )
     // 실패 케이스용 Mock
-    let mockFailUserUseCase = UserUseCase(
+    let mockFailUserUseCase = AuthUseCase(
         checkEmailValidation: { _ in throw NSError(domain: "", code: 1, userInfo: nil) },
         signUp: { _ in throw NSError(domain: "", code: 1, userInfo: nil) },
         signIn: { _ in throw NSError(domain: "", code: 1, userInfo: nil) },
@@ -64,7 +64,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_이메일_형식_검증() {
         print("\nㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
         print(#function)
-        viewModel = LoginViewModel(userUseCase: UserUseCase.mockValue)
+        viewModel = LoginViewModel(userUseCase: AuthUseCase.mockValue)
         viewModel.email = "invalid-email"
         // debounce가 있으므로 직접 검증 메서드 호출
 //        let isValid = viewModel.value(forKey: "validateEmailFormat:") as? ((String) -> Bool)

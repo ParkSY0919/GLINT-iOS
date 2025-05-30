@@ -1,5 +1,5 @@
 //
-//  GLogger.swift
+//  GTLogger.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/27/25.
@@ -10,8 +10,8 @@ import os
 
 import Alamofire
 
-final class GLogger {
-    static let shared = GLogger()
+final class GTLogger {
+    static let shared = GTLogger()
     
     private let generalLogger: Logger
     private let networkLogger: Logger
@@ -136,7 +136,7 @@ final class GLogger {
     }
     
     /// 네트워크 응답 실패 로그
-    func networkFailure(_ url: String, error: String, statusCode: Int? = nil, duration: TimeInterval? = nil, file: String = #file, line: Int = #line) {
+    func networkFailure(_ url: String, error: Error, statusCode: Int? = nil, duration: TimeInterval? = nil, file: String = #file, line: Int = #line) {
 #if DEBUG
         let fileName = (file as NSString).lastPathComponent
         let timestamp = dateFormatter.string(from: Date())
@@ -148,7 +148,7 @@ final class GLogger {
         if let duration = duration {
             logMessage += " - \(String(format: "%.3fs", duration))"
         }
-        logMessage += " - \(error)"
+        logMessage += " - \(error.localizedDescription)"
         
         networkLogger.error("\(logMessage)")
 #endif
@@ -370,7 +370,7 @@ final class GLogger {
 }
 
 // MARK: - Performance Measurement Helper
-extension GLogger {
+extension GTLogger {
     /// 코드 블록 실행 시간을 측정하고 로깅
     func measureTime<T>(
         operation: String,

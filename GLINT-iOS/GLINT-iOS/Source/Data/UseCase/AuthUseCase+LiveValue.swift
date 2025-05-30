@@ -1,5 +1,5 @@
 //
-//  UserUseCase+LiveValue.swift
+//  AuthUseCase+LiveValue.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/19/25.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-extension UserUseCase {
-    static let liveValue: UserUseCase = {
-        let repository: UserRepository = .liveValue
-        let keychain = KeychainProvider.shared
+extension AuthUseCase {
+    static let liveValue: AuthUseCase = {
+        let repository: AuthRepository = .liveValue
+        let keychain = KeychainManager.shared
         
-        return UserUseCase(
+        return AuthUseCase(
             checkEmailValidation: { entity in
                 let request = entity.toRequest()
                 try await repository.checkEmailValidation(request)
@@ -82,7 +82,22 @@ extension UserUseCase {
         )
     }()
     
-    static let mockValue: UserUseCase = {
+}
+
+// MARK: - Environment Key
+struct AuthUseCaseKey: EnvironmentKey {
+    static let defaultValue: AuthUseCase = .liveValue
+}
+
+extension EnvironmentValues {
+    var authUseCase: AuthUseCase {
+        get { self[AuthUseCaseKey.self] }
+        set { self[AuthUseCaseKey.self] = newValue }
+    }
+}
+
+extension AuthUseCase {
+    static let mockValue: AuthUseCase = {
         let mockEntity = SignInResponseEntity(
             userID: "mock_user_id",
             email: "mock@test.com",
@@ -91,7 +106,7 @@ extension UserUseCase {
             refreshToken: "mock_refresh_token"
         )
         
-        return UserUseCase(
+        return AuthUseCase(
             checkEmailValidation: { request in
                 print("Mock: 이메일 유효성 검사 - \(request.email)")
                 // 특정 이메일에서 실패 테스트
@@ -140,16 +155,4 @@ extension UserUseCase {
             }
         )
     }()
-}
-
-// MARK: - Environment Key
-struct UserUseCaseKey: EnvironmentKey {
-    static let defaultValue: UserUseCase = .liveValue
-}
-
-extension EnvironmentValues {
-    var userUseCase: UserUseCase {
-        get { self[UserUseCaseKey.self] }
-        set { self[UserUseCaseKey.self] = newValue }
-    }
 }
