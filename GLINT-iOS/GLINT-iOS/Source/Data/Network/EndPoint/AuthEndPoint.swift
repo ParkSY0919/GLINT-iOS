@@ -2,42 +2,76 @@
 //  AuthEndPoint.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 5/27/25.
+//  Created by 박신영 on 5/13/25.
 //
 
 import Foundation
 
 import Alamofire
 
-enum AuthEndpoint {
+enum AuthEndPoint {
+    case checkEmailValidation(CheckEmailValidationRequest)
+    case signUp(SignUpRequest)
+    case signIn(SignInRequest)
+    case signInForApple(SignInRequestForApple)
+    case signInForKakao(SignInRequestForKakao)
     case refreshToken(RefreshTokenRequest)
 }
 
-extension AuthEndpoint: EndPoint {
-    var headers: HTTPHeaders? {
-        return HeaderType.basic
+extension AuthEndPoint: EndPoint {
+    
+    
+    var headers: Alamofire.HTTPHeaders {
+        switch self {
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao, .refreshToken:
+            return HeaderType.basic
+        }
     }
     
     var utilPath: String {
-        return "v1/auth/"
-    }
-    
-    var method: HTTPMethod {
         switch self {
-        case .refreshToken: return .post
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao:
+            return "v1/users/"
+        case .refreshToken:
+            return "v1/auth/"
         }
     }
     
     var path: String {
         switch self {
+        case .checkEmailValidation: utilPath + "validation/email"
+        case .signUp: utilPath + "join"
+        case .signIn: utilPath + "login"
+        case .signInForApple: utilPath + "login/apple"
+        case .signInForKakao: utilPath + "login/kakao"
         case .refreshToken: utilPath + "refresh"
+        }
+    }
+    
+    var method: Alamofire.HTTPMethod {
+        switch self {
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao: return .post
+        case .refreshToken:
+            return .get
         }
     }
     
     var requestType: RequestType {
         switch self {
+        case .checkEmailValidation(let request):
+            return .bodyEncodable(request)
+        case .signUp(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signIn(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signInForApple(let reuqest):
+            return .bodyEncodable(reuqest)
+        case .signInForKakao(let reuqest):
+            return .bodyEncodable(reuqest)
         case .refreshToken(let request):
             return .bodyEncodable(request)
         }
     }
+    
 }
+

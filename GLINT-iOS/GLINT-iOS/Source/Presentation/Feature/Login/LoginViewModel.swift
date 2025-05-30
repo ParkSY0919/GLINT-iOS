@@ -23,39 +23,16 @@ final class LoginViewModel {
     var isEmailValidForUI: Bool = true
     var isPasswordValid: Bool = true
     
-    // MARK: - UseCases (Struct 기반)
-    private let userUseCase: UserUseCase
-    private let keychain: KeychainProvider
+    private let keychain: KeychainManager
     
-    init(userUseCase: UserUseCase = .liveValue, keychain: KeychainProvider = .shared) {
-        self.userUseCase = userUseCase
+    init(userUseCase: AuthUseCase = .liveValue, keychain: KeychainManager = .shared) {
         self.keychain = keychain
         keychain.saveDeviceUUID()
     }
     
-    // MARK: - UI 피드백용 유효성 검사 메서드 (로컬)
-    private func validateEmailFormat(_ email: String) -> Bool {
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
-        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
-        return emailPredicate.evaluate(with: email)
-    }
-    
-    private func validatePasswordFormat(_ password: String) -> Bool {
-        let passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$"
-        let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
-        return passwordPredicate.evaluate(with: password)
-    }
-    
-    // MARK: - 실시간 유효성 검사 (View에서 호출하므로 public)
+    // MARK: - 서버 이메일 중복/유효성 검사
     @MainActor
-    func validateInputs() {
-        isEmailValidForUI = email.isEmpty ? true : validateEmailFormat(email)
-        isPasswordValid = password.isEmpty ? true : validatePasswordFormat(password)
-    }
-    
-    // MARK: - 서버 이메일 중복/유효성 검사 (UseCase 사용)
-    @MainActor
-    func checkEmailAvailability() async {
+    func checkEmailAvailability(using authUseCase: AuthUseCase) async {
         guard validateEmailFormat(email) else {
             isEmailValidForUI = false
             return
@@ -66,7 +43,7 @@ final class LoginViewModel {
         let request = CheckEmailValidationRequestEntity(email: email)
         
         do {
-            isEmailValidForUI = try await userUseCase.checkEmailValidation(request)
+            isEmailValidForUI = try await authUseCase.checkEmailValidation(request)
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {
@@ -77,7 +54,7 @@ final class LoginViewModel {
     
     // MARK: - 회원가입 메서드
     @MainActor
-    func signUp() async {
+    func signUp(using authUseCase: AuthUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -92,7 +69,6 @@ final class LoginViewModel {
         
         loginState = .loading
         
-        // deviceToken 가져오기
         guard let deviceToken = keychain.getDeviceUUID() else {
             loginState = .failure("디바이스 ID를 찾을 수 없습니다.")
             return
@@ -105,7 +81,7 @@ final class LoginViewModel {
         )
         
         do {
-            let response = try await userUseCase.signUp(request)
+            let response = try await authUseCase.signUp(request)
             loginState = .success
             print("회원가입 성공 (ViewModel): \(response)")
         } catch {
@@ -116,7 +92,7 @@ final class LoginViewModel {
     
     // MARK: - 일반 로그인 메서드
     @MainActor
-    func loginWithEmail() async {
+    func loginWithEmail(using authUseCase: AuthUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -144,7 +120,7 @@ final class LoginViewModel {
         )
         
         do {
-            let response = try await userUseCase.signIn(request)
+            let response = try await authUseCase.signIn(request)
             loginState = .success
             print("response: \n\(response)")
         } catch {
@@ -154,7 +130,7 @@ final class LoginViewModel {
     
     // MARK: - Apple 로그인 메서드
     @MainActor
-    func appleLogin() async {
+    func appleLogin(using authUseCase: AuthUseCase) async {
         loginState = .loading
         
         do {
@@ -176,7 +152,7 @@ final class LoginViewModel {
             )
             
             // 서버에 로그인 요청
-            _ = try await userUseCase.signInApple(request)
+            _ = try await authUseCase.signInApple(request)
             loginState = .success
         } catch {
             loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
@@ -189,6 +165,30 @@ final class LoginViewModel {
         print("회원가입 화면으로 이동 요청 (ViewModel)")
     }
 }
+
+//MARK: Extension - 로컬
+extension LoginViewModel {
+    private func validateEmailFormat(_ email: String) -> Bool {
+        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
+        return emailPredicate.evaluate(with: email)
+    }
+    
+    private func validatePasswordFormat(_ password: String) -> Bool {
+        let passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$"
+        let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
+        return passwordPredicate.evaluate(with: password)
+    }
+    
+    // MARK: - 실시간 유효성 검사
+    @MainActor
+    func validateInputs() {
+        isEmailValidForUI = email.isEmpty ? true : validateEmailFormat(email)
+        isPasswordValid = password.isEmpty ? true : validatePasswordFormat(password)
+    }
+}
+
+
 
 // MARK: - Test/Preview용 ViewModel 생성
 extension LoginViewModel {

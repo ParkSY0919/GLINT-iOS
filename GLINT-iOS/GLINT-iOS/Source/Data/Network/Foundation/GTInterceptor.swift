@@ -6,32 +6,25 @@
 //
 
 import Foundation
+
 import Alamofire
 
 final class GTInterceptor: RequestInterceptor {
-    private let keychain = KeychainProvider.shared
-    private let refreshTokenEndpoint: String
+    private let keychain = KeychainManager.shared
     
-    init(refreshTokenEndpoint: String = "v1/auth/refresh") {
-        self.refreshTokenEndpoint = refreshTokenEndpoint
-    }
-    
-    // MARK: - Request Adaptation
+    /// Request adapt
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var adaptedRequest = urlRequest
         
-        // 토큰이 필요한 엔드포인트인지 확인
-        if shouldAddAuthHeader(for: urlRequest) {
+        if !shouldAddAuthHeader(for: urlRequest) {
             if let accessToken = keychain.getAccessToken() {
                 adaptedRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
             }
-            adaptedRequest.setValue("SeSACKey", forHTTPHeaderField: Config.sesacKey)
         }
-        
         completion(.success(adaptedRequest))
     }
     
-    // MARK: - Request Retry
+    /// Request retry
     func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
         guard let response = request.task?.response as? HTTPURLResponse else {
             completion(.doNotRetryWithError(error))
@@ -43,9 +36,10 @@ final class GTInterceptor: RequestInterceptor {
             refreshToken { [weak self] result in
                 switch result {
                 case .success:
-                    completion(.retry) // 토큰 갱신 성공 시 재시도
+                    // 토큰 갱신 성공 시 재시도
+                    completion(.retry)
                 case .failure:
-                    // 토큰 갱신 실패 시 로그아웃 처리
+                    // 토큰 갱신 실패. keychain all 삭제
                     self?.keychain.deleteAllTokens()
                     completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
                 }
@@ -54,10 +48,12 @@ final class GTInterceptor: RequestInterceptor {
             completion(.doNotRetryWithError(error))
         }
     }
-    
-    // MARK: - Private Methods
+}
+
+// MARK: - Private Methods
+private extension GTInterceptor {
     private func shouldAddAuthHeader(for request: URLRequest) -> Bool {
-        // 인증이 필요하지 않은 엔드포인트들
+        // 인증이 필요하지 않은 엔드포인트
         let publicEndpoints = [
             "v1/users/login",
             "v1/users/join",
@@ -70,7 +66,7 @@ final class GTInterceptor: RequestInterceptor {
         guard let url = request.url else { return false }
         let path = url.pathComponents.dropFirst().joined(separator: "/")
         
-        return !publicEndpoints.contains(path)
+        return publicEndpoints.contains(path)
     }
     
     private func refreshToken(completion: @escaping (Result<Void, Error>) -> Void) {
@@ -81,7 +77,7 @@ final class GTInterceptor: RequestInterceptor {
         
         // Refresh Token API 호출
         let refreshRequest = RefreshTokenRequest(refreshToken: refreshToken)
-        let endpoint = AuthEndpoint.refreshToken(refreshRequest)
+        let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         
         AF.request(endpoint)
             .validate(statusCode: 200..<300)
