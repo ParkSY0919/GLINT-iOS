@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-protocol KeychainManagerProtocol {
-    func save(_ data: String, key: KeychainKey)
-    func read(_ key: KeychainKey) -> String?
-    func delete(_ key: KeychainKey)
-}
-
 enum KeychainKey: String, CaseIterable {
     case deviceId
     case accessToken
@@ -22,8 +16,7 @@ enum KeychainKey: String, CaseIterable {
     var account: String { rawValue }
 }
 
-// MARK: - String-only Keychain Manager
-final class KeychainManager: KeychainManagerProtocol {
+final class KeychainManager: Sendable {
     static let shared = KeychainManager()
     
     private let service: String
@@ -35,7 +28,7 @@ final class KeychainManager: KeychainManagerProtocol {
     /// 키체인 저장
     func save(_ data: String, key: KeychainKey) {
         guard let stringData = data.data(using: .utf8) else {
-            GLogger.shared.token(key, success: false, details: "문자열 변환 실패")
+            GTLogger.shared.token(key, success: false, details: "문자열 변환 실패")
             return
         }
         saveData(stringData, key: key)
@@ -44,16 +37,16 @@ final class KeychainManager: KeychainManagerProtocol {
     /// 키체인 불러오기
     func read(_ key: KeychainKey) -> String? {
         guard let data = readData(key) else {
-            GLogger.shared.token(key, success: false, details: "데이터 없음")
+            GTLogger.shared.token(key, success: false, details: "데이터 없음")
             return nil
         }
         
         if let string = String(data: data, encoding: .utf8) {
-            GLogger.shared.token(key, success: true, details: "읽기 성공")
+            GTLogger.shared.token(key, success: true, details: "읽기 성공")
             return string
         }
         
-        GLogger.shared.token(key, success: false, details: "문자열 변환 실패")
+        GTLogger.shared.token(key, success: false, details: "문자열 변환 실패")
         return nil
     }
     
@@ -64,12 +57,25 @@ final class KeychainManager: KeychainManagerProtocol {
         
         switch status {
         case errSecSuccess:
-            GLogger.shared.token(key, success: true, details: "삭제 성공")
+            GTLogger.shared.token(key, success: true, details: "삭제 성공")
         case errSecItemNotFound:
-            GLogger.shared.token(key, success: false, details: "항목을 찾을 수 없음")
+            GTLogger.shared.token(key, success: false, details: "항목을 찾을 수 없음")
         default:
-            GLogger.shared.token(key, success: false, details: "삭제 실패 (상태: \(status))")
+            GTLogger.shared.token(key, success: false, details: "삭제 실패 (상태: \(status))")
         }
+    }
+}
+
+//MARK: Keychain 내부 함수
+extension KeychainManager {
+    
+    
+    private func createBaseQuery(for key: KeychainKey) -> [String: Any] {
+        return [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key.account
+        ]
     }
     
     /// 키체인 저장 헬퍼
@@ -91,9 +97,9 @@ final class KeychainManager: KeychainManagerProtocol {
         let status = SecItemAdd(query as CFDictionary, nil)
         
         if status == errSecSuccess {
-            GLogger.shared.token(key, success: true, details: "생성 성공")
+            GTLogger.shared.token(key, success: true, details: "생성 성공")
         } else {
-            GLogger.shared.token(key, success: false, details: "생성 실패 (상태: \(status))")
+            GTLogger.shared.token(key, success: false, details: "생성 실패 (상태: \(status))")
         }
     }
     
@@ -105,9 +111,9 @@ final class KeychainManager: KeychainManagerProtocol {
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
         
         if status == errSecSuccess {
-            GLogger.shared.token(key, success: true, details: "업데이트 성공")
+            GTLogger.shared.token(key, success: true, details: "업데이트 성공")
         } else {
-            GLogger.shared.token(key, success: false, details: "업데이트 실패 (상태: \(status))")
+            GTLogger.shared.token(key, success: false, details: "업데이트 실패 (상태: \(status))")
         }
     }
     
@@ -130,43 +136,10 @@ final class KeychainManager: KeychainManagerProtocol {
             return nil
         }
     }
-    
-    private func createBaseQuery(for key: KeychainKey) -> [String: Any] {
-        return [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: key.account
-        ]
-    }
 }
 
-// MARK: - KeychainProvider
-struct KeychainProvider {
-    private let manager: KeychainManagerProtocol
-    
-    static let shared = KeychainProvider()
-    
-    init(manager: KeychainManagerProtocol = KeychainManager.shared) {
-        self.manager = manager
-    }
-    
-    // String 타입 저장/읽기/삭제
-    func save(_ data: String, key: KeychainKey) {
-        manager.save(data, key: key)
-    }
-    
-    func read(_ key: KeychainKey) -> String? {
-        manager.read(key)
-    }
-    
-    func delete(_ key: KeychainKey) {
-        manager.delete(key)
-    }
-}
-
-// MARK: - 편의 메서드들
-extension KeychainProvider {
-    // Access Token 관련
+//MARK: Keychain 편의 함수
+extension KeychainManager {
     func saveAccessToken(_ token: String) {
         save(token, key: .accessToken)
     }
@@ -205,7 +178,7 @@ extension KeychainProvider {
         KeychainKey.allCases.forEach { key in
             delete(key)
         }
-        GLogger.shared.auth("모든 토큰 삭제 요청 완료")
+        GTLogger.shared.auth("모든 토큰 삭제 요청 완료")
     }
     
     // 디바이스 토큰 관련
