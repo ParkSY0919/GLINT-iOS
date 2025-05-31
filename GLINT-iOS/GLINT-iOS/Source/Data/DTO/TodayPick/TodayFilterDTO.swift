@@ -22,7 +22,7 @@ extension ResponseDTO {
 }
 
 extension ResponseDTO.TodayFilter {
-    func toEntity() -> TodayFilterResponseEntity {
+    func toEntity() -> ResponseEntity.TodayFilter {
         let original = self.files.first
         let filtered = self.files.last
         

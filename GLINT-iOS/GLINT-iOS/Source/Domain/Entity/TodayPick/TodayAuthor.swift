@@ -8,26 +8,28 @@
 import Foundation
 
 //MARK: - TodayArtistEntity
-struct TodayArtistResponseEntity {
-    let author: TodayAuthorEntity
-    let filters: [TodayArtistFilterEntity]
+extension ResponseEntity {
+    struct TodayAuthor {
+        let author: AuthorEntity
+        let filters: [FilterEntity]
+    }
 }
 
-extension TodayArtistResponseEntity {
+extension ResponseEntity.TodayAuthor {
     
     //MARK: - Author
-    struct TodayAuthorEntity {
+    struct AuthorEntity {
         let userID, nick, name, introduction: String
         let description: String?
         let profileImage: String
         let hashTags: [String]
     }
     
-    //MARK: - TodayArtistFilter
-    struct TodayArtistFilterEntity {
+    //MARK: - FilterEntity
+    struct FilterEntity {
         let filterID, category, title, description: String
         let files: [String]
-        let creator: TodayAuthorEntity
+        let creator: AuthorEntity
         let isLiked: Bool
         let likeCount, buyerCount: Int
         let createdAt, updatedAt: String

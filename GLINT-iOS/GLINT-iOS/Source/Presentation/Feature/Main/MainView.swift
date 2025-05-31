@@ -16,10 +16,10 @@ struct MainView: View {
     private var todayPickFilter
     
     @State
-    private var todayFilter: TodayFilterResponseEntity?
+    private var todayFilter: ResponseEntity.TodayFilter?
     
     @State
-    private var todayArtist: TodayArtistResponseEntity?
+    private var todayArtist: ResponseEntity.TodayAuthor?
     //    @State
     //    private var hotTrends: [FilterModel] = []
     

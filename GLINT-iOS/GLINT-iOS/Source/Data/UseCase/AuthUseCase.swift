@@ -8,11 +8,11 @@
 import SwiftUI
 
 struct AuthUseCase {
-    var checkEmailValidation: @Sendable (_ request: CheckEmailValidationRequestEntity) async throws -> Bool
-    var signUp: @Sendable (_ request: SignUpRequestEntity) async throws -> SignInResponseEntity
-    var signIn: @Sendable (_ request: SignInRequestEntity) async throws -> SignInResponseEntity
-    var signInApple: @Sendable (_ request: SignInRequestAppleEntity) async throws -> SignInResponseEntity
-    var signInKakao: @Sendable (_ request: SignInRequestKakaoEntity) async throws -> SignInResponseEntity
+    var checkEmailValidation: @Sendable (_ request: RequestEntity.CheckEmailValidation) async throws -> Bool
+    var signUp: @Sendable (_ request: RequestEntity.SignUp) async throws -> ResponseEntity.SignIn
+    var signIn: @Sendable (_ request: RequestEntity.SignIn) async throws -> ResponseEntity.SignIn
+    var signInApple: @Sendable (_ request: RequestEntity.SignInApple) async throws -> ResponseEntity.SignIn
+    var signInKakao: @Sendable (_ request: RequestEntity.SignInKakao) async throws -> ResponseEntity.SignIn
 }
 
 extension AuthUseCase {
@@ -33,7 +33,7 @@ extension AuthUseCase {
                 
                 print("회원가입 요청 성공 (UseCase)")
                 
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -48,7 +48,7 @@ extension AuthUseCase {
                 
                 print("이메일 로그인 요청 성공 (UseCase)")
                 
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -63,7 +63,7 @@ extension AuthUseCase {
                 
                 print("애플 로그인 요청 성공 (UseCase)")
                 
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -78,7 +78,7 @@ extension AuthUseCase {
                 
                 print("카카오 로그인 요청 성공 (UseCase)")
                 
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: response.userID,
                     email: response.email,
                     nick: response.nick,
@@ -105,7 +105,7 @@ extension EnvironmentValues {
 
 extension AuthUseCase {
     static let mockValue: AuthUseCase = {
-        let mockEntity = SignInResponseEntity(
+        let mockEntity = ResponseEntity.SignIn(
             userID: "mock_user_id",
             email: "mock@test.com",
             nick: "MockUser",
@@ -125,7 +125,7 @@ extension AuthUseCase {
             
             signUp: { request in
                 print("Mock: 회원가입 - \(request.email)")
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: "mock_signup_id",
                     email: request.email,
                     nick: "nickname",
@@ -141,7 +141,7 @@ extension AuthUseCase {
             
             signInApple: { result in
                 print("Mock: 애플 로그인 - \(result.nick)")
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: "mock_apple_id",
                     email: "apple@mock.com",
                     nick: result.nick,
@@ -152,7 +152,7 @@ extension AuthUseCase {
             
             signInKakao: { accessToken in
                 print("Mock: 카카오 로그인")
-                return SignInResponseEntity(
+                return ResponseEntity.SignIn(
                     userID: "mock_kakao_id",
                     email: "kakao@mock.com",
                     nick: "Kakao User",

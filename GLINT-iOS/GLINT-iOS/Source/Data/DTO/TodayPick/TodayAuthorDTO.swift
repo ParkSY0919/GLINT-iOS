@@ -13,8 +13,8 @@ extension ResponseDTO {
         let author: Author
         let filters: [Filter]
         
-        func toEntity() -> TodayArtistResponseEntity {
-            return TodayArtistResponseEntity(
+        func toEntity() -> ResponseEntity.TodayAuthor {
+            return ResponseEntity.TodayAuthor(
                 author: author.toEntity(),
                 filters: filters.map { $0.toEntity() }
             )
@@ -35,8 +35,8 @@ extension ResponseDTO.TodayAuthor {
             case nick, name, introduction, description, profileImage, hashTags
         }
         
-        func toEntity() -> TodayArtistResponseEntity.TodayAuthorEntity {
-            return TodayArtistResponseEntity.TodayAuthorEntity(
+        func toEntity() -> ResponseEntity.TodayAuthor.AuthorEntity {
+            return ResponseEntity.TodayAuthor.AuthorEntity(
                 userID: self.userID,
                 nick: self.nick,
                 name: self.name,
@@ -67,7 +67,7 @@ extension ResponseDTO.TodayAuthor {
             case createdAt, updatedAt
         }
         
-        func toEntity() -> TodayArtistResponseEntity.TodayArtistFilterEntity {
+        func toEntity() -> ResponseEntity.TodayAuthor.FilterEntity {
             var newFiles = [""]
             func toImageString() {
                 for index in 0..<files.count {
@@ -77,7 +77,7 @@ extension ResponseDTO.TodayAuthor {
             
             toImageString()
             
-            return TodayArtistResponseEntity.TodayArtistFilterEntity(
+            return ResponseEntity.TodayAuthor.FilterEntity(
                 filterID: self.filterID,
                 category: self.category ?? "으음",
                 title: self.title,

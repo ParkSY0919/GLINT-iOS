@@ -9,9 +9,9 @@ import SwiftUI
 
 struct TodayPickUseCase {
     // 오늘의 작가 소개
-    var todayAuthor: @Sendable () async throws -> TodayArtistResponseEntity
+    var todayAuthor: @Sendable () async throws -> ResponseEntity.TodayAuthor
     // 오늘의 필터 소개
-    var todayFilter: @Sendable () async throws -> TodayFilterResponseEntity
+    var todayFilter: @Sendable () async throws -> ResponseEntity.TodayFilter
 }
 
 extension TodayPickUseCase {

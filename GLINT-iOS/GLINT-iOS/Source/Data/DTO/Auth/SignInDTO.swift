@@ -28,8 +28,8 @@ extension ResponseDTO {
 }
 
 extension ResponseDTO.SignIn {
-    func toEntity() -> SignInResponseEntity {
-        return SignInResponseEntity(
+    func toEntity() -> ResponseEntity.SignIn {
+        return ResponseEntity.SignIn(
             userID: userID,
             email: email,
             nick: nick,

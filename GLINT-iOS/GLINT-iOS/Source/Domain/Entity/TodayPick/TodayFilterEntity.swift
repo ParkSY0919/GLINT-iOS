@@ -7,8 +7,10 @@
 
 import Foundation
 
-struct TodayFilterResponseEntity: Codable {
-    let filterID, title, introduction, description: String
-    let original: String?
-    let filtered: String?
+extension ResponseEntity {
+    struct TodayFilter: Codable {
+        let filterID, title, introduction, description: String
+        let original: String?
+        let filtered: String?
+    }
 }

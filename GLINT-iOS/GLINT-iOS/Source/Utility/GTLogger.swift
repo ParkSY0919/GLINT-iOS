@@ -95,7 +95,7 @@ final class GTLogger {
         // JSON 출력
         do {
             let jsonData = try JSONEncoder().encode(object)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
+            if String(data: jsonData, encoding: .utf8) != nil {
                 let prettyData = try JSONSerialization.jsonObject(with: jsonData)
                 let prettyJsonData = try JSONSerialization.data(withJSONObject: prettyData, options: .prettyPrinted)
                 if let prettyJsonString = String(data: prettyJsonData, encoding: .utf8) {

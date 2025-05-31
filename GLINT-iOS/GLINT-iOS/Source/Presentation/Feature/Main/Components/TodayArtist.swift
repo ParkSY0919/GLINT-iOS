@@ -10,7 +10,7 @@ import SwiftUI
 import NukeUI
 
 struct TodayArtistView: View {
-    @Binding var todayArtist: TodayArtistResponseEntity?
+    @Binding var todayArtist: ResponseEntity.TodayAuthor?
     let router: NavigationRouter<MainTabRoute>
     
     var body: some View {

@@ -10,7 +10,7 @@ import SwiftUI
 import NukeUI
 
 struct TodayFilterView: View {
-    @Binding var todayFilter: TodayFilterResponseEntity?
+    @Binding var todayFilter: ResponseEntity.TodayFilter?
     let router: NavigationRouter<MainTabRoute>
     @State
     private var scrollOffset: CGFloat = 0

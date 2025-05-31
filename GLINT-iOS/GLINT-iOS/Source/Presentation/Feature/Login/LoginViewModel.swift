@@ -40,7 +40,7 @@ final class LoginViewModel {
         isEmailValidForUI = true
         
         loginState = .loading
-        let request = CheckEmailValidationRequestEntity(email: email)
+        let request = RequestEntity.CheckEmailValidation(email: email)
         
         do {
             isEmailValidForUI = try await authUseCase.checkEmailValidation(request)
@@ -74,7 +74,7 @@ final class LoginViewModel {
             return
         }
         
-        let request = SignUpRequestEntity(
+        let request = RequestEntity.SignUp(
             email: email,
             password: password,
             deviceToken: deviceToken
@@ -113,7 +113,7 @@ final class LoginViewModel {
             return
         }
         
-        let request = SignInRequestEntity(
+        let request = RequestEntity.SignIn(
             email: email,
             password: password,
             deviceToken: deviceId
@@ -144,8 +144,8 @@ final class LoginViewModel {
                 return
             }
             
-            // SignInRequestAppleEntity 생성
-            let request = SignInRequestAppleEntity(
+            // RequestEntity.SignInApple 생성
+            let request = RequestEntity.SignInApple(
                 idToken: socialLoginResponse.idToken,
                 deviceToken: deviceToken,
                 nick: socialLoginResponse.nick
