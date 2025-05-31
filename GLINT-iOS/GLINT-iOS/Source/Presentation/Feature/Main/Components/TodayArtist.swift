@@ -7,8 +7,10 @@
 
 import SwiftUI
 
+import NukeUI
+
 struct TodayArtistView: View {
-    let artist: Artist
+    @Binding var todayArtist: TodayArtistResponseEntity?
     let router: NavigationRouter<MainTabRoute>
     
     var body: some View {
@@ -46,11 +48,15 @@ struct TodayArtistView: View {
     }
     
     private func artistProfileImage() -> some View {
-        Image(artist.profileImage)
-            .resizable()
-            .scaledToFill()
-            .frame(width: 72, height: 72)
-            .clipShape(Circle())
+        let imageUrlString = todayArtist?.author.profileImage ?? ""
+        
+        return LazyImage(url: URL(string: imageUrlString)) { state in
+            lazyImageTransform(state) { image in
+                image.aspectRatio(contentMode: .fill)
+            }
+        }
+        .frame(width: 72, height: 72)
+        .clipShape(Circle())
     }
     
     private func artistNameSection() -> some View {
@@ -61,13 +67,13 @@ struct TodayArtistView: View {
     }
     
     private func artistName() -> some View {
-        Text(artist.name)
+        Text(todayArtist?.author.name ?? "")
             .font(.pointFont(.body, size: 20))
             .foregroundColor(.gray30)
     }
     
     private func artistNickname() -> some View {
-        Text(artist.nickname)
+        Text(todayArtist?.author.nick ?? "")
             .font(.pretendardFont(.body_medium, size: 16))
             .foregroundColor(.gray75)
     }
@@ -83,25 +89,33 @@ struct TodayArtistView: View {
     }
     
     private func artistWorksHorizontalStack() -> some View {
-        HStack(spacing: 12) {
-            ForEach(artist.worksImage, id: \.self) { image in
-                artistWorkImage(image: image)
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                if let todayArtist = todayArtist {
+                    ForEach(todayArtist.filters, id: \.filterID) { filter in
+                        // 각 필터의 files 배열을 순회
+                        ForEach(Array(filter.files.enumerated()), id: \.offset) { index, imageUrl in
+                            LazyImage(url: URL(string: imageUrl)) { state in
+                                lazyImageTransform(state) { image in
+                                    image.aspectRatio(contentMode: .fill)
+                                }
+                            }
+                            .frame(width: 120, height: 80)
+                            .clipRectangle(8)
+                            .clipped()
+                        }
+                    }
+                }
             }
+            .padding(.horizontal)
         }
     }
     
-    private func artistWorkImage(image: ImageResource) -> some View {
-        Image(image)
-            .resizable()
-            .scaledToFill()
-            .frame(width: 120, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
     
     // MARK: - Artist Tags Section
     private func artistTagsSection() -> some View {
         HStack {
-            ForEach(artist.tags, id: \.self) { tag in
+            ForEach(todayArtist?.author.hashTags ?? [], id: \.self) { tag in
                 artistTag(tag: tag)
             }
         }
@@ -130,20 +144,20 @@ struct TodayArtistView: View {
     }
     
     private func artistIntroductionTitle() -> some View {
-        Text(artist.introductionTitle)
+        Text(todayArtist?.author.introduction ?? "")
             .font(.pointFont(.body, size: 14))
             .foregroundColor(.gray60)
     }
     
     private func artistIntroductionBody() -> some View {
-        Text(artist.introductionBody)
+        Text(todayArtist?.author.description ?? "")
             .font(.pretendardFont(.caption, size: 12))
             .foregroundColor(.gray60)
     }
 }
 
-#Preview {
-    TodayArtistView(artist: DummyFilterAppData.todayArtist, router: NavigationRouter<MainTabRoute>())
-        .preferredColorScheme(.dark)
-}
+//#Preview {
+//    TodayArtistView(artist: DummyFilterAppData.todayArtist, router: NavigationRouter<MainTabRoute>())
+//        .preferredColorScheme(.dark)
+//}
 

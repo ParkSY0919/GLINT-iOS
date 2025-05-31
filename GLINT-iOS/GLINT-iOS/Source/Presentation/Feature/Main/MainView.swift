@@ -10,11 +10,27 @@ import SwiftUI
 struct MainView: View {
     let router: NavigationRouter<MainTabRoute>
     
+    @Environment(\.todayPickUseCase.todayAuthor)
+    private var todayPickAuthor
+    @Environment(\.todayPickUseCase.todayFilter)
+    private var todayPickFilter
+    
+    @State
+    private var todayFilter: TodayFilterResponseEntity?
+    
+    @State
+    private var todayArtist: TodayArtistResponseEntity?
+    //    @State
+    //    private var hotTrends: [FilterModel] = []
+    
+    @State
+    private var isLoading: Bool = true
+    
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading) {
                 TodayFilterView(
-                    filter: DummyFilterAppData.todayFilter,
+                    todayFilter: $todayFilter,
                     router: router
                 )
                 
@@ -22,7 +38,7 @@ struct MainView: View {
                     items: DummyFilterAppData.bannerItems,
                     router: router
                 )
-                .padding(.top, -15)
+                .padding(.top, 20)
                 
                 HotTrendView(
                     trends: DummyFilterAppData.hotTrends,
@@ -31,7 +47,7 @@ struct MainView: View {
                 .padding(.top, 30)
                 
                 TodayArtistView(
-                    artist: DummyFilterAppData.todayArtist,
+                    todayArtist: $todayArtist,
                     router: router
                 )
                 .padding(.top, 30)
@@ -41,6 +57,25 @@ struct MainView: View {
         .detectScroll()
         .ignoresSafeArea(.all, edges: .top)
         .background(.gray100)
+        .task(bodyTask)
+    }
+}
+
+private extension MainView {
+    @Sendable
+    func bodyTask() async {
+        guard isLoading else { return }
+        defer { isLoading = false }
+        do {
+            async let todayAuthor = todayPickAuthor()
+            async let todayFilter = todayPickFilter()
+            
+            
+            self.todayFilter = try await todayFilter
+            self.todayArtist = try await todayAuthor
+        } catch {
+            print(error)
+        }
     }
 }
 

@@ -7,13 +7,29 @@
 
 import SwiftUI
 
+import NukeUI
+
 struct TodayFilterView: View {
-    let filter: TodayFilter
+    @Binding var todayFilter: TodayFilterResponseEntity?
     let router: NavigationRouter<MainTabRoute>
+    @State
+    private var scrollOffset: CGFloat = 0
+    
+    private let backgroundGradient = Gradient(colors: [
+        .clear,
+        .black.opacity(0.2),
+        .black.opacity(0.3),
+        .black.opacity(0.4),
+        .black.opacity(0.5),
+        .black.opacity(0.7),
+        .black.opacity(0.8),
+        .black.opacity(0.9),
+        .black.opacity(1.0)
+    ])
     
     var body: some View {
         ZStack(alignment: .top) {
-            backgroundImageView()
+            backgroundImage(url: todayFilter?.filtered ?? "")
             
             contentStackView()
             
@@ -22,20 +38,25 @@ struct TodayFilterView: View {
         .frame(height: 555)
     }
     
-    // MARK: - Background Image
-    private func backgroundImageView() -> some View {
-        Image(filter.backgroundImageName)
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(height: 555)
-            .clipped()
-            .overlay(
-                LinearGradient(
-                    gradient: Gradient(colors: [.clear, .black.opacity(0.7)]),
-                    startPoint: .center,
-                    endPoint: .bottom
-                )
-            )
+    func backgroundImage(url: String) -> some View {
+        LazyImage(url: URL(string: url)) { state in
+            lazyImageTransform(state) { image in
+                GeometryReader { proxy in
+                    let global = proxy.frame(in: .global)
+                    let width = global.width
+                    image.aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: 555)
+                        .clipped()
+                        .overlay(
+                            LinearGradient(
+                                gradient: backgroundGradient,
+                                startPoint: .center,
+                                endPoint: .bottom
+                            )
+                        )
+                }
+            }
+        }
     }
     
     // MARK: - Content Stack
@@ -46,23 +67,23 @@ struct TodayFilterView: View {
             largeTitleView()
             descriptionView()
             CategoryButtonsView(categories: DummyFilterAppData.categories)
-                .padding(.top, 41)
+                .padding(.top, 30)
                 .frame(maxWidth: .infinity)
         }
         
         .padding(.horizontal, 20)
-        .padding(.bottom, 30)
+//        .padding(.bottom, 30)
     }
     
     private func smallTitleView() -> some View {
-        Text(filter.smallTitle)
+        Text("오늘의 필터 소개")
             .font(.pretendardFont(.body_medium, size: 13))
             .foregroundStyle(.gray60)
             .foregroundColor(.white.opacity(0.8))
     }
     
     private func largeTitleView() -> some View {
-        Text(filter.largeTitle)
+        Text(todayFilter?.title ?? "")
             .font(.pointFont(.title, size: 32))
             .foregroundColor(.gray30)
             .lineLimit(2, reservesSpace: true)
@@ -71,7 +92,7 @@ struct TodayFilterView: View {
     }
     
     private func descriptionView() -> some View {
-        Text(filter.description)
+        Text(todayFilter?.description ?? "")
             .font(.pretendardFont(.caption, size: 12))
             .foregroundStyle(.gray60)
             .lineLimit(4, reservesSpace: true)
@@ -98,7 +119,7 @@ struct TodayFilterView: View {
     }
 }
 
-#Preview {
-    TodayFilterView(filter: DummyFilterAppData.todayFilter, router: NavigationRouter<MainTabRoute>())
-}
+//#Preview {
+//    TodayFilterView(filter: DummyFilterAppData.todayFilter, router: NavigationRouter<MainTabRoute>())
+//}
 

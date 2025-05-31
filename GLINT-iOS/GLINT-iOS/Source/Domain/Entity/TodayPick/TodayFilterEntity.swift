@@ -9,10 +9,6 @@ import Foundation
 
 struct TodayFilterResponseEntity: Codable {
     let filterID, title, introduction, description: String
-    let files: [String]
-
-    enum CodingKeys: String, CodingKey {
-        case filterID = "filter_id"
-        case title, introduction, description, files
-    }
+    let original: String?
+    let filtered: String?
 }
