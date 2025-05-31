@@ -7,18 +7,20 @@
 
 import SwiftUI
 
+import NukeUI
+
 // MARK: - HotTrendView
 struct HotTrendView: View {
-    let trends: [HotTrend]
+    @Binding var hotTrends: ResponseEntity.HotTrend?
     let router: NavigationRouter<MainTabRoute>
     
-    @State private var centralTrendID: HotTrend.ID?
+    @State private var centralTrendID: String?
     
     var body: some View {
         hotTrendContainer()
             .onAppear {
                 // 뷰가 나타날 때 첫 번째 아이템에 포커스 적용
-                if let firstTrend = trends.first {
+                if let firstTrend = hotTrends?.data.first {
                     centralTrendID = firstTrend.id
                 }
             }
@@ -53,16 +55,19 @@ struct HotTrendView: View {
     // MARK: - Horizontal Stack
     private func trendsHorizontalStack() -> some View {
         LazyHStack(spacing: 8) {
-            ForEach(trends) { trend in
-                trendItem(for: trend)
+            if let data = hotTrends?.data {
+                ForEach(data) { trend in
+                    trendItem(for: trend)
+                }
             }
+            
         }
         .padding(.horizontal, screenWidthPadding())
         .scrollTargetLayout()
     }
     
     // MARK: - Trend Item
-    private func trendItem(for trend: HotTrend) -> some View {
+    private func trendItem(for trend: FilterEntity) -> some View {
         HotTrendItemView(trend: trend, isFocused: trend.id == centralTrendID)
             .frame(width: trendItemWidth())
             .id(trend.id)
@@ -79,14 +84,14 @@ struct HotTrendView: View {
 }
 
 //MARK: - Preview
-#Preview {
-    HotTrendView(trends: DummyFilterAppData.hotTrends, router: NavigationRouter<MainTabRoute>())
+//#Preview {
+//    HotTrendView(trends: DummyFilterAppData.hotTrends, router: NavigationRouter<MainTabRoute>())
 //        .preferredColorScheme(.dark)
-}
+//}
 
 // MARK: - HotTrendItemView
 struct HotTrendItemView: View {
-    let trend: HotTrend
+    let trend: FilterEntity
     let isFocused: Bool
     
     var body: some View {
@@ -105,18 +110,26 @@ struct HotTrendItemView: View {
     
     // MARK: - Image View
     private func trendImageView() -> some View {
-        trend.image
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(height: 300)
-            .clipped()
-            .brightness(isFocused ? 0 : -0.5)
-            .overlay(alignment: .topLeading) {
-                trendTitleOverlay()
+        let imageUrlString = trend.filtered ?? ""
+        
+        return LazyImage(url: URL(string: imageUrlString)) { state in
+            lazyImageTransform(state) { image in
+                GeometryReader { proxy in
+                    let global = proxy.frame(in: .global)
+                    let width = global.width
+                    image.aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: 300)
+                        .clipped()
+                        .brightness(isFocused ? 0 : -0.5)
+                        .overlay(alignment: .topLeading) {
+                            trendTitleOverlay()
+                        }
+                        .overlay(alignment: .bottomTrailing) {
+                            trendLikesOverlay()
+                        }
+                }
             }
-            .overlay(alignment: .bottomTrailing) {
-                trendLikesOverlay()
-            }
+        }
     }
     
     // MARK: - Title Overlay
@@ -147,6 +160,6 @@ struct HotTrendItemView: View {
     }
     
     private func likesCount() -> some View {
-        Text("\(trend.likes)")
+        Text("\(trend.likeCount)")
     }
 }

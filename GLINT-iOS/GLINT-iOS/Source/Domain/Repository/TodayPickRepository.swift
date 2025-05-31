@@ -10,6 +10,7 @@ import Foundation
 struct TodayPickRepository {
     var todayAuthor: () async throws -> ResponseDTO.TodayAuthor
     var todayFilter: () async throws -> ResponseDTO.TodayFilter
+    var hotTrend: () async throws -> ResponseDTO.HotTrend
 }
 
 extension TodayPickRepository: NetworkServiceProvider {
@@ -23,6 +24,10 @@ extension TodayPickRepository: NetworkServiceProvider {
             },
             todayFilter: {
                 let endPoint = TodayPickEndPoint.todayFilter
+                return try await Self.requestAsync(endPoint)
+            },
+            hotTrend: {
+                let endPoint = TodayPickEndPoint.hotTrend
                 return try await Self.requestAsync(endPoint)
             }
         )

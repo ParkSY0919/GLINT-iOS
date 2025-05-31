@@ -36,7 +36,6 @@ extension NetworkServiceProvider {
             endPoint,
             interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
         )
-        print(request, "@@@")
         let response = await request
         .validate(statusCode: 200..<300)
         .serializingDecodable(T.self, decoder: endPoint.decoder)

@@ -14,14 +14,15 @@ struct MainView: View {
     private var todayPickAuthor
     @Environment(\.todayPickUseCase.todayFilter)
     private var todayPickFilter
+    @Environment(\.todayPickUseCase.hotTrend)
+    private var todayPickHotTrend
     
     @State
     private var todayFilter: ResponseEntity.TodayFilter?
-    
     @State
     private var todayArtist: ResponseEntity.TodayAuthor?
-    //    @State
-    //    private var hotTrends: [FilterModel] = []
+    @State
+    private var hotTrends: ResponseEntity.HotTrend?
     
     @State
     private var isLoading: Bool = true
@@ -41,7 +42,7 @@ struct MainView: View {
                 .padding(.top, 20)
                 
                 HotTrendView(
-                    trends: DummyFilterAppData.hotTrends,
+                    hotTrends: $hotTrends,
                     router: router
                 )
                 .padding(.top, 30)
@@ -69,10 +70,11 @@ private extension MainView {
         do {
             async let todayAuthor = todayPickAuthor()
             async let todayFilter = todayPickFilter()
-            
+            async let todayHotTrend = todayPickHotTrend()
             
             self.todayFilter = try await todayFilter
             self.todayArtist = try await todayAuthor
+            self.hotTrends = try await todayHotTrend
         } catch {
             print(error)
         }

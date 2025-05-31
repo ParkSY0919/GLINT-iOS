@@ -8,10 +8,9 @@
 import SwiftUI
 
 struct TodayPickUseCase {
-    // 오늘의 작가 소개
-    var todayAuthor: @Sendable () async throws -> ResponseEntity.TodayAuthor
-    // 오늘의 필터 소개
-    var todayFilter: @Sendable () async throws -> ResponseEntity.TodayFilter
+    var todayAuthor: @Sendable () async throws -> ResponseEntity.TodayAuthor // 오늘의 작가 소개
+    var todayFilter: @Sendable () async throws -> ResponseEntity.TodayFilter // 오늘의 필터 소개
+    var hotTrend: @Sendable () async throws -> ResponseEntity.HotTrend
 }
 
 extension TodayPickUseCase {
@@ -24,6 +23,9 @@ extension TodayPickUseCase {
             },
             todayFilter: {
                 return try await repository.todayFilter().toEntity()
+            },
+            hotTrend: {
+                return try await repository.hotTrend().toEntity()
             }
         )
     }()

@@ -92,18 +92,15 @@ struct TodayArtistView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 if let todayArtist = todayArtist {
-                    ForEach(todayArtist.filters, id: \.filterID) { filter in
-                        // 각 필터의 files 배열을 순회
-                        ForEach(Array(filter.files.enumerated()), id: \.offset) { index, imageUrl in
-                            LazyImage(url: URL(string: imageUrl)) { state in
-                                lazyImageTransform(state) { image in
-                                    image.aspectRatio(contentMode: .fill)
-                                }
+                    ForEach(todayArtist.filters, id: \.id) { filter in
+                        LazyImage(url: URL(string: filter.filtered ?? "")) { state in
+                            lazyImageTransform(state) { image in
+                                image.aspectRatio(contentMode: .fill)
                             }
-                            .frame(width: 120, height: 80)
-                            .clipRectangle(8)
-                            .clipped()
                         }
+                        .frame(width: 120, height: 80)
+                        .clipRectangle(8)
+                        .clipped()
                     }
                 }
             }

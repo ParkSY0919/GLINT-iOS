@@ -12,6 +12,7 @@ import Alamofire
 enum TodayPickEndPoint {
     case todayAuthor
     case todayFilter
+    case hotTrend
 }
 
 extension TodayPickEndPoint: EndPoint {
@@ -20,6 +21,8 @@ extension TodayPickEndPoint: EndPoint {
         case .todayAuthor:
             "v1/users/"
         case .todayFilter:
+            "v1/filters/"
+        case .hotTrend:
             "v1/filters/"
         }
     }
@@ -30,19 +33,21 @@ extension TodayPickEndPoint: EndPoint {
             return utilPath + "today-author"
         case .todayFilter:
             return utilPath + "today-filter"
+        case .hotTrend:
+            return utilPath + "hot-trend"
         }
     }
     
     var method: Alamofire.HTTPMethod {
         switch self {
-        case .todayAuthor, .todayFilter:
+        case .todayAuthor, .todayFilter, .hotTrend:
             return .get
         }
     }
     
     var requestType: RequestType {
         switch self {
-        case .todayAuthor, .todayFilter:
+        case .todayAuthor, .todayFilter, .hotTrend:
             return .none
         }
     }
