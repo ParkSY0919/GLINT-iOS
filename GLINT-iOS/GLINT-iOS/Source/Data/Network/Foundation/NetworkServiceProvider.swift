@@ -15,27 +15,26 @@ typealias RequestData = Encodable & Sendable
 
 let defaultSession = Session()
 
-let imageSession = Session(
-    interceptor: Interceptor(
-        adapters: [KeyAdapter()],
-        interceptors: [GTInterceptor()]
-    )
-)
+//let imageSession = Session(
+//    interceptor: Interceptor(
+//        interceptors: [GTInterceptor(type: .nuke)]
+//    )
+//)
 
-struct KeyAdapter: RequestAdapter {
-    func adapt(
-        _ urlRequest: URLRequest,
-        for session: Session,
-        completion: @escaping (Result<URLRequest, any Error>) -> Void
-    ) {
-        var request = urlRequest
-        request.addValue(
-            Config.sesacKey,
-            forHTTPHeaderField: "SeSACKey"
-        )
-        completion(.success(request))
-    }
-}
+//struct KeyAdapter: RequestAdapter {
+//    func adapt(
+//        _ urlRequest: URLRequest,
+//        for session: Session,
+//        completion: @escaping (Result<URLRequest, any Error>) -> Void
+//    ) {
+//        var request = urlRequest
+//        request.addValue(
+//            Config.sesacKey,
+//            forHTTPHeaderField: "SeSACKey"
+//        )
+//        completion(.success(request))
+//    }
+//}
 
 
 // MARK: - Network Service Provider 프로토콜
@@ -55,15 +54,16 @@ extension NetworkServiceProvider {
     static func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T {
         GTLogger.shared.networkRequest("NetworkStart")
         
-        let response = await defaultSession.request(
+        let request = defaultSession.request(
             endPoint,
-            interceptor: Interceptor(
-                interceptors: [GTInterceptor()]
-            )
+            interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
         )
+        print(request, "@@@")
+        let response = await request
         .validate(statusCode: 200..<300)
         .serializingDecodable(T.self, decoder: endPoint.decoder)
         .response
+        
         
         switch response.result {
         case .success(let value):
@@ -88,9 +88,7 @@ extension NetworkServiceProvider {
         
         let response = await defaultSession.request(
             endPoint,
-            interceptor: Interceptor(
-                interceptors: [GTInterceptor()]
-            )
+            interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
         )
         .validate(statusCode: 200..<300)
         .serializingData()

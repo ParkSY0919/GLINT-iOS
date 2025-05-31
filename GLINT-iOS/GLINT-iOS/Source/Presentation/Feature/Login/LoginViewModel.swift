@@ -152,7 +152,9 @@ final class LoginViewModel {
             )
             
             // 서버에 로그인 요청
-            _ = try await authUseCase.signInApple(request)
+            let response = try await authUseCase.signInApple(request)
+            keychain.saveAccessToken(response.accessToken)
+            keychain.saveRefreshToken(response.refreshToken)
             loginState = .success
         } catch {
             loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")

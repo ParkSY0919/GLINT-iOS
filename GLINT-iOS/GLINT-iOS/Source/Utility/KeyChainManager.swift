@@ -68,8 +68,6 @@ final class KeychainManager: Sendable {
 
 //MARK: Keychain 내부 함수
 extension KeychainManager {
-    
-    
     private func createBaseQuery(for key: KeychainKey) -> [String: Any] {
         return [
             kSecClass as String: kSecClassGenericPassword,

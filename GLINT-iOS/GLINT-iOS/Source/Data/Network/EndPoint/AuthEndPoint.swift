@@ -19,15 +19,6 @@ enum AuthEndPoint {
 }
 
 extension AuthEndPoint: EndPoint {
-    
-    
-    var headers: Alamofire.HTTPHeaders {
-        switch self {
-        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao, .refreshToken:
-            return HeaderType.basic
-        }
-    }
-    
     var utilPath: String {
         switch self {
         case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao:

@@ -38,7 +38,7 @@ extension EndPoint {
     }
 
     func asURLRequest() throws -> URLRequest {
-        var request = try URLRequest(
+        let request = try URLRequest(
             url: baseURL + path,
             method: method,
             headers: headers

@@ -10,16 +10,30 @@ import Foundation
 import Alamofire
 
 final class GTInterceptor: RequestInterceptor {
+    enum InterceptorType {
+        case `default`
+        case nuke
+    }
+    
+    private let type: InterceptorType
     private let keychain = KeychainManager.shared
+    
+    init(type: InterceptorType) {
+        self.type = type
+    }
     
     /// Request adapt
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var adaptedRequest = urlRequest
         
+        if type == .nuke {
+            adaptedRequest.setValue("\(Config.sesacKey)", forHTTPHeaderField: "SeSACKey")
+        }
         if !shouldAddAuthHeader(for: urlRequest) {
             if let accessToken = keychain.getAccessToken() {
-                adaptedRequest.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+                adaptedRequest.setValue("\(accessToken)", forHTTPHeaderField: "Authorization")
             }
+            
         }
         completion(.success(adaptedRequest))
     }
@@ -52,6 +66,7 @@ final class GTInterceptor: RequestInterceptor {
 
 // MARK: - Private Methods
 private extension GTInterceptor {
+    /// 인증필요한 EndPoint인지 조회
     private func shouldAddAuthHeader(for request: URLRequest) -> Bool {
         // 인증이 필요하지 않은 엔드포인트
         let publicEndpoints = [
@@ -69,6 +84,7 @@ private extension GTInterceptor {
         return publicEndpoints.contains(path)
     }
     
+    /// 리프레시 토큰 재발급
     private func refreshToken(completion: @escaping (Result<Void, Error>) -> Void) {
         guard let refreshToken = keychain.getRefreshToken() else {
             completion(.failure(AuthError.noTokenFound))
@@ -76,6 +92,7 @@ private extension GTInterceptor {
         }
         
         // Refresh Token API 호출
+        // TODO: 
         let refreshRequest = RefreshTokenRequest(refreshToken: refreshToken)
         let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         

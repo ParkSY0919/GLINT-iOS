@@ -15,6 +15,7 @@ struct AuthRepository {
     var signInKakao: (_ request: SignInRequestForKakao) async throws -> SignInResponse
 }
 
+//TODO: 현재 Domain(Repo) -> Data(NetworkServiceProvider)형태 (의존성 역전 상황) 개선 필요
 extension AuthRepository: NetworkServiceProvider {
     typealias E = AuthEndPoint
     
