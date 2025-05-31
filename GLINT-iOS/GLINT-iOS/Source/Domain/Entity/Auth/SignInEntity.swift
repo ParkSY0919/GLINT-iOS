@@ -10,7 +10,7 @@ import Foundation
 struct SignInRequestAppleEntity {
     let idToken, deviceToken, nick: String
     
-    func toAppleRequest() -> SignInRequestForApple {
+    func toAppleRequest() -> RequestDTO.SignInForApple {
         return .init(
             idToken: idToken,
             deviceToken: deviceToken,
@@ -22,7 +22,7 @@ struct SignInRequestAppleEntity {
 struct SignInRequestKakaoEntity {
     let oauthToken, deviceToken: String
     
-    func toKakaoRequest() -> SignInRequestForKakao {
+    func toKakaoRequest() -> RequestDTO.SignInForKakao {
         return .init(oauthToken: oauthToken, deviceToken: deviceToken)
     }
 }
@@ -30,7 +30,7 @@ struct SignInRequestKakaoEntity {
 struct SignInRequestEntity: Codable {
     let email, password, deviceToken: String
     
-    func toRequest() -> SignInRequest {
+    func toRequest() -> RequestDTO.SignIn {
         return .init(
             email: email,
             password: password,

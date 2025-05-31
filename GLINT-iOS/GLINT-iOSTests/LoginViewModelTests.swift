@@ -8,16 +8,16 @@ final class LoginViewModelTests: XCTestCase {
     let mockSuccessUserUseCase = AuthUseCase(
         checkEmailValidation: { _ in },
         signUp: { _ in
-            return SignUpResponse(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
+            return ResponseDTO.SignUp(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
         },
         signIn: { _ in
-            return SignInResponse(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
+            return ResponseDTO.SignIn(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
         },
         signInApple: { _ in
-            return SignInResponse(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
+            return ResponseDTO.SignIn(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
         },
         signInKakao: { _ in
-            return SignInResponse(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
+            return ResponseDTO.SignIn(userID: "1", email: "test@glint.com", nick: "test", accessToken: "token", refreshToken: "refresh")
         }
     )
     // 실패 케이스용 Mock

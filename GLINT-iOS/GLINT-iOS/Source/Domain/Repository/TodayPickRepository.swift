@@ -8,8 +8,8 @@
 import Foundation
 
 struct TodayPickRepository {
-    var todayAuthor: () async throws -> TodayArtistResponse
-    var todayFilter: () async throws -> TodayFilterResponse
+    var todayAuthor: () async throws -> ResponseDTO.TodayAuthor
+    var todayFilter: () async throws -> ResponseDTO.TodayFilter
 }
 
 extension TodayPickRepository: NetworkServiceProvider {

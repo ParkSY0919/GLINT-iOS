@@ -1,5 +1,5 @@
 //
-//  TodayArtistResponse.swift
+//  TodayAuthor.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/24/25.
@@ -7,22 +7,24 @@
 
 import Foundation
 
-// MARK: - TodayArtistResponse
-struct TodayArtistResponse: Decodable {
-    let author: TodayAuthor
-    let filters: [TodayArtistFilter]
-    
-    func toEntity() -> TodayArtistResponseEntity {
-        return TodayArtistResponseEntity(
-            author: author.toEntity(),
-            filters: filters.map { $0.toEntity() }
-        )
+// MARK: - TodayAuthor
+extension ResponseDTO {
+    struct TodayAuthor: Decodable {
+        let author: Author
+        let filters: [Filter]
+        
+        func toEntity() -> TodayArtistResponseEntity {
+            return TodayArtistResponseEntity(
+                author: author.toEntity(),
+                filters: filters.map { $0.toEntity() }
+            )
+        }
     }
 }
 
-extension TodayArtistResponse {
-    // MARK: - TodayAuthor
-    struct TodayAuthor: Decodable {
+extension ResponseDTO.TodayAuthor {
+    // MARK: - Author
+    struct Author: Decodable {
         let userID, nick, name, introduction: String
         let description: String?
         let profileImage: String
@@ -46,12 +48,12 @@ extension TodayArtistResponse {
         }
     }
     
-    // MARK: - TodayArtistFilter
-    struct TodayArtistFilter: Decodable {
+    // MARK: - Filter
+    struct Filter: Decodable {
         let filterID, title, description: String
         let category: String?
         let files: [String]
-        let creator: TodayAuthor
+        let creator: Author
         let isLiked: Bool
         let likeCount, buyerCount: Int
         let createdAt, updatedAt: String

@@ -93,12 +93,12 @@ private extension GTInterceptor {
         
         // Refresh Token API 호출
         // TODO: 
-        let refreshRequest = RefreshTokenRequest(refreshToken: refreshToken)
+        let refreshRequest = RequestDTO.RefreshToken(refreshToken: refreshToken)
         let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         
         AF.request(endpoint)
             .validate(statusCode: 200..<300)
-            .responseDecodable(of: RefreshTokenResponse.self) { [weak self] response in
+            .responseDecodable(of: ResponseDTO.RefreshToken.self) { [weak self] response in
                 switch response.result {
                 case .success(let refreshResponse):
                     // 새로운 토큰들을 KeychainProvider로 저장

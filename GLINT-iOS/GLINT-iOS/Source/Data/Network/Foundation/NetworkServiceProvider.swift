@@ -15,28 +15,6 @@ typealias RequestData = Encodable & Sendable
 
 let defaultSession = Session()
 
-//let imageSession = Session(
-//    interceptor: Interceptor(
-//        interceptors: [GTInterceptor(type: .nuke)]
-//    )
-//)
-
-//struct KeyAdapter: RequestAdapter {
-//    func adapt(
-//        _ urlRequest: URLRequest,
-//        for session: Session,
-//        completion: @escaping (Result<URLRequest, any Error>) -> Void
-//    ) {
-//        var request = urlRequest
-//        request.addValue(
-//            Config.sesacKey,
-//            forHTTPHeaderField: "SeSACKey"
-//        )
-//        completion(.success(request))
-//    }
-//}
-
-
 // MARK: - Network Service Provider 프로토콜
 protocol NetworkServiceProvider {
     associatedtype E: EndPoint

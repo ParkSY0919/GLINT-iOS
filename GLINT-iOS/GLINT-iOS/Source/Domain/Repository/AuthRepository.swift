@@ -8,11 +8,11 @@
 import Foundation
 
 struct AuthRepository {
-    var checkEmailValidation: (_ request: CheckEmailValidationRequest) async throws -> Void
-    var signUp: (_ request: SignUpRequest) async throws -> SignUpResponse
-    var signIn: (_ request: SignInRequest) async throws -> SignInResponse
-    var signInApple: (_ request: SignInRequestForApple) async throws -> SignInResponse
-    var signInKakao: (_ request: SignInRequestForKakao) async throws -> SignInResponse
+    var checkEmailValidation: (_ request: RequestDTO.CheckEmailValidation) async throws -> Void
+    var signUp: (_ request: RequestDTO.SignUp) async throws -> ResponseDTO.SignUp
+    var signIn: (_ request: RequestDTO.SignIn) async throws -> ResponseDTO.SignIn
+    var signInApple: (_ request: RequestDTO.SignInForApple) async throws -> ResponseDTO.SignIn
+    var signInKakao: (_ request: RequestDTO.SignInForKakao) async throws -> ResponseDTO.SignIn
 }
 
 //TODO: 현재 Domain(Repo) -> Data(NetworkServiceProvider)형태 (의존성 역전 상황) 개선 필요

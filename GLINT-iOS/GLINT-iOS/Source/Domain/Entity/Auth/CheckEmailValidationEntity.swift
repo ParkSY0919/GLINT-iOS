@@ -10,7 +10,7 @@ import Foundation
 struct CheckEmailValidationRequestEntity: Codable {
     let email: String
     
-    func toRequest() -> CheckEmailValidationRequest {
+    func toRequest() -> RequestDTO.CheckEmailValidation {
         return .init(email: self.email)
     }
 }

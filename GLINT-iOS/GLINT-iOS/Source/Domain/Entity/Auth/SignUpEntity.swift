@@ -11,7 +11,7 @@ struct SignUpRequestEntity: Codable {
     let email, password: String
     let deviceToken: String
     
-    func toRequest() -> SignUpRequest {
+    func toRequest() -> RequestDTO.SignUp {
         return .init(
             email: email,
             password: password,

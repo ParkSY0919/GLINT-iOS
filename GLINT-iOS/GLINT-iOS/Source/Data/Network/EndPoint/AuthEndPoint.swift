@@ -10,12 +10,12 @@ import Foundation
 import Alamofire
 
 enum AuthEndPoint {
-    case checkEmailValidation(CheckEmailValidationRequest)
-    case signUp(SignUpRequest)
-    case signIn(SignInRequest)
-    case signInForApple(SignInRequestForApple)
-    case signInForKakao(SignInRequestForKakao)
-    case refreshToken(RefreshTokenRequest)
+    case checkEmailValidation(RequestDTO.CheckEmailValidation)
+    case signUp(RequestDTO.SignUp)
+    case signIn(RequestDTO.SignIn)
+    case signInForApple(RequestDTO.SignInForApple)
+    case signInForKakao(RequestDTO.SignInForKakao)
+    case refreshToken(RequestDTO.RefreshToken)
 }
 
 extension AuthEndPoint: EndPoint {
