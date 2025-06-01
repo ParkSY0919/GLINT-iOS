@@ -20,7 +20,7 @@ struct TabBarItems {
         TabBarItemModel(
             icon: ImageLiterals.TabBar.home,
             selectedIcon: ImageLiterals.TabBar.homeSelected,
-            title: "HOOM",
+            title: "HOME",
             tag: 0
         ),
         TabBarItemModel(

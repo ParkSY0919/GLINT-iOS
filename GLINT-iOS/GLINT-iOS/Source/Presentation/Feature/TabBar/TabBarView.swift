@@ -1,19 +1,34 @@
+//
+//  TabBarView.swift
+//  GLINT-iOS
+//
+//  Created by 박신영 on 5/12/25.
+//
+
 import SwiftUI
 
 struct TabBarView: View {
-    var viewModel = TabBarViewModel()
+    @State private var viewModel: TabBarViewModel
     @State private var tabBarVisibility = TabBarVisibilityManager()
+    
+    // 의존성 주입을 위한 초기화 추가
+    init(todayPickUseCase: TodayPickUseCase) {
+        self._viewModel = State(wrappedValue: TabBarViewModel(todayPickUseCase: todayPickUseCase))
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
                 switch viewModel.selectedTab {
                 case 0:
-                    MainTabView(router: viewModel.mainRouter)
+                    MainTab(
+                        router: viewModel.mainRouter,
+                        mainViewStore: viewModel.mainViewStore
+                    )
                 case 1:
-                    CategoryTabView(router: viewModel.categoryRouter)
+                    FeedTab(router: viewModel.categoryRouter)
                 case 2:
-                    RecommendationsTabView(router: viewModel.recommendationsRouter)
+                    MakeTab(router: viewModel.recommendationsRouter)
                 case 3:
                     SearchTabView(router: viewModel.searchRouter)
                 case 4:
@@ -50,14 +65,25 @@ struct TabBarView: View {
     }
 }
 
+extension TabBarView {
+    @ViewBuilder
+    static func create() -> some View {
+        EnvironmentReader { environment in
+            TabBarView(todayPickUseCase: environment.todayPickUseCase)
+        }
+    }
+}
 
-// MARK: - Tab Content Views
-struct MainTabView: View {
+struct MainTab: View {
     @Bindable var router: NavigationRouter<MainTabRoute>
+    let mainViewStore: MainViewStore
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MainView(router: router)
+            MainView(
+                router: router,
+                store: mainViewStore  // Store 직접 전달!
+            )
         } destination: { route in
             destinationView(for: route)
         }
@@ -67,7 +93,7 @@ struct MainTabView: View {
     private func destinationView(for route: MainTabRoute) -> some View {
         switch route {
         case .home:
-            MainView(router: router)
+            MainView(router: router, store: mainViewStore)
         case .detail(let id):
             DetailView(id: id, router: router)
         case .settings:
@@ -76,8 +102,8 @@ struct MainTabView: View {
     }
 }
 
-struct CategoryTabView: View {
-    @Bindable var router: NavigationRouter<CategoryTabRoute>
+struct FeedTab: View {
+    @Bindable var router: NavigationRouter<FeedTabRoute>
     
     var body: some View {
         RouterNavigationStack(router: router) {
@@ -88,7 +114,7 @@ struct CategoryTabView: View {
     }
     
     @ViewBuilder
-    private func destinationView(for route: CategoryTabRoute) -> some View {
+    private func destinationView(for route: FeedTabRoute) -> some View {
         switch route {
         case .categoryList:
             CategoryContentView(router: router)
@@ -100,8 +126,8 @@ struct CategoryTabView: View {
     }
 }
 
-struct RecommendationsTabView: View {
-    @Bindable var router: NavigationRouter<RecommendationsTabRoute>
+struct MakeTab: View {
+    @Bindable var router: NavigationRouter<MakeTabRoute>
     
     var body: some View {
         RouterNavigationStack(router: router) {
@@ -112,14 +138,12 @@ struct RecommendationsTabView: View {
     }
     
     @ViewBuilder
-    private func destinationView(for route: RecommendationsTabRoute) -> some View {
+    private func destinationView(for route: MakeTabRoute) -> some View {
         switch route {
-        case .recommendationsList:
+        case .make:
             RecommendationsContentView(router: router)
-        case .recommendationDetail(let id):
-            RecommendationDetailView(id: id, router: router)
-        case .favorites:
-            FavoritesView(router: router)
+        case .filterEditor:
+            RecommendationDetailView(router: router)
         }
     }
 }
@@ -173,7 +197,3 @@ struct ProfileTabView: View {
         }
     }
 }
-
-#Preview {
-    TabBarView()
-} 

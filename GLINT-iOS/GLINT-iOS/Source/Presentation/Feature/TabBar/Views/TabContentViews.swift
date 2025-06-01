@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct CategoryContentView: View {
-    let router: NavigationRouter<CategoryTabRoute>
+    let router: NavigationRouter<FeedTabRoute>
     
     var body: some View {
         List {
@@ -17,7 +17,7 @@ struct CategoryContentView: View {
 }
 
 struct RecommendationsContentView: View {
-    let router: NavigationRouter<RecommendationsTabRoute>
+    let router: NavigationRouter<MakeTabRoute>
     
     var body: some View {
         ScrollView {
@@ -31,7 +31,7 @@ struct RecommendationsContentView: View {
                             .foregroundColor(.secondary)
                         
                         Button("자세히 보기") {
-                            router.push(.recommendationDetail(id: "rec-\(index)"))
+                            router.push(.filterEditor(id: "rec-\(index)"))
                         }
                         .buttonStyle(.borderedProminent)
                     }

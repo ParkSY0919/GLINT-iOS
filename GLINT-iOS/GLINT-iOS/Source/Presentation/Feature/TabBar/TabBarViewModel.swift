@@ -1,15 +1,30 @@
+//
+//  TabBarViewModel.swift
+//  GLINT-iOS
+//
+//  Created by 박신영 on 5/12/25.
+//
+
 import SwiftUI
 
 @Observable
 final class TabBarViewModel {
     var selectedTab: Int = 0
     
-    // 각 탭별 NavigationRouter
+    // 각 탭 NavigationRouter
     var mainRouter = NavigationRouter<MainTabRoute>()
-    var categoryRouter = NavigationRouter<CategoryTabRoute>()
-    var recommendationsRouter = NavigationRouter<RecommendationsTabRoute>()
+    var categoryRouter = NavigationRouter<FeedTabRoute>()
+    var recommendationsRouter = NavigationRouter<MakeTabRoute>()
     var searchRouter = NavigationRouter<SearchTabRoute>()
     var profileRouter = NavigationRouter<ProfileTabRoute>()
+    
+    // 각 탭의 Store 관리
+    let mainViewStore: MainViewStore
+    
+    /// 의존성 주입을 통한 초기화
+    init(todayPickUseCase: TodayPickUseCase) {
+        self.mainViewStore = MainViewStore(todayPickUseCase: todayPickUseCase)
+    }
     
     func selectTab(_ index: Int) {
         selectedTab = index
@@ -26,4 +41,4 @@ final class TabBarViewModel {
         default: break
         }
     }
-} 
+}

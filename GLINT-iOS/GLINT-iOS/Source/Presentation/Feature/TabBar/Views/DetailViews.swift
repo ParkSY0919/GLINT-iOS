@@ -29,7 +29,7 @@ struct SettingsView: View {
 // MARK: - Category Tab Detail Views
 struct CategoryDetailView: View {
     let categoryId: String
-    let router: NavigationRouter<CategoryTabRoute>
+    let router: NavigationRouter<FeedTabRoute>
     
     var body: some View {
         List {
@@ -45,7 +45,7 @@ struct CategoryDetailView: View {
 
 struct SubCategoryView: View {
     let id: String
-    let router: NavigationRouter<CategoryTabRoute>
+    let router: NavigationRouter<FeedTabRoute>
     
     var body: some View {
         Text("하위 카테고리: \(id)")
@@ -55,17 +55,16 @@ struct SubCategoryView: View {
 
 // MARK: - Recommendations Tab Detail Views
 struct RecommendationDetailView: View {
-    let id: String
-    let router: NavigationRouter<RecommendationsTabRoute>
+    let router: NavigationRouter<MakeTabRoute>
     
     var body: some View {
-        Text("추천 상세: \(id)")
+        Text("추천 상세: ")
             .navigationTitle("추천 상세")
     }
 }
 
 struct FavoritesView: View {
-    let router: NavigationRouter<RecommendationsTabRoute>
+    let router: NavigationRouter<MakeTabRoute>
     
     var body: some View {
         Text("즐겨찾기")
