@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E68E2602DE99B840096903A /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E25F2DE99B840096903A /* Nuke */; };
+		9E68E2622DE99B840096903A /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2612DE99B840096903A /* NukeExtensions */; };
+		9E68E2642DE99B840096903A /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2632DE99B840096903A /* NukeUI */; };
+		9E68E2662DE99B840096903A /* NukeVideo in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2652DE99B840096903A /* NukeVideo */; };
+		9E68E2692DE99BC00096903A /* NukeAlamofirePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */; };
 		9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF71E002DCF71F50011A8E1 /* Alamofire */; };
 /* End PBXBuildFile section */
 
@@ -64,6 +69,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */,
+				9E68E2602DE99B840096903A /* Nuke in Frameworks */,
+				9E68E2662DE99B840096903A /* NukeVideo in Frameworks */,
+				9E68E2622DE99B840096903A /* NukeExtensions in Frameworks */,
+				9E68E2642DE99B840096903A /* NukeUI in Frameworks */,
+				9E68E2692DE99BC00096903A /* NukeAlamofirePlugin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -132,6 +142,11 @@
 			name = "GLINT-iOS";
 			packageProductDependencies = (
 				9EF71E002DCF71F50011A8E1 /* Alamofire */,
+				9E68E25F2DE99B840096903A /* Nuke */,
+				9E68E2612DE99B840096903A /* NukeExtensions */,
+				9E68E2632DE99B840096903A /* NukeUI */,
+				9E68E2652DE99B840096903A /* NukeVideo */,
+				9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */,
 			);
 			productName = "GLINT-iOS";
 			productReference = 9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */;
@@ -167,6 +182,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */,
+				9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */,
+				9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EF71DE72DCE4AF50011A8E1 /* Products */;
@@ -409,7 +426,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -449,7 +466,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -500,6 +517,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.8.0;
+			};
+		};
+		9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke-Alamofire-Plugin.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
@@ -511,6 +544,31 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9E68E25F2DE99B840096903A /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		9E68E2612DE99B840096903A /* NukeExtensions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeExtensions;
+		};
+		9E68E2632DE99B840096903A /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
+		9E68E2652DE99B840096903A /* NukeVideo */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeVideo;
+		};
+		9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */;
+			productName = NukeAlamofirePlugin;
+		};
 		9EF71E002DCF71F50011A8E1 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */;

@@ -8,7 +8,7 @@
 import Foundation
 
 struct AppDependencies {
-    let userUseCase: UserUseCase
+    let userUseCase: AuthUseCase
     
     static let live = AppDependencies(
         userUseCase: .liveValue

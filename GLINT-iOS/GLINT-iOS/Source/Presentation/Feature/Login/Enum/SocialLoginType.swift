@@ -13,9 +13,9 @@ enum SocialLoginType {
     var icon: Image {
         switch self {
         case .apple:
-            return ImageLiterals.LoginImageLiterals.apple
+            return ImageLiterals.Login.apple
         case .kakao:
-            return ImageLiterals.LoginImageLiterals.kakao
+            return ImageLiterals.Login.kakao
         }
     }
     

@@ -44,9 +44,9 @@ extension GLINTColor.Palette {
         
         var color: Color {
             switch self {
-            case .black: return .brand100
-            case .deep: return .brand200
-            case .bright: return .brand300
+            case .black: return .brandBlack
+            case .deep: return .brandDeep
+            case .bright: return .brandBright
             }
         }
     }

@@ -11,7 +11,7 @@ enum ImageLiterals {}
 
 extension ImageLiterals {
     
-    struct TabBarImageLiterals {
+    struct TabBar {
         static let home = Image(.home)
         static let homeSelected = Image(.homeFill)
         static let grid = Image(.section)
@@ -20,13 +20,21 @@ extension ImageLiterals {
         static let sparklesSelected = Image(.sparkleFill)
         static let search = Image(.search)
         static let searchSelected = Image(.searchFill)
-        static let profile = Image(.person)
-        static let profileSelected = Image(.personFill)
+        static let profile = Image(.personTabBar)
+        static let profileSelected = Image(.personFillTabBar)
     }
     
-    struct LoginImageLiterals {
+    struct Login {
         static let apple = Image(systemName: "apple.logo")
         static let kakao = Image(.kakao)
+    }
+    
+    struct Main {
+        static let food = Image(.food)
+        static let person = Image(.person)
+        static let landscape = Image(.landscape)
+        static let nightscape = Image(.nightscape)
+        static let star = Image(.star)
     }
     
 }

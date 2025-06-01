@@ -10,18 +10,127 @@ import Combine
 
 import Alamofire
 
+typealias ResponseData = Decodable & Sendable
+typealias RequestData = Encodable & Sendable
+
+let defaultSession = Session()
+
 // MARK: - Network Service Provider 프로토콜
 protocol NetworkServiceProvider {
-    // 응답 바디가 있는 요청 (Decodable)
-    func request<T: EndPoint, R: Decodable>(
-        target: T,
-        responseType: R.Type,
-        interceptor: RequestInterceptor?
-    ) -> AnyPublisher<R, T.ErrorType>
+    associatedtype E: EndPoint
+    
+    // 토큰 포함 요청
+    static func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T
+    static func requestAsync(_ endPoint: E) async throws
+    
+    // 토큰 없이 요청 (adaptable 파라미터 추가)
+    static func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T
+    static func requestNonToken(_ endPoint: E) async throws
+}
 
-    // 응답 바디가 없는 요청 (성공 여부만)
-    func request<T: EndPoint>(
-        target: T,
-        interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Void, T.ErrorType>
+extension NetworkServiceProvider {
+    static func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T {
+        GTLogger.shared.networkRequest("NetworkStart")
+        
+        let request = defaultSession.request(
+            endPoint,
+            interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
+        )
+        let response = await request
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(T.self, decoder: endPoint.decoder)
+        .response
+        
+        
+        switch response.result {
+        case .success(let value):
+            GTLogger.shared.networkSuccess("networkSuccess")
+            return value
+        case .failure(let error):
+            GTLogger.shared.networkFailure("networkFailure", error: error)
+            if case let AFError.requestRetryFailed(
+                retryError: retryError,
+                originalError: _
+            ) = error {
+                throw retryError
+            }
+            
+            // throwError 메서드로 처리
+            throw endPoint.throwError(error)
+        }
+    }
+    
+    static func requestAsync(_ endPoint: E) async throws {
+        GTLogger.shared.networkRequest("NetworkStart")
+        
+        let response = await defaultSession.request(
+            endPoint,
+            interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
+        )
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .response
+        
+        switch response.result {
+        case .success: return
+        case .failure(let error):
+            GTLogger.shared.networkFailure("networkFailure", error: error)
+            if case let AFError.requestRetryFailed(retryError: retryError, originalError: _) = error {
+                throw retryError
+            }
+            if case .responseSerializationFailed(.inputDataNilOrZeroLength) = error,
+               response.response?.statusCode == 200 {
+                GTLogger.shared.networkSuccess("networkSuccess")
+                return
+            }
+            guard response.data != nil else {
+                throw error
+            }
+            throw endPoint.throwError(error)
+        }
+    }
+    
+    static func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T {
+        GTLogger.shared.networkRequest("NetworkStart")
+        
+        let response = await defaultSession.request(endPoint)
+        .validate(statusCode: 200..<300)
+        .serializingDecodable(T.self, decoder: endPoint.decoder)
+        .response
+        
+        switch response.result {
+        case .success(let value):
+            GTLogger.shared.networkSuccess("networkSuccess")
+            return value
+        case .failure(let error):
+            GTLogger.shared.networkFailure("networkFailure", error: error)
+            guard response.data != nil else {
+                throw error
+            }
+            throw endPoint.throwError(error)
+        }
+    }
+    
+    static func requestNonToken(_ endPoint: E) async throws {
+        GTLogger.shared.networkRequest("NetworkStart")
+        
+        let response = await defaultSession.request(endPoint)
+        .validate(statusCode: 200..<300)
+        .serializingData()
+        .response
+        
+        switch response.result {
+        case .success: return
+        case .failure(let error):
+            if case .responseSerializationFailed(.inputDataNilOrZeroLength) = error,
+               response.response?.statusCode == 200 {
+                GTLogger.shared.networkSuccess("networkSuccess")
+                return
+            }
+            guard response.data != nil else {
+                throw error
+            }
+            throw endPoint.throwError(error)
+        }
+    }
 }

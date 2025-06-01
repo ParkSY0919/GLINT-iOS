@@ -6,17 +6,18 @@
 //
 
 import SwiftUI
-import AuthenticationServices
 import Combine
 
 struct LoginView: View {
-    @StateObject private var viewModel = LoginViewModel()
+    @Environment(\.authUseCase)
+    private var authUseCase
     
-    //MARK: - Body
+    @State private var viewModel = LoginViewModel()
+    var rootRouter: RootRouter
+    
     var body: some View {
         NavigationStack {
             ZStack {
-                // 배경 그라데이션
                 LinearGradient(
                     gradient: Gradient(colors: [.gray, .bgPoint]),
                     startPoint: .topLeading,
@@ -33,9 +34,12 @@ struct LoginView: View {
                     )
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
-                     .onSubmit { // 키보드의 return 키
-                         Task { await viewModel.checkEmailAvailability() }
-                     }
+                    .onSubmit {
+                        Task { await viewModel.checkEmailAvailability(using: authUseCase) }
+                    }
+                    .onChange(of: viewModel.email) { _, _ in
+                        viewModel.validateInputs()
+                    }
                     
                     FormFieldView(
                         formCase: .password,
@@ -44,8 +48,11 @@ struct LoginView: View {
                         ? "8자 이상, 특수문자를 포함해주세요" : nil,
                         text: $viewModel.password
                     )
+                    .onChange(of: viewModel.password) { _, _ in
+                        viewModel.validateInputs()
+                    }
                     
-                    signInButton() // 버튼 이름 변경
+                    signInButton()
                         .padding(.top, 30)
                     
                     if case .failure(let message) = viewModel.loginState {
@@ -55,7 +62,7 @@ struct LoginView: View {
                             .padding(.top, 8)
                     }
                     
-                    orTextWithSignUpButton() // 함수 이름 변경
+                    orTextWithSignUpButton()
                     
                     socialLoginButtons()
                 }
@@ -68,10 +75,10 @@ struct LoginView: View {
                         .scaleEffect(1.5)
                 }
             }
-            .onChange(of: viewModel.loginState) { newState in
+            .onChange(of: viewModel.loginState) { _, newState in
                 if newState == .success {
-                    print("로그인 성공! (View) - 다음 화면으로 이동 등 처리")
-                    // 예: 메인 화면으로 전환하는 로직
+                    print("로그인 성공! (View) - TabBar로 전환")
+                    rootRouter.navigate(to: .tabBar)
                 }
             }
             .navigationTitle("로그인")
@@ -79,26 +86,24 @@ struct LoginView: View {
         }
     }
     
-    
     private func signInButton() -> some View {
         Button("Sign in") {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             Task {
-                await viewModel.loginWithEmail()
+                await viewModel.loginWithEmail(using: authUseCase)
             }
         }
-        .buttonStyle(GLCTAButton()) // 사용하시는 커스텀 버튼 스타일
+        .buttonStyle(GLCTAButton())
         .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || !viewModel.isEmailValidForUI || !viewModel.isPasswordValid || viewModel.loginState == .loading)
     }
     
-    // 함수 이름 변경
     private func orTextWithSignUpButton() -> some View {
         HStack {
             Rectangle().fill(Color(uiColor: .systemGray4)).frame(height: 1)
             Button {
-                viewModel.navigateToCreateAccount() // ViewModel 함수 호출
+                viewModel.navigateToCreateAccount()
             } label: {
-                Text("회원가입") // 직접 텍스트 사용
+                Text("회원가입")
                     .font(.system(size: 14))
                     .foregroundColor(Color(uiColor: .systemGray4))
                     .padding(.horizontal, 10)
@@ -112,18 +117,18 @@ struct LoginView: View {
     
     private func socialLoginButtons() -> some View {
         HStack(spacing: 20) {
-            SocialLoginButtonView(type: .apple) { // SocialLoginButtonView 정의 필요
-                viewModel.appleLogin() // ViewModel 함수 호출
+            SocialLoginButtonView(type: .apple) {
+                Task {
+                    await viewModel.appleLogin(using: authUseCase)
+                }
             }
-            SocialLoginButtonView(type: .kakao) { // SocialLoginButtonView 정의 필요
-                viewModel.kakaoLogin() // ViewModel 함수 호출
+            SocialLoginButtonView(type: .kakao) {
+                // TODO: Kakao 로그인 구현
             }
         }
     }
 }
 
 #Preview {
-    LoginView()
+    LoginView(rootRouter: RootRouter())
 }
-
-
