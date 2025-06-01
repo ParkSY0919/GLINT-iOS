@@ -6,14 +6,14 @@
 //
 
 import SwiftUI
-
 import NukeUI
 
 struct TodayFilterView: View {
     @Binding var todayFilter: ResponseEntity.TodayFilter?
     let router: NavigationRouter<MainTabRoute>
-    @State
-    private var scrollOffset: CGFloat = 0
+    let onTryFilterTapped: () -> Void
+    
+    @State private var scrollOffset: CGFloat = 0
     
     private let backgroundGradient = Gradient(colors: [
         .clear,
@@ -29,60 +29,63 @@ struct TodayFilterView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            backgroundImage(url: todayFilter?.filtered ?? "")
-            
-            contentStackView()
-            
-            tryButtonView()
+            backgroundImageView
+            contentStackView
+            tryButtonView
         }
         .frame(height: 555)
     }
-    
-    func backgroundImage(url: String) -> some View {
-        LazyImage(url: URL(string: url)) { state in
+}
+
+// MARK: - Views
+private extension TodayFilterView {
+    @ViewBuilder
+    var backgroundImageView: some View {
+        LazyImage(url: URL(string: todayFilter?.filtered ?? "")) { state in
             lazyImageTransform(state) { image in
                 GeometryReader { proxy in
                     let global = proxy.frame(in: .global)
                     let width = global.width
-                    image.aspectRatio(contentMode: .fill)
+                    
+                    image
+                        .aspectRatio(contentMode: .fill)
                         .frame(width: width, height: 555)
                         .clipped()
-                        .overlay(
+                        .overlay {
                             LinearGradient(
                                 gradient: backgroundGradient,
                                 startPoint: .center,
                                 endPoint: .bottom
                             )
-                        )
+                        }
                 }
             }
         }
     }
     
-    // MARK: - Content Stack
-    private func contentStackView() -> some View {
-        VStack(alignment: .leading) {
+    var contentStackView: some View {
+        VStack(alignment: .leading, spacing: 0) {
             Spacer()
-            smallTitleView()
-            largeTitleView()
-            descriptionView()
+            
+            smallTitleView
+            largeTitleView
+            descriptionView
+            
             CategoryButtonsView(categories: DummyFilterAppData.categories)
                 .padding(.top, 30)
                 .frame(maxWidth: .infinity)
         }
-        
         .padding(.horizontal, 20)
-//        .padding(.bottom, 30)
     }
     
-    private func smallTitleView() -> some View {
+    var smallTitleView: some View {
         Text("오늘의 필터 소개")
             .font(.pretendardFont(.body_medium, size: 13))
             .foregroundStyle(.gray60)
             .foregroundColor(.white.opacity(0.8))
     }
     
-    private func largeTitleView() -> some View {
+    var largeTitleView: some View {
         Text(todayFilter?.title ?? "")
             .font(.pointFont(.title, size: 32))
             .foregroundColor(.gray30)
@@ -91,35 +94,43 @@ struct TodayFilterView: View {
             .padding(.bottom, 20)
     }
     
-    private func descriptionView() -> some View {
+    var descriptionView: some View {
         Text(todayFilter?.description ?? "")
             .font(.pretendardFont(.caption, size: 12))
             .foregroundStyle(.gray60)
             .lineLimit(4, reservesSpace: true)
     }
     
-    // MARK: - Try Button
-    private func tryButtonView() -> some View {
+    var tryButtonView: some View {
         HStack {
             Spacer()
+            
             Button {
-                print("오늘의 필터 사용해보기 버튼 탭됨")
+                onTryFilterTapped()
             } label: {
                 Text("사용해보기")
                     .font(.pretendardFont(.caption_medium, size: 12))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(.gray75).opacity(0.7)
+                    .background(.gray75.opacity(0.7))
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .foregroundColor(.gray0)
             }
+            .buttonStyle(.plain)
         }
         .padding(.top, 60)
         .padding(.trailing, 20)
     }
 }
 
-//#Preview {
-//    TodayFilterView(filter: DummyFilterAppData.todayFilter, router: NavigationRouter<MainTabRoute>())
-//}
+// MARK: - Preview
+#Preview {
+    TodayFilterView(
+        todayFilter: .constant(nil),
+        router: NavigationRouter<MainTabRoute>(),
+        onTryFilterTapped: {
+            print("필터 사용 버튼 탭됨")
+        }
+    )
+}
 
