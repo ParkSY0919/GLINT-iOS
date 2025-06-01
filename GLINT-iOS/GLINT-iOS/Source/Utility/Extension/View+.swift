@@ -103,5 +103,9 @@ extension View {
     func nonScrollable() -> some View {
         modifier(NonScrollableView())
     }
+    
+    func navigationBarTitleFont(_ font: PointFontName, size: CGFloat) -> some View {
+        self.modifier(NavigationTitleFontModifier(fontName: font, fontSize: size))
+    }
 }
 

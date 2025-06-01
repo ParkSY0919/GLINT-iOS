@@ -1,19 +1,20 @@
-//
-//  DetailView.swift
-//  GLINT-iOS
-//
-//  Created by 박신영 on 6/1/25.
+////
+////  DetailView.swift
+////  GLINT-iOS
+////
+////  Created by 박신영 on 6/1/25.
+////
 //
 
 import SwiftUI
 
 import NukeUI
 
-// MARK: - Detail View
 struct DetailView: View {
     let id: String
     let router: NavigationRouter<MainTabRoute>
     @State private var store = DetailViewStore()
+    @State private var isLiked = false
     
     var body: some View {
         Group {
@@ -29,6 +30,24 @@ struct DetailView: View {
         }
         .navigationTitle("청록새록")
         .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    router.pop()
+                } label: {
+                    Image(systemName: "arrow.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(.gray75)
+                }
+            }
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                LikeButton(isLiked: $isLiked) {
+//                    store.send(.likeButtonTapped)
+                }
+            }
+        }
         .onAppear {
             store.send(.viewAppeared(id: id))
             setupNavigationAppearance()
@@ -82,41 +101,51 @@ private extension DetailView {
     
     var beforeAfterImageView: some View {
         GeometryReader { geometry in
+            let imageWidth = geometry.size.width - 40
+            let imageHeight: CGFloat = 384
+            
             ZStack {
-                // 원본 이미지 (배경)
+                // 원본 이미지 (배경 - Before)
                 LazyImage(url: URL(string: store.state.filterDetail?.originalImageURL ?? "")) { state in
                     lazyImageTransform(state) { image in
                         image
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width - 40, height: 384)
+                            .frame(width: imageWidth, height: imageHeight)
                             .clipped()
                     }
                 }
                 .clipRectangle(12)
                 
-                // 필터 적용 이미지 (오버레이)
+                // 필터 적용 이미지 (오버레이 - After)
                 LazyImage(url: URL(string: store.state.filterDetail?.filteredImageURL ?? "")) { state in
                     lazyImageTransform(state) { image in
                         image
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width - 40, height: 384)
+                            .frame(width: imageWidth, height: imageHeight)
                             .clipped()
                     }
                 }
                 .clipRectangle(12)
                 .mask(
                     Rectangle()
-                        .frame(width: (geometry.size.width - 40) * store.state.sliderPosition, height: 384)
-                        .offset(x: -(geometry.size.width - 40) * (1 - store.state.sliderPosition) / 2)
+                        .frame(width: imageWidth * store.state.sliderPosition, height: imageHeight)
+                        .offset(x: -imageWidth * (1 - store.state.sliderPosition) / 2)
                         .animation(.easeInOut(duration: 0.1), value: store.state.sliderPosition)
                 )
+                
+                // 구분선
+                Rectangle()
+                    .frame(width: 2, height: imageHeight)
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 0)
+                    .offset(x: imageWidth * store.state.sliderPosition - imageWidth / 2)
+                    .animation(.easeInOut(duration: 0.1), value: store.state.sliderPosition)
             }
             .padding(.horizontal, 20)
             .gesture(
                 DragGesture()
                     .onChanged { value in
-                        let imageWidth = geometry.size.width - 40
-                        let newPosition = value.location.x / imageWidth
+                        let newPosition = (value.location.x - 20) / imageWidth
                         store.send(.sliderPositionChanged(max(0, min(1, newPosition))))
                     }
             )
@@ -125,30 +154,65 @@ private extension DetailView {
     }
     
     var beforeAfterControlBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 4) {
             // Before 라벨
-            Button("Before") {
-                store.send(.sliderPositionChanged(0.0))
-            }
-            .font(.pretendardFont(.caption_medium, size: 12))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(.black.opacity(0.6))
-            .clipRectangle(4)
+            Text("Before")
+                .font(.pretendardFont(.caption_medium, size: 12))
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.gray60)
+                .clipShape(Capsule())
             
-            Spacer()
+            // 슬라이더 트랙과 핸들
+            GeometryReader { geometry in
+                let trackWidth = geometry.size.width
+                let handlePosition = trackWidth * store.state.sliderPosition
+                
+                ZStack(alignment: .leading) {
+                    // 슬라이더 트랙 (배경)
+                    RoundedRectangle(cornerRadius: 2)
+                        .frame(height: 4)
+                        .foregroundColor(.gray.opacity(0.3))
+                    
+                    // 슬라이더 핸들
+                    ZStack {
+                        // 외부 원 (24x24, .gray75)
+                        Circle()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(.gray75)
+                        
+                        // 내부 원 (22x22, .gray90)
+                        Circle()
+                            .frame(width: 22, height: 22)
+                            .foregroundColor(.gray90)
+                        
+                        // 가운데 화살표 아이콘
+                        Image(systemName: "chevron.up")
+                            .font(.system(size: 8, weight: .medium))
+                            .foregroundColor(.gray60)
+                    }
+                    .offset(x: handlePosition - 12) // 핸들 중심을 맞추기 위해 -12
+                    .animation(.easeInOut(duration: 0.1), value: store.state.sliderPosition)
+                }
+                .gesture(
+                    DragGesture()
+                        .onChanged { value in
+                            let newPosition = value.location.x / trackWidth
+                            store.send(.sliderPositionChanged(max(0, min(1, newPosition))))
+                        }
+                )
+            }
+            .frame(height: 24)
             
             // After 라벨
-            Button("After") {
-                store.send(.sliderPositionChanged(1.0))
-            }
-            .font(.pretendardFont(.caption_medium, size: 12))
-            .foregroundColor(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(.black.opacity(0.6))
-            .clipRectangle(4)
+            Text("After")
+                .font(.pretendardFont(.caption_medium, size: 12))
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(.gray60)
+                .clipShape(Capsule())
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)

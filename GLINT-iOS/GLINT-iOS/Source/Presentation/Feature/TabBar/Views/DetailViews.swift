@@ -1,32 +1,5 @@
-
 import SwiftUI
-
-// MARK: - Navigation Title Font Extension
-extension View {
-    func navigationBarTitleFont(_ font: Font) -> some View {
-        self.modifier(NavigationTitleFontModifier(font: font))
-    }
-}
-
-struct NavigationTitleFontModifier: ViewModifier {
-    let font: Font
-    
-    func body(content: Content) -> some View {
-        content
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = UIColor(Color.gray100)
-                appearance.titleTextAttributes = [
-                    .font: UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium),
-                    .foregroundColor: UIColor(Color.gray0)
-                ]
-                
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
-            }
-    }
-}
+import NukeUI
 
 struct SettingsView: View {
     let router: NavigationRouter<MainTabRoute>
