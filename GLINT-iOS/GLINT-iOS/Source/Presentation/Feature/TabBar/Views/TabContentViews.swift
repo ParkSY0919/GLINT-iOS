@@ -31,7 +31,7 @@ struct RecommendationsContentView: View {
                             .foregroundColor(.secondary)
                         
                         Button("자세히 보기") {
-                            router.push(.filterEditor(id: "rec-\(index)"))
+                            router.push(.filterEditor)
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -44,13 +44,6 @@ struct RecommendationsContentView: View {
         }
         .detectScroll()
         .navigationTitle("추천")
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("즐겨찾기") {
-                    router.push(.favorites)
-                }
-            }
-        }
     }
 }
 
