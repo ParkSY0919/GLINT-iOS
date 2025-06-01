@@ -1,19 +1,30 @@
+
 import SwiftUI
 
-// MARK: - Main Tab Detail Views
-struct DetailView: View {
-    let id: String
-    let router: NavigationRouter<MainTabRoute>
+// MARK: - Navigation Title Font Extension
+extension View {
+    func navigationBarTitleFont(_ font: Font) -> some View {
+        self.modifier(NavigationTitleFontModifier(font: font))
+    }
+}
+
+struct NavigationTitleFontModifier: ViewModifier {
+    let font: Font
     
-    var body: some View {
-        VStack {
-            Text("상세 화면")
-                .font(.title)
-            Text("ID: \(id)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .navigationTitle("상세")
+    func body(content: Content) -> some View {
+        content
+            .onAppear {
+                let appearance = UINavigationBarAppearance()
+                appearance.configureWithOpaqueBackground()
+                appearance.backgroundColor = UIColor(Color.gray100)
+                appearance.titleTextAttributes = [
+                    .font: UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) ?? UIFont.systemFont(ofSize: 16, weight: .medium),
+                    .foregroundColor: UIColor(Color.gray0)
+                ]
+                
+                UINavigationBar.appearance().standardAppearance = appearance
+                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            }
     }
 }
 

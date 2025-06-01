@@ -54,7 +54,10 @@ private extension MainView {
                 
                 HotTrendView(
                     hotTrends: .constant(store.state.hotTrends),
-                    router: router
+                    router: router,
+                    onHotTrendTapped: { id in
+                        store.send(.hotTrendTapped(id: id))
+                    }
                 )
                 .padding(.top, 30)
                 
