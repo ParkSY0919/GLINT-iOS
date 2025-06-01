@@ -1,21 +1,5 @@
 import SwiftUI
-
-// MARK: - Main Tab Detail Views
-struct DetailView: View {
-    let id: String
-    let router: NavigationRouter<MainTabRoute>
-    
-    var body: some View {
-        VStack {
-            Text("상세 화면")
-                .font(.title)
-            Text("ID: \(id)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .navigationTitle("상세")
-    }
-}
+import NukeUI
 
 struct SettingsView: View {
     let router: NavigationRouter<MainTabRoute>

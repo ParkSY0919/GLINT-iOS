@@ -13,6 +13,7 @@ import NukeUI
 struct HotTrendView: View {
     @Binding var hotTrends: ResponseEntity.HotTrend?
     let router: NavigationRouter<MainTabRoute>
+    let onHotTrendTapped: (String) -> Void
     
     @State private var centralTrendID: String?
     
@@ -68,9 +69,13 @@ struct HotTrendView: View {
     
     // MARK: - Trend Item
     private func trendItem(for trend: FilterEntity) -> some View {
-        HotTrendItemView(trend: trend, isFocused: trend.id == centralTrendID)
-            .frame(width: trendItemWidth())
-            .id(trend.id)
+        HotTrendItemView(
+            trend: trend, 
+            isFocused: trend.id == centralTrendID,
+            onTapped: { onHotTrendTapped(trend.id) }
+        )
+        .frame(width: trendItemWidth())
+        .id(trend.id)
     }
     
     // MARK: - Helper Functions
@@ -93,9 +98,13 @@ struct HotTrendView: View {
 struct HotTrendItemView: View {
     let trend: FilterEntity
     let isFocused: Bool
+    let onTapped: () -> Void
     
     var body: some View {
         trendItemContainer()
+            .onTapGesture {
+                onTapped()
+            }
     }
     
     // MARK: - Container

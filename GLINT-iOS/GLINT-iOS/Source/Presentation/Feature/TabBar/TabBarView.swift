@@ -84,6 +84,10 @@ struct MainTab: View {
                 router: router,
                 store: mainViewStore  // Store 직접 전달!
             )
+            .onAppear {
+                // MainViewStore에 router 참조 설정
+                mainViewStore.router = router
+            }
         } destination: { route in
             destinationView(for: route)
         }

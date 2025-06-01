@@ -21,6 +21,7 @@ struct MainViewState {
 enum MainViewAction {
     case viewAppeared      // 뷰가 나타났을 때
     case tryFilterTapped   // 오늘의 필터 사용 버튼 탭
+    case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
     case retryButtonTapped // 재시도 버튼 탭
 }
 
@@ -30,6 +31,8 @@ final class MainViewStore {
     
     // UseCase 의존성 주입
     private let todayPickUseCase: TodayPickUseCase
+    // Router 참조를 위한 약한 참조
+    weak var router: NavigationRouter<MainTabRoute>?
     
     // 캐시 만료 시간 (5분)
     private let cacheExpirationTime: TimeInterval = 300
@@ -48,6 +51,9 @@ final class MainViewStore {
             
         case .tryFilterTapped:
             handleTryFilterTapped()
+            
+        case .hotTrendTapped(let id):
+            handleHotTrendTapped(id: id)
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
@@ -76,7 +82,17 @@ private extension MainViewStore {
     /// 필터 사용 버튼 탭 처리
     func handleTryFilterTapped() {
         print("오늘의 필터 사용해보기 버튼 탭됨")
-        // TODO: 필터 사용 화면으로 네비게이션 로직 구현
+        // DetailView로 네비게이션
+        if let todayFilter = state.todayFilter {
+            router?.push(.detail(id: todayFilter.filterID))
+        }
+    }
+    
+    /// 핫 트렌드 아이템 탭 처리
+    func handleHotTrendTapped(id: String) {
+        print("핫 트렌드 아이템 \(id) 탭됨")
+        // DetailView로 네비게이션
+        router?.push(.detail(id: id))
     }
     
     /// 재시도 버튼 탭 처리
