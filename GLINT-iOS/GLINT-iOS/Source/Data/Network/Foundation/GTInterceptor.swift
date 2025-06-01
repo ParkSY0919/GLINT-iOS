@@ -33,7 +33,6 @@ final class GTInterceptor: RequestInterceptor {
             if let accessToken = keychain.getAccessToken() {
                 adaptedRequest.setValue("\(accessToken)", forHTTPHeaderField: "Authorization")
             }
-            
         }
         completion(.success(adaptedRequest))
     }
@@ -45,20 +44,26 @@ final class GTInterceptor: RequestInterceptor {
             return
         }
         
-        // 401 Unauthorized 에러인 경우 토큰 갱신 시도
-        if response.statusCode == 401 {
+        // 401 또는 419 Unauthorized/Session Expired 에러인 경우 토큰 갱신 시도
+        if response.statusCode == 401 || response.statusCode == 419 {
+            GTLogger.shared.networkRequest("Attempting token refresh for status code: \(response.statusCode)")
+            
             refreshToken { [weak self] result in
                 switch result {
                 case .success:
                     // 토큰 갱신 성공 시 재시도
+                    GTLogger.shared.networkSuccess("Token refresh successful, retrying request")
                     completion(.retry)
-                case .failure:
+                case .failure(let refreshError):
                     // 토큰 갱신 실패. keychain all 삭제
+                    GTLogger.shared.networkFailure("Token refresh failed", error: refreshError)
                     self?.keychain.deleteAllTokens()
                     completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
                 }
             }
         } else {
+            // 다른 상태 코드는 재시도하지 않음
+            GTLogger.shared.networkFailure("Non-auth error, not retrying", error: error)
             completion(.doNotRetryWithError(error))
         }
     }
@@ -75,7 +80,6 @@ private extension GTInterceptor {
             "v1/users/validation/email",
             "v1/users/login/apple",
             "v1/users/login/kakao",
-            "v1/auth/refresh"
         ]
         
         guard let url = request.url else { return false }
@@ -92,11 +96,10 @@ private extension GTInterceptor {
         }
         
         // Refresh Token API 호출
-        // TODO: 
         let refreshRequest = RequestDTO.RefreshToken(refreshToken: refreshToken)
         let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         
-        AF.request(endpoint)
+        AF.request(endpoint, interceptor: GTInterceptor(type: .default))
             .validate(statusCode: 200..<300)
             .responseDecodable(of: ResponseDTO.RefreshToken.self) { [weak self] response in
                 switch response.result {
@@ -112,6 +115,7 @@ private extension GTInterceptor {
                     }
                     
                 case .failure(let error):
+                    GTLogger.shared.networkFailure("Refresh token API call failed", error: error)
                     completion(.failure(error))
                 }
             }

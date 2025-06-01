@@ -11,20 +11,15 @@ struct ContentView: View {
     @State private var rootRouter = RootRouter()
     
     var body: some View {
-        rootView
-            .animation(.easeInOut(duration: 0.3), value: rootRouter.currentRoute)
-    }
-}
-
-extension ContentView {
-    @ViewBuilder
-    var rootView: some View {
-        switch rootRouter.currentRoute {
-        case .login:
-            LoginView(rootRouter: rootRouter)
-        case .tabBar:
-            TabBarView()
+        Group {
+            switch rootRouter.currentRoute {
+            case .login:
+                LoginView(rootRouter: rootRouter)
+            case .tabBar:
+                TabBarView.create()
+            }
         }
+        .animation(.easeInOut(duration: 0.3), value: rootRouter.currentRoute)
     }
 }
 

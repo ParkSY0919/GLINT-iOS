@@ -15,23 +15,13 @@ protocol Router {
 
 // MARK: - RootRouter
 @Observable
-final class RootRouter: Router {
+final class RootRouter {
     enum Route: Hashable {
         case login
         case tabBar
     }
     
     var currentRoute: Route = .login
-    
-    @ViewBuilder
-    var currentView: some View {
-        switch currentRoute {
-        case .login:
-            LoginView(rootRouter: self)
-        case .tabBar:
-            TabBarView()
-        }
-    }
     
     // 화면 전환 메서드
     func navigate(to route: Route) {
@@ -119,16 +109,15 @@ enum MainTabRoute: Hashable {
     case settings
 }
 
-enum CategoryTabRoute: Hashable {
+enum FeedTabRoute: Hashable {
     case categoryList
     case categoryDetail(categoryId: String)
     case subCategory(id: String)
 }
 
-enum RecommendationsTabRoute: Hashable {
-    case recommendationsList
-    case recommendationDetail(id: String)
-    case favorites
+enum MakeTabRoute: Hashable {
+    case make
+    case filterEditor
 }
 
 enum SearchTabRoute: Hashable {
@@ -142,13 +131,4 @@ enum ProfileTabRoute: Hashable {
     case editProfile
     case settings
     case orderHistory
-}
-
-// MARK: - App Routes
-enum AppRoute: Hashable {
-    case home
-    case profile(userId: String)
-    case settings
-    case detail(id: Int)
-    case userList
 }

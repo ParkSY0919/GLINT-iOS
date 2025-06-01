@@ -67,7 +67,7 @@ final class LoginViewModelTests: XCTestCase {
         viewModel = LoginViewModel(userUseCase: AuthUseCase.mockValue)
         viewModel.email = "invalid-email"
         // debounce가 있으므로 직접 검증 메서드 호출
-//        let isValid = viewModel.value(forKey: "validateEmailFormat:") as? ((String) -> Bool)
+//        let isValid = store.value(forKey: "validateEmailFormat:") as? ((String) -> Bool)
 //        XCTAssertNotNil(isValid)
         XCTAssertFalse(viewModel.email.contains("@"))
     }

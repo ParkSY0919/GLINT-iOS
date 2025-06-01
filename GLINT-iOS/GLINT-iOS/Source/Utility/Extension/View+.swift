@@ -91,5 +91,17 @@ extension View {
             self.navigationBarBackButtonHidden()
         }
     }
+    
+    func detectScroll() -> some View {
+        modifier(ScrollDetector())
+    }
+    
+    func detectListScroll() -> some View {
+        modifier(ListScrollDetector())
+    }
+    
+    func nonScrollable() -> some View {
+        modifier(NonScrollableView())
+    }
 }
 
