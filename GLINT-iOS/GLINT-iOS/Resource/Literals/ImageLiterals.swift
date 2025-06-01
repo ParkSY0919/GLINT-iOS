@@ -37,4 +37,8 @@ extension ImageLiterals {
         static let star = Image(.star)
     }
     
+    struct Detail {
+        static let divideBtn = Image(.divideButton)
+    }
+    
 }

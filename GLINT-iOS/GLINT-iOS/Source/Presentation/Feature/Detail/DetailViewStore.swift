@@ -2,7 +2,7 @@
 //  DetailViewStore.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 12/25/24.
+//  Created by 박신영 on 6/1/25.
 //
 
 import SwiftUI
@@ -14,7 +14,7 @@ struct DetailViewState {
     var errorMessage: String?
     var hasLoadedOnce: Bool = false
     var isPurchased: Bool = false // 필터 구매 여부
-    var sliderPosition: CGFloat = 0.5 // Before/After 슬라이더 위치 (0.0 ~ 1.0)
+    var sliderPosition: CGFloat = 0.5
 }
 
 // MARK: - Action

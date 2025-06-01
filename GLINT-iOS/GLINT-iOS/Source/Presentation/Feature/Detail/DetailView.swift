@@ -1,9 +1,8 @@
-////
-////  DetailView.swift
-////  GLINT-iOS
-////
-////  Created by 박신영 on 6/1/25.
-////
+//
+//  DetailView.swift
+//  GLINT-iOS
+//
+//  Created by 박신영 on 6/1/25.
 //
 
 import SwiftUI
@@ -136,7 +135,7 @@ private extension DetailView {
                 // 구분선
                 Rectangle()
                     .frame(width: 2, height: imageHeight)
-                    .foregroundColor(.white)
+                    .foregroundColor(.gray0)
                     .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 0)
                     .offset(x: imageWidth * store.state.sliderPosition - imageWidth / 2)
                     .animation(.easeInOut(duration: 0.1), value: store.state.sliderPosition)
@@ -155,40 +154,27 @@ private extension DetailView {
     
     var beforeAfterControlBar: some View {
         HStack(spacing: 4) {
-            // Before 라벨
             Text("Before")
-                .font(.pretendardFont(.caption_medium, size: 12))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(.gray60)
+                .font(.pretendardFont(.caption_semi, size: 10))
+                .foregroundColor(.gray60)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(.gray75)
                 .clipShape(Capsule())
             
-            // 슬라이더 트랙과 핸들
             GeometryReader { geometry in
                 let trackWidth = geometry.size.width
                 let handlePosition = trackWidth * store.state.sliderPosition
                 
                 ZStack(alignment: .leading) {
-                    // 슬라이더 트랙 (배경)
                     RoundedRectangle(cornerRadius: 2)
                         .frame(height: 4)
                         .foregroundColor(.gray.opacity(0.3))
                     
                     // 슬라이더 핸들
                     ZStack {
-                        // 외부 원 (24x24, .gray75)
-                        Circle()
-                            .frame(width: 24, height: 24)
-                            .foregroundColor(.gray75)
-                        
-                        // 내부 원 (22x22, .gray90)
-                        Circle()
-                            .frame(width: 22, height: 22)
-                            .foregroundColor(.gray90)
-                        
-                        // 가운데 화살표 아이콘
-                        Image(systemName: "chevron.up")
+
+                        ImageLiterals.Detail.divideBtn
                             .font(.system(size: 8, weight: .medium))
                             .foregroundColor(.gray60)
                     }
@@ -205,13 +191,12 @@ private extension DetailView {
             }
             .frame(height: 24)
             
-            // After 라벨
             Text("After")
-                .font(.pretendardFont(.caption_medium, size: 12))
-                .foregroundColor(.white)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(.gray60)
+                .font(.pretendardFont(.caption_semi, size: 10))
+                .foregroundColor(.gray60)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 3)
+                .background(.gray75)
                 .clipShape(Capsule())
         }
         .padding(.horizontal, 20)
