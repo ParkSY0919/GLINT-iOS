@@ -18,5 +18,5 @@ struct PhotoMetadataModel: Codable {
             latitude: latitude,
             longitude: longitude
         )
-    }   
+    }
 }
