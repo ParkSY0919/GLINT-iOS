@@ -6,13 +6,14 @@
 //
 
 import SwiftUI
+import MapKit
 
 import NukeUI
 
 struct DetailView: View {
     let id: String
     let router: NavigationRouter<MainTabRoute>
-    @State private var store = DetailViewStore()
+    @State private var store = DetailViewStore(filterDetailUseCase: .liveValue)
     @State private var isLiked = false
     
     var body: some View {
@@ -27,7 +28,7 @@ struct DetailView: View {
                 contentView
             }
         }
-        .navigationTitle("청록새록")
+        .navigationTitle(store.state.filterData?.title ?? "")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -43,7 +44,7 @@ struct DetailView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 LikeButton(isLiked: $isLiked) {
-//                    store.send(.likeButtonTapped)
+                    //                    store.send(.likeButtonTapped)
                 }
             }
         }
@@ -105,7 +106,7 @@ private extension DetailView {
             
             ZStack {
                 // 원본 이미지 (배경 - Before)
-                LazyImage(url: URL(string: store.state.filterDetail?.originalImageURL ?? "")) { state in
+                LazyImage(url: URL(string: store.state.filterData?.original ?? "")) { state in
                     lazyImageTransform(state) { image in
                         image
                             .aspectRatio(contentMode: .fill)
@@ -116,7 +117,7 @@ private extension DetailView {
                 .clipRectangle(12)
                 
                 // 필터 적용 이미지 (오버레이 - After)
-                LazyImage(url: URL(string: store.state.filterDetail?.filteredImageURL ?? "")) { state in
+                LazyImage(url: URL(string: store.state.filterData?.filtered ?? "")) { state in
                     lazyImageTransform(state) { image in
                         image
                             .aspectRatio(contentMode: .fill)
@@ -173,7 +174,7 @@ private extension DetailView {
                     
                     // 슬라이더 핸들
                     ZStack {
-
+                        
                         ImageLiterals.Detail.divideBtn
                             .font(.system(size: 8, weight: .medium))
                             .foregroundColor(.gray60)
@@ -209,7 +210,8 @@ private extension DetailView {
     var priceSection: some View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("\(formatPrice(store.state.filterDetail?.price ?? 0)) Coin")
+                let price = store.state.filterData?.price ?? 0
+                Text("\(price.formatted()) Coin")
                     .font(.pointFont(.title, size: 32))
                     .foregroundColor(.gray0)
                 
@@ -231,7 +233,7 @@ private extension DetailView {
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             
-            Text("\(formatCount(store.state.filterDetail?.downloadCount ?? 0))+")
+            Text("\(formatCount(store.state.filterData?.buyerCount ?? 0))+")
                 .font(.pretendardFont(.body_bold, size: 14))
                 .foregroundColor(.gray0)
         }
@@ -247,7 +249,7 @@ private extension DetailView {
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             
-            Text("\(formatCount(store.state.filterDetail?.likeCount ?? 0))")
+            Text("\(formatCount(store.state.filterData?.likeCount ?? 0))")
                 .font(.pretendardFont(.body_bold, size: 14))
                 .foregroundColor(.gray0)
         }
@@ -255,12 +257,6 @@ private extension DetailView {
         .padding(.vertical, 8)
         .background(.gray90)
         .clipRectangle(8)
-    }
-    
-    func formatPrice(_ price: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        return formatter.string(from: NSNumber(value: price)) ?? "\(price)"
     }
     
     func formatCount(_ count: Int) -> String {
@@ -279,15 +275,15 @@ private extension DetailView {
             VStack(spacing: 0) {
                 // 상단 타이틀 바 (내부)
                 HStack {
-                    Text(store.state.filterDetail?.deviceInfo ?? "Apple iPhone 15 Pro")
-                        .font(.pretendardFont(.caption_medium, size: 14))
-                        .foregroundColor(.gray0)
+                    Text(store.state.photoMetaData?.camera ?? "iPhone")
+                        .font(.pretendardFont(.caption_semi, size: 12))
+                        .foregroundColor(.brandDeep)
                     
                     Spacer()
                     
                     Text("EXIF")
-                        .font(.pretendardFont(.body_bold, size: 14))
-                        .foregroundColor(.gray60)
+                        .font(.pretendardFont(.caption_semi, size: 12))
+                        .foregroundColor(.brandDeep)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -301,48 +297,40 @@ private extension DetailView {
                     )
                 )
                 
-                // 메타데이터 내용
+                //MARK: 메타데이터
                 HStack(spacing: 12) {
-                    // 지도 영역 (위치 정보가 있으면 지도, 없으면 empty 이미지)
                     Group {
-                        if store.state.filterDetail?.locationInfo != nil {
-                            // TODO: 실제 지도 구현
-                            Rectangle()
-                                .fill(.gray75)
-                                .overlay {
-                                    Image(systemName: "map")
-                                        .foregroundColor(.gray45)
-                                        .font(.system(size: 20))
-                                }
+                        // 지도 파트
+                        if let latitude = store.state.photoMetaData?.latitude,
+                           let longitude = store.state.photoMetaData?.longitude {
+                            StaticMiniMapView(latitude: latitude, longitude: longitude)
                         } else {
                             Rectangle()
-                                .fill(.gray90)
+                                .fill(.brandBlack)
                                 .overlay {
-                                    Image(systemName: "photo")
-                                        .foregroundColor(.gray60)
-                                        .font(.system(size: 20))
+                                    ImageLiterals.Detail.noMap
                                 }
                         }
                     }
-                    .frame(width: 80, height: 60)
+                    .frame(width: 76, height: 76)
                     .clipRectangle(8)
                     
-                    // 메타데이터 정보
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(store.state.filterDetail?.cameraInfo ?? "")
-                            .font(.pretendardFont(.caption, size: 12))
-                            .foregroundColor(.gray60)
-                            .lineLimit(1)
-                        
-                        Text(store.state.filterDetail?.imageSize ?? "")
-                            .font(.pretendardFont(.caption, size: 12))
-                            .foregroundColor(.gray60)
-                            .lineLimit(1)
-                        
-                        if let location = store.state.filterDetail?.locationInfo {
-                            Text(location)
-                                .font(.pretendardFont(.caption, size: 12))
-                                .foregroundColor(.gray60)
+                    // 정보
+                    VStack(alignment: .leading, spacing: 8) {
+                        if let metaData = store.state.photoMetaData {
+                            Text(metaData.metaData[0])
+                                .font(.pretendardFont(.caption_semi, size: 13))
+                                .foregroundColor(.gray75)
+                                .lineLimit(1)
+                            
+                            Text(metaData.metaData[1])
+                                .font(.pretendardFont(.caption_semi, size: 13))
+                                .foregroundColor(.gray75)
+                                .lineLimit(1)
+                            
+                            Text(store.state.address ?? "")
+                                .font(.pretendardFont(.caption_semi, size: 13))
+                                .foregroundColor(.gray75)
                                 .lineLimit(2)
                         }
                     }
@@ -351,7 +339,7 @@ private extension DetailView {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
-                .background(.gray90)
+                .background(.brandBlack)
                 .clipShape(
                     .rect(
                         topLeadingRadius: 0,
@@ -363,7 +351,7 @@ private extension DetailView {
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(.gray75, lineWidth: 1)
+                    .strokeBorder(.brandBlack, lineWidth: 1)
             )
         }
         .padding(.horizontal, 20)
@@ -380,14 +368,14 @@ private extension DetailView {
                 // 상단 타이틀 바 (내부)
                 HStack {
                     Text("Filter Presets")
-                        .font(.pretendardFont(.caption_medium, size: 14))
-                        .foregroundColor(.gray0)
+                        .font(.pretendardFont(.caption_semi, size: 12))
+                        .foregroundColor(.brandDeep)
                     
                     Spacer()
                     
                     Text("LUT")
-                        .font(.pretendardFont(.body_bold, size: 14))
-                        .foregroundColor(.gray60)
+                        .font(.pretendardFont(.caption_semi, size: 12))
+                        .foregroundColor(.brandDeep)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -405,7 +393,7 @@ private extension DetailView {
                 ZStack {
                     // 배경 영역
                     Rectangle()
-                        .fill(.gray90)
+                        .fill(.brandBlack)
                         .clipShape(
                             .rect(
                                 topLeadingRadius: 0,
@@ -419,30 +407,29 @@ private extension DetailView {
                         unlockedFilterPresets
                     } else {
                         ZStack {
-                            // 블러 처리된 배경
                             unlockedFilterPresets
                                 .blur(radius: 3)
                             
-                            // 자물쇠와 텍스트 (블러 처리 안됨)
-                            VStack(spacing: 8) {
+                            // 자물쇠와 텍스트
+                            VStack(spacing: 12) {
                                 Image(systemName: "lock.fill")
-                                    .font(.system(size: 24))
+                                    .font(.system(size: 32))
                                     .foregroundColor(.gray0)
                                 
                                 Text("결제 후 필요한 유료 필터입니다")
-                                    .font(.pretendardFont(.caption_medium, size: 14))
-                                    .foregroundColor(.gray0)
+                                    .font(.pretendardFont(.body_bold, size: 16))
+                                    .foregroundColor(.gray45)
                                     .multilineTextAlignment(.center)
                             }
                             .padding(.vertical, 40)
                         }
                     }
                 }
-                .frame(height: 140) // 2행을 위한 고정 높이
+                .frame(height: 140)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(.gray75, lineWidth: 1)
+                    .strokeBorder(.brandBlack, lineWidth: 1)
             )
         }
         .padding(.horizontal, 20)
@@ -456,19 +443,18 @@ private extension DetailView {
         ) {
             ForEach(0..<12, id: \.self) { index in
                 VStack(spacing: 4) {
-                    // 더미 아이콘들
-                    let icons = ["gear", "plus.app", "circle.lefthalf.filled", "circles.hexagongrid", "triangle", "circle.grid.3x3", "square", "circle.dotted", "circle", "moon.stars", "thermometer", "gear.badge"]
-                    let values = ["-3.5", "1.5", "2.5", "0.1", "-4.0", "10.5", "-6.0", "7.5", "0.5", "0.5", "-1.0", "5.5"]
-                    
-                    Image(systemName: icons[index])
-                        .font(.system(size: 20))
-                        .foregroundColor(.gray0)
-                        .frame(width: 24, height: 24)
-                    
-                    Text(values[index])
-                        .font(.pretendardFont(.caption, size: 10))
-                        .foregroundColor(.gray60)
-                        .lineLimit(1)
+                    let icons = ImageLiterals.Detail.filterValues
+                    if let data = store.state.filterPresetsData?.toStringArray() {
+                        icons[index]
+                            .font(.system(size: 20))
+                            .foregroundColor(.gray0)
+                            .frame(width: 28, height: 28)
+                        
+                        Text(data[index])
+                            .font(.pretendardFont(.body_bold, size: 14))
+                            .foregroundColor(.gray75)
+                            .lineLimit(1)
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -505,7 +491,7 @@ private extension DetailView {
             // 작가 프로필 섹션
             HStack(spacing: 12) {
                 // 프로필 이미지
-                LazyImage(url: URL(string: store.state.filterDetail?.author.profileImage ?? "")) { state in
+                LazyImage(url: URL(string: store.state.userInfoData?.profileImage ?? "")) { state in
                     lazyImageTransform(state) { image in
                         image.aspectRatio(contentMode: .fill)
                     }
@@ -515,11 +501,11 @@ private extension DetailView {
                 
                 // 작가 정보
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(store.state.filterDetail?.author.name ?? "")
+                    Text(store.state.userInfoData?.name ?? "")
                         .font(.pointFont(.body, size: 20))
                         .foregroundColor(.gray30)
                     
-                    Text(store.state.filterDetail?.author.nick ?? "")
+                    Text(store.state.userInfoData?.nick ?? "")
                         .font(.pretendardFont(.body_medium, size: 16))
                         .foregroundColor(.gray75)
                 }
@@ -541,7 +527,7 @@ private extension DetailView {
             
             // 해시태그
             HStack {
-                ForEach(store.state.filterDetail?.author.hashTags ?? [], id: \.self) { tag in
+                ForEach(store.state.userInfoData?.hashTags ?? [], id: \.self) { tag in
                     Text(tag)
                         .font(.pointFont(.caption, size: 10))
                         .foregroundColor(.gray60)
@@ -554,11 +540,11 @@ private extension DetailView {
             
             // 작가 소개
             VStack(alignment: .leading, spacing: 12) {
-                Text(store.state.filterDetail?.author.introduction ?? "")
+                Text(store.state.userInfoData?.introduction ?? "")
                     .font(.pointFont(.body, size: 14))
                     .foregroundColor(.gray60)
                 
-                Text(store.state.filterDetail?.author.description ?? "")
+                Text(store.state.userInfoData?.description ?? "")
                     .font(.pretendardFont(.caption, size: 12))
                     .foregroundColor(.gray60)
             }
@@ -566,5 +552,94 @@ private extension DetailView {
         .padding(.horizontal, 20)
         .padding(.top, 24)
         .padding(.bottom, 32)
+    }
+}
+
+
+struct StaticMiniMapView: View {
+    let latitude: Double
+    let longitude: Double
+    
+    @State private var mapImage: UIImage?
+    @State private var isLoading = true
+    
+    var body: some View {
+        Group {
+            if let mapImage = mapImage {
+                Image(uiImage: mapImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 120, height: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else if isLoading {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(.gray.opacity(0.3))
+                    .frame(width: 120, height: 120)
+                    .overlay {
+                        ProgressView()
+                    }
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(.gray.opacity(0.3))
+                    .frame(width: 120, height: 120)
+                    .overlay {
+                        Text("지도 로드 실패")
+                            .font(.caption2)
+                            .foregroundColor(.gray)
+                    }
+            }
+        }
+        .onAppear {
+            generateMapSnapshot()
+        }
+    }
+    
+    private func generateMapSnapshot() {
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        
+        let options = MKMapSnapshotter.Options()
+        options.region = MKCoordinateRegion(
+            center: coordinate,
+            latitudinalMeters: 1000,
+            longitudinalMeters: 1000
+        )
+        options.size = CGSize(width: 240, height: 240) // 2x for retina
+        options.mapType = .standard
+        
+        let snapshotter = MKMapSnapshotter(options: options)
+        snapshotter.start { snapshot, error in
+            DispatchQueue.main.async {
+                isLoading = false
+                if let snapshot = snapshot {
+                    // 핀 오버레이 추가
+                    let image = UIGraphicsImageRenderer(size: snapshot.image.size).image { _ in
+                        snapshot.image.draw(at: .zero)
+                        
+                        // 핀 위치 계산
+                        let pinPoint = snapshot.point(for: coordinate)
+                        
+                        // 핀 그리기
+                        let pinSize: CGFloat = 20
+                        let pinRect = CGRect(
+                            x: pinPoint.x - pinSize/2,
+                            y: pinPoint.y - pinSize,
+                            width: pinSize,
+                            height: pinSize
+                        )
+                        
+                        UIColor.red.setFill()
+                        UIBezierPath(ovalIn: pinRect).fill()
+                        
+                        UIColor.white.setFill()
+                        let innerRect = pinRect.insetBy(dx: 6, dy: 6)
+                        UIBezierPath(ovalIn: innerRect).fill()
+                    }
+                    
+                    mapImage = image
+                } else {
+                    print("Map snapshot error: \(error?.localizedDescription ?? "Unknown error")")
+                }
+            }
+        }
     }
 }

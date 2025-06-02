@@ -39,6 +39,11 @@ extension ImageLiterals {
     
     struct Detail {
         static let divideBtn = Image(.divideButton)
+        static let noMap = Image(.noMap)
+        static let filterValues: [Image] = [
+            Image(.brightness), Image(.exposure), Image(.contrast), Image(.saturation), Image(.sharpness), Image(.blur),
+            Image(.vignette), Image(.noise), Image(.highlights), Image(.shadows), Image(.temperature), Image(.blackPoint)
+        ]
     }
     
 }

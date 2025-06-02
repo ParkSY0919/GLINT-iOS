@@ -10,7 +10,7 @@ import Foundation
 // MARK: - TodayAuthor
 extension ResponseDTO {
     struct TodayAuthor: Decodable {
-        let author: Author
+        let author: AuthorResponse
         let filters: [Filter]
         
         func toEntity() -> ResponseEntity.TodayAuthor {
@@ -27,26 +27,27 @@ extension ResponseDTO.TodayAuthor {
 }
 
 // MARK: - Author
-struct Author: Codable {
-    let userID, nick, name, introduction: String
+struct AuthorResponse: Codable {
+    let userID: String
+    let nick, name, introduction: String?
     let description: String?
     let profileImage: String?
-    let hashTags: [String]
+    let hashTags: [String]?
 
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
         case nick, name, introduction, description, profileImage, hashTags
     }
     
-    func toEntity() -> AuthorEntity {
-        return AuthorEntity(
+    func toEntity() -> UserInfoModel {
+        return UserInfoModel(
             userID: self.userID,
-            nick: self.nick,
-            name: self.name,
-            introduction: self.introduction,
-            description: self.description,
+            name: self.name ?? "",
+            introduction: self.introduction ?? "",
+            description: self.description ?? "",
+            nick: self.nick ?? "",
             profileImage: self.profileImage?.imageURL ?? "",
-            hashTags: self.hashTags
+            hashTags: self.hashTags ?? []
         )
     }
 }
@@ -56,7 +57,7 @@ struct Filter: Codable {
     let filterID, title, description: String
     let category: String?
     let files: [String]
-    let creator: Author
+    let creator: AuthorResponse
     let isLiked: Bool
     let likeCount, buyerCount: Int
     let createdAt, updatedAt: String
