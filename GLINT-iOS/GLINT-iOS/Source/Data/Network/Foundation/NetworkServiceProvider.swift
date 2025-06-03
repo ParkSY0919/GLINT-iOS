@@ -10,8 +10,8 @@ import Combine
 
 import Alamofire
 
-typealias ResponseData = Decodable & Sendable
 typealias RequestData = Encodable & Sendable
+typealias ResponseData = Decodable & Sendable
 
 let defaultSession = Session()
 
@@ -41,6 +41,7 @@ extension NetworkServiceProvider {
         .serializingDecodable(T.self, decoder: endPoint.decoder)
         .response
         
+        print("response: \n\(response)")
         
         switch response.result {
         case .success(let value):

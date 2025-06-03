@@ -10,18 +10,11 @@ import Foundation
 //MARK: - TodayArtistEntity
 extension ResponseEntity {
     struct TodayAuthor {
-        let author: AuthorEntity
+        let author: UserInfoModel
         let filters: [FilterEntity]
     }
 }
 
-//MARK: - Author
-struct AuthorEntity: Codable {
-    let userID, nick, name, introduction: String
-    let description: String?
-    let profileImage: String
-    let hashTags: [String]
-}
 
 //MARK: - FilterEntity
 struct FilterEntity: Codable, Identifiable {
@@ -37,7 +30,7 @@ struct FilterEntity: Codable, Identifiable {
     let category, title, description: String
     let original: String?
     let filtered: String?
-    let creator: AuthorEntity
+    let creator: UserInfoModel
     let isLiked: Bool
     let likeCount, buyerCount: Int
     let createdAt, updatedAt: String

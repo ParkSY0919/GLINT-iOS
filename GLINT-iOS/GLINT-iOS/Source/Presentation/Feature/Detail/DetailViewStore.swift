@@ -2,19 +2,25 @@
 //  DetailViewStore.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 12/25/24.
+//  Created by 박신영 on 6/1/25.
 //
 
 import SwiftUI
 
 // MARK: - State
 struct DetailViewState {
-    var filterDetail: FilterDetailEntity?
+    var filterData: FilterModel?
+    var userInfoData: UserInfoModel?
+    var photoMetaData: PhotoMetadataModel?
+    var filterPresetsData: FilterPresetsModel?
+    
+    var address: String?
+    
     var isLoading: Bool = true
     var errorMessage: String?
     var hasLoadedOnce: Bool = false
     var isPurchased: Bool = false // 필터 구매 여부
-    var sliderPosition: CGFloat = 0.5 // Before/After 슬라이더 위치 (0.0 ~ 1.0)
+    var sliderPosition: CGFloat = 0.5
 }
 
 // MARK: - Action
@@ -34,8 +40,10 @@ final class DetailViewStore {
     private var filterId: String = ""
     
     /// 의존성 주입을 통한 초기화
-    init() {
-        // TODO: 실제 UseCase 주입
+    private let filterDetailUseCase: FilterDetailUseCase
+    
+    init(filterDetailUseCase: FilterDetailUseCase) {
+        self.filterDetailUseCase = filterDetailUseCase
     }
     
     /// - Parameter action: 처리할 액션
@@ -103,11 +111,16 @@ private extension DetailViewStore {
         
         Task {
             do {
-                // TODO: 실제 API 호출 구현
-                // 임시 데이터로 대체
-                try await Task.sleep(nanoseconds: 1_000_000_000) // 1초 지연
+                async let filterDetail = filterDetailUseCase.filterDetail(filterId)
+                let filterData = try await filterDetail
                 
-                state.filterDetail = createMockFilterDetail()
+                state.filterData = filterData.filter
+                state.userInfoData = filterData.author
+                state.photoMetaData = filterData.photoMetadata
+                state.filterPresetsData = filterData.filterValues
+                state.address = await filterData.photoMetadata.getKoreanAddress()
+                
+                state.isPurchased = filterData.filter.isDownloaded ?? false
                 state.isLoading = false
                 state.hasLoadedOnce = true
             } catch {
@@ -119,63 +132,4 @@ private extension DetailViewStore {
             }
         }
     }
-    
-    /// 임시 데이터 생성
-    func createMockFilterDetail() -> FilterDetailEntity {
-        return FilterDetailEntity(
-            id: filterId,
-            title: "청록새록",
-            price: 2000,
-            downloadCount: 2400,
-            likeCount: 800,
-            originalImageURL: "https://picsum.photos/400/600?random=1",
-            filteredImageURL: "https://picsum.photos/400/600?random=2",
-            deviceInfo: "Apple iPhone 15 Pro",
-            cameraInfo: "와이드 카메라 - 26 mm ƒ/1.5 ISO 400",
-            imageSize: "12MP • 3024 × 4032 • 2.2MB",
-            locationInfo: "서울 영등포구 선유로 3길 30",
-            author: AuthorEntity(
-                userID: "author1",
-                nick: "SESAC YOON",
-                name: "윤새싹",
-                introduction: "섬세한 정서를 담아내는 새싹작가",
-                description: "자연 아래 돋아나는 새싹처럼,\n맑고 투명한 빛을 담은 자연 감성 필터입니다.\n너무 과하지 않게, 부드러운 색감으로 분위기를 살려줍니다.\n새로운 시작, 순수한 감정을 담고 싶을 때 이 필터를 사용해보세요.",
-                profileImage: "https://picsum.photos/72/72?random=3",
-                hashTags: ["#섬세함", "#자연", "#미니멀"]
-            ),
-            filterPresets: [
-                FilterPresetEntity(id: "1", name: "밝기", value: "-4.0", icon: "sun.max"),
-                FilterPresetEntity(id: "2", name: "대비", value: "1.5", icon: "circle.lefthalf.filled"),
-                FilterPresetEntity(id: "3", name: "채도", value: "2.5", icon: "drop"),
-                FilterPresetEntity(id: "4", name: "색온도", value: "0.1", icon: "thermometer"),
-                FilterPresetEntity(id: "5", name: "하이라이트", value: "-4.0", icon: "mountain.2"),
-                FilterPresetEntity(id: "6", name: "노출", value: "10.5", icon: "camera.aperture")
-            ]
-        )
-    }
 }
-
-// MARK: - Filter Detail Entity
-struct FilterDetailEntity {
-    let id: String
-    let title: String
-    let price: Int
-    let downloadCount: Int
-    let likeCount: Int
-    let originalImageURL: String
-    let filteredImageURL: String
-    let deviceInfo: String
-    let cameraInfo: String
-    let imageSize: String
-    let locationInfo: String?
-    let author: AuthorEntity
-    let filterPresets: [FilterPresetEntity]
-}
-
-// MARK: - Filter Preset Entity
-struct FilterPresetEntity: Identifiable {
-    let id: String
-    let name: String
-    let value: String
-    let icon: String
-} 
