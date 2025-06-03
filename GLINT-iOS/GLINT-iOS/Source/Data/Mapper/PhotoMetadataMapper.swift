@@ -11,17 +11,15 @@ struct PhotoMetadataMapper {
     static func map(from response: PhotoMetadataResponse) -> PhotoMetadataModel {
         return .init(
             camera: response.camera,
-            metaData:
-                [FilterValueFormatter.photoMetaDataFormat(
-                    lensInfo: response.lensInfo,
-                    focalLength: response.focalLength,
-                    aperture: response.aperture,
-                    iso: response.iso),
-                 MegapixelCalculator.calculateMPString(
-                    width: response.pixelWidth,
-                    height: response.pixelHeight,
-                    fileSize: response.fileSize),
-                ],
+            photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
+                lensInfo: response.lensInfo,
+                focalLength: response.focalLength,
+                aperture: response.aperture,
+                iso: response.iso),
+            megapixelInfo: MegapixelCalculator.calculateMPString(
+                width: response.pixelWidth,
+                height: response.pixelHeight,
+                fileSize: response.fileSize),
             latitude: response.latitude ?? 0.0,
             longitude: response.longitude ?? 0.0
         )
