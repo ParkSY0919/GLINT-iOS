@@ -72,13 +72,10 @@ final class MakeViewStore {
     }
     
     private func extractImageMetaData(image: UIImage, meta: PhotoMetadataModel?) {
-        // TODO: 실제 메타데이터 추출 로직 구현
         Task {
             let address = await meta?.getKoreanAddress()
             state.imageMetaData = meta
             state.address = address
-            print("imageMetaData: \(meta)")
-            print("address: \(address)")
         }
     }
     

@@ -16,12 +16,7 @@ struct TodayFilter: Identifiable {
     let backgroundImageName: String // 배경 이미지 에셋 이름
 }
 
-// MARK: - 카테고리 모델
-struct FilterCategory: Identifiable, Equatable { // Hashable 추가 (버튼 식별용)
-    let id = UUID()
-    let icon: Image // SF Symbol 이름
-    let name: String
-}
+
 
 // MARK: - 배너 모델
 struct BannerItem: Identifiable {
@@ -58,13 +53,7 @@ struct DummyFilterAppData {
         backgroundImageName: "today_filter_background" // 에셋에 추가할 이미지
     )
 
-    static let categories: [FilterCategory] = [
-        FilterCategory(icon: ImageLiterals.Main.food, name: "푸드"),
-        FilterCategory(icon: ImageLiterals.Main.person, name: "인물"),
-        FilterCategory(icon: ImageLiterals.Main.landscape, name: "풍경"),
-        FilterCategory(icon: ImageLiterals.Main.nightscape, name: "야경"),
-        FilterCategory(icon: ImageLiterals.Main.star, name: "별")
-    ]
+    
 
     static let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") } // "banner_image_1" ... "banner_image_12"
 

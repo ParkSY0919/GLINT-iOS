@@ -7,6 +7,13 @@
 
 import SwiftUI
 
+// MARK: - 카테고리 모델
+struct FilterCategory: Identifiable, Equatable {
+    let id = UUID()
+    let icon: Image
+    let name: String
+}
+
 struct CategoryButtonsView: View {
     let categories: [FilterCategory]
     @State private var selectedCategory: FilterCategory?
@@ -93,7 +100,7 @@ struct CategoryButtonsView: View {
 }
 
 #Preview {
-    CategoryButtonsView(categories: DummyFilterAppData.categories)
+    CategoryButtonsView(categories: StringLiterals.categories)
 //        .background(Color.black.opacity(0.1))  //배경색 추가하여 반투명 효과 확인
 }
 

@@ -71,7 +71,7 @@ private extension TodayFilterView {
             largeTitleView
             descriptionView
             
-            CategoryButtonsView(categories: DummyFilterAppData.categories)
+            CategoryButtonsView(categories: StringLiterals.categories)
                 .padding(.top, 30)
                 .frame(maxWidth: .infinity)
         }
