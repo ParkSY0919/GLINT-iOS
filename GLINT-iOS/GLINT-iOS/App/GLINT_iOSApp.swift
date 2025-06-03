@@ -14,6 +14,7 @@ import NukeAlamofirePlugin
 @main
 struct GLINT_iOSApp: App {
     init() {
+        setupNavigationAppearance()
         setupImagePipeline()
     }
     
@@ -21,6 +22,22 @@ struct GLINT_iOSApp: App {
         WindowGroup {
             ContentView()
         }
+    }
+    
+    private func setupNavigationAppearance() {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(Color.gray100)
+        if let pointFont = UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) {
+            appearance.titleTextAttributes = [
+                .font: pointFont,
+                .foregroundColor: UIColor(Color.gray0)
+            ]
+        }
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance // 추가 권장
     }
     
     private func setupImagePipeline() {
