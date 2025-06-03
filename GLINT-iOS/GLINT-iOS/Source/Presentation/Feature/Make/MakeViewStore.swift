@@ -18,6 +18,7 @@ final class MakeViewStore {
         var address: String?
         var introduce: String = ""
         var price: String = ""
+        var showingEditView: Bool = false
         
         var isLoading: Bool = false
         var errorMessage: String?
@@ -29,6 +30,8 @@ final class MakeViewStore {
         case imageSelected(UIImage, PhotoMetadataModel?)
         case imageChangeRequested
         case editButtonTapped
+        case editViewDismissed
+        case filteredImageReceived(UIImage)
         case introduceChanged(String)
         case priceChanged(String)
         case saveButtonTapped
@@ -55,7 +58,13 @@ final class MakeViewStore {
             GTLogger.shared.i("Image change requested")
             
         case .editButtonTapped:
-            print("수정하기 버튼이 눌렸습니다.")
+            state.showingEditView = true
+            
+        case .editViewDismissed:
+            state.showingEditView = false
+            
+        case .filteredImageReceived(let image):
+            state.selectedImage = image
             
         case .introduceChanged(let text):
             state.introduce = text

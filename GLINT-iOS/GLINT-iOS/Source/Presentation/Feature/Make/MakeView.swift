@@ -36,6 +36,22 @@ struct MakeView: View {
                 }
             }
         }
+        .navigationDestination(isPresented: Binding(
+            get: { store.state.showingEditView },
+            set: { _ in store.send(.editViewDismissed) }
+        )) {
+            if let image = store.state.selectedImage {
+                EditView(
+                    originalImage: image,
+                    onSave: { filteredImage in
+                        store.send(.filteredImageReceived(filteredImage))
+                    },
+                    onBack: {
+                        store.send(.editViewDismissed)
+                    }
+                )
+            }
+        }
     }
 }
 
