@@ -22,7 +22,6 @@ final class GTInterceptor: RequestInterceptor {
         self.type = type
     }
     
-    /// Request adapt
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var adaptedRequest = urlRequest
         
@@ -37,43 +36,99 @@ final class GTInterceptor: RequestInterceptor {
         completion(.success(adaptedRequest))
     }
     
-    /// Request retry
     func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
-        guard let response = request.task?.response as? HTTPURLResponse else {
-            completion(.doNotRetryWithError(error))
-            return
-        }
+        let isImageRequest = isImageRequest(request)
         
-        // 401 또는 419 Unauthorized/Session Expired 에러인 경우 토큰 갱신 시도
-        if response.statusCode == 401 || response.statusCode == 419 {
-            GTLogger.shared.networkRequest("Attempting token refresh for status code: \(response.statusCode)")
+        if let response = request.task?.response as? HTTPURLResponse {
+            let statusCode = response.statusCode
             
-            refreshToken { [weak self] result in
-                switch result {
-                case .success:
-                    // 토큰 갱신 성공 시 재시도
-                    GTLogger.shared.networkSuccess("Token refresh successful, retrying request")
-                    completion(.retry)
-                case .failure(let refreshError):
-                    // 토큰 갱신 실패. keychain all 삭제
-                    GTLogger.shared.networkFailure("Token refresh failed", error: refreshError)
-                    self?.keychain.deleteAllTokens()
-                    completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
+            // 🔍 이미지 요청의 status code 로깅 (중요!)
+            if isImageRequest {
+                GTLogger.shared.networkFailure("🖼️ IMAGE REQUEST FAILED - Status Code: \(statusCode), URL: \(request.request?.url?.absoluteString ?? "unknown")", error: error)
+                
+                // 개발 중에는 콘솔에 명확히 출력
+                print("🚨 NUKE IMAGE FAILURE:")
+                print("   Status Code: \(statusCode)")
+                print("   URL: \(request.request?.url?.absoluteString ?? "unknown")")
+                print("   Error: \(error)")
+                print("   ==================")
+            }
+            
+            // 일단 넓게 잡아서 테스트 (개발 단계)
+            if statusCode == 401 || statusCode == 403 || statusCode == 419 {
+                GTLogger.shared.networkRequest("Attempting token refresh for \(isImageRequest ? "image" : "API") request with status: \(statusCode)")
+                
+                refreshToken { [weak self] result in
+                    switch result {
+                    case .success:
+                        GTLogger.shared.networkSuccess("Token refresh successful, retrying \(isImageRequest ? "image" : "API") request")
+                        completion(.retry)
+                    case .failure(let refreshError):
+                        GTLogger.shared.networkFailure("Token refresh failed", error: refreshError)
+                        self?.keychain.deleteAllTokens()
+                        completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
+                    }
                 }
+            } else {
+                GTLogger.shared.networkFailure("\(isImageRequest ? "Image" : "API") request failed with status \(statusCode), not retrying", error: error)
+                completion(.doNotRetryWithError(error))
             }
         } else {
-            // 다른 상태 코드는 재시도하지 않음
-            GTLogger.shared.networkFailure("Non-auth error, not retrying", error: error)
-            completion(.doNotRetryWithError(error))
+            // 네트워크 에러 (HTTP 응답 없음)
+            if isImageRequest {
+                GTLogger.shared.networkFailure("🖼️ IMAGE NETWORK ERROR (no HTTP response): \(error)", error: error)
+                print("🚨 NUKE NETWORK ERROR:")
+                print("   Error: \(error)")
+                print("   URL: \(request.request?.url?.absoluteString ?? "unknown")")
+                print("   ==================")
+            }
+            
+            // 네트워크 에러는 토큰 재발급 없이 재시도
+            if shouldRetryNetworkError(error) {
+                GTLogger.shared.networkRequest("Retrying \(isImageRequest ? "image" : "API") request due to network error")
+                completion(.retry)
+            } else {
+                completion(.doNotRetryWithError(error))
+            }
         }
     }
-}
-
-// MARK: - Private Methods
-private extension GTInterceptor {
-    /// 인증필요한 EndPoint인지 조회
+    
+    private func isImageRequest(_ request: Request) -> Bool {
+        guard let url = request.request?.url else { return false }
+        
+        // 이미지 파일 확장자 확인
+        let pathExtension = url.pathExtension.lowercased()
+        let imageExtensions = ["jpg", "jpeg", "png", "gif", "webp", "heic", "heif", "bmp", "tiff"]
+        
+        if imageExtensions.contains(pathExtension) {
+            return true
+        }
+        
+        // 이미지 관련 도메인 확인 (서버에 맞게 수정)
+        if let host = url.host {
+            return host.contains("image") ||
+            host.contains("cdn") ||
+            host.contains("photo") ||
+            host.contains("pic")
+        }
+        
+        return false
+    }
+    
+    private func shouldRetryNetworkError(_ error: Error) -> Bool {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut, .networkConnectionLost, .notConnectedToInternet, .cannotConnectToHost:
+                return true
+            default:
+                return false
+            }
+        }
+        return false
+    }
+    
+    // 기존 메서드들...
     private func shouldAddAuthHeader(for request: URLRequest) -> Bool {
-        // 인증이 필요하지 않은 엔드포인트
         let publicEndpoints = [
             "v1/users/login",
             "v1/users/join",
@@ -88,14 +143,12 @@ private extension GTInterceptor {
         return publicEndpoints.contains(path)
     }
     
-    /// 리프레시 토큰 재발급
     private func refreshToken(completion: @escaping (Result<Void, Error>) -> Void) {
         guard let refreshToken = keychain.getRefreshToken() else {
             completion(.failure(AuthError.noTokenFound))
             return
         }
         
-        // Refresh Token API 호출
         let refreshRequest = RequestDTO.RefreshToken(refreshToken: refreshToken)
         let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         
@@ -104,7 +157,6 @@ private extension GTInterceptor {
             .responseDecodable(of: ResponseDTO.RefreshToken.self) { [weak self] response in
                 switch response.result {
                 case .success(let refreshResponse):
-                    // 새로운 토큰들을 KeychainProvider로 저장
                     self?.keychain.saveAccessToken(refreshResponse.accessToken)
                     self?.keychain.saveRefreshToken(refreshResponse.refreshToken)
                     
