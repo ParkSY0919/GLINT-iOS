@@ -81,10 +81,10 @@ struct LoginView: View {
                     rootRouter.navigate(to: .tabBar)
                 }
             }
-            .navigationTitle("로그인")
-            .navigationBarTitleDisplayMode(.large)
+            .systemNavigationBarHidden()
         }
     }
+    
     
     private func signInButton() -> some View {
         Button("Sign in") {

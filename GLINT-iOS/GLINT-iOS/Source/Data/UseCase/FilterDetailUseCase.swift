@@ -16,11 +16,8 @@ extension FilterDetailUseCase {
         let repo: FilterDetailRepository = .liveValue
         
         return FilterDetailUseCase (
-            
             filterDetail: { filterID in
-                let request = FilterDetailRequest(filter_id: filterID)
-                return try await repo.filterDetail(request).toEntity()
-                
+                return try await repo.filterDetail(filterID).toEntity()
             }
         )
     }()

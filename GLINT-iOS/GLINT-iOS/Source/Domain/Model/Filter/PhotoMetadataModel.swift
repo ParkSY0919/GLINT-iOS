@@ -9,7 +9,8 @@ import Foundation
 
 struct PhotoMetadataModel: Codable {
     let camera: String
-    let metaData: [String]
+    let photoMetadataString: String
+    let megapixelInfo: String
     let latitude: Double
     let longitude: Double
     

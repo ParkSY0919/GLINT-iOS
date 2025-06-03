@@ -77,7 +77,9 @@ private extension DetailView {
                 
                 MetaDataSectionView(
                     camera: store.state.photoMetaData?.camera,
-                    metaData: store.state.photoMetaData?.metaData ?? [],
+                    
+                    photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? "정보 없음",
+                    megapixelInfo: store.state.photoMetaData?.megapixelInfo ?? "정보 없음",
                     address: store.state.address,
                     latitude: store.state.photoMetaData?.latitude,
                     longitude: store.state.photoMetaData?.longitude

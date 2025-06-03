@@ -135,7 +135,7 @@ struct MakeTab: View {
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            RecommendationsContentView(router: router)
+            MakeView()
         } destination: { route in
             destinationView(for: route)
         }
@@ -145,7 +145,7 @@ struct MakeTab: View {
     private func destinationView(for route: MakeTabRoute) -> some View {
         switch route {
         case .make:
-            RecommendationsContentView(router: router)
+            MakeView()
         case .filterEditor:
             RecommendationDetailView(router: router)
         }

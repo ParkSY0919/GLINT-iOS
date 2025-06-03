@@ -8,7 +8,7 @@
 import Foundation
 
 struct FilterDetailRepository {
-    var filterDetail: (_ request: FilterDetailRequest) async throws -> FilterDetailResponse
+    var filterDetail: (_ filterId: String) async throws -> FilterDetailResponse
 }
 
 extension FilterDetailRepository: NetworkServiceProvider {
@@ -16,8 +16,8 @@ extension FilterDetailRepository: NetworkServiceProvider {
     
     static let liveValue: FilterDetailRepository = {
         return FilterDetailRepository (
-            filterDetail: { request in
-                let endPoint = FilterDetailEndPoint.filterDetail(request)
+            filterDetail: { filterId in
+                let endPoint = FilterDetailEndPoint.filterDetail(filterId: filterId)
                 return try await Self.requestAsync(endPoint)
             }
         )

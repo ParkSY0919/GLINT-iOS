@@ -59,7 +59,7 @@ extension View {
     ) -> some View {
         VStack {
             if state.isLoading {
-                Color.secondary.opacity(0.5)
+                Color.clear
                     .overlay {
                         ProgressView()
                             .controlSize(.regular)

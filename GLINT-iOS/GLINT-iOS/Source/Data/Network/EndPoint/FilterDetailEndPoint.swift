@@ -10,7 +10,7 @@ import Foundation
 import Alamofire
 
 enum FilterDetailEndPoint {
-    case filterDetail(FilterDetailRequest)
+    case filterDetail(filterId: String)
 }
 
 extension FilterDetailEndPoint: EndPoint {
@@ -23,8 +23,8 @@ extension FilterDetailEndPoint: EndPoint {
     
     var path: String {
         switch self {
-        case .filterDetail(let request):
-            return utilPath + "\(request.filter_id)"
+        case .filterDetail(let filterId):
+            return utilPath + "\(filterId)"
         }
     }
     

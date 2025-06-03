@@ -16,12 +16,13 @@ enum GLINTColor {
         }
     }
 }
-
+    
 extension GLINTColor {
     
     enum Palette {
         case brand(Brand)
         case gray(Gray)
+        case slider(Slider)
         
         var color: Color {
             switch self {
@@ -29,6 +30,8 @@ extension GLINTColor {
                 brand.color
             case .gray(let gray):
                 gray.color
+            case .slider(let slider):
+                slider.color
             }
         }
     }
@@ -71,6 +74,18 @@ extension GLINTColor.Palette {
             case .g75: return .gray75
             case .g90: return .gray90
             case .g100: return .gray100
+            }
+        }
+    }
+    
+    enum Slider {
+        case left
+        case right
+        
+        var color: Color {
+            switch self {
+            case .left: .sliderLeft
+            case .right: .sliderRight
             }
         }
     }
