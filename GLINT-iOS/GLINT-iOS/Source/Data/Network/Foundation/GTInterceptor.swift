@@ -13,6 +13,7 @@ final class GTInterceptor: RequestInterceptor {
     enum InterceptorType {
         case `default`
         case nuke
+        case multipart
     }
     
     private let type: InterceptorType
@@ -27,6 +28,8 @@ final class GTInterceptor: RequestInterceptor {
         
         if type == .nuke {
             adaptedRequest.setValue("\(Config.sesacKey)", forHTTPHeaderField: "SeSACKey")
+        } else if type == .multipart {
+            adaptedRequest.setValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
         }
         if !shouldAddAuthHeader(for: urlRequest) {
             if let accessToken = keychain.getAccessToken() {

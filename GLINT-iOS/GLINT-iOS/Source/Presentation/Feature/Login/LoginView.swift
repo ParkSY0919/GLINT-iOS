@@ -9,8 +9,8 @@ import SwiftUI
 import Combine
 
 struct LoginView: View {
-    @Environment(\.authUseCase)
-    private var authUseCase
+    @Environment(\.loginViewUseCase)
+    private var useCase
     
     @State private var viewModel = LoginViewModel()
     var rootRouter: RootRouter
@@ -35,7 +35,7 @@ struct LoginView: View {
                     .keyboardType(.emailAddress)
                     .autocapitalization(.none)
                     .onSubmit {
-                        Task { await viewModel.checkEmailAvailability(using: authUseCase) }
+                        Task { await viewModel.checkEmailAvailability(using: useCase) }
                     }
                     .onChange(of: viewModel.email) { _, _ in
                         viewModel.validateInputs()
@@ -90,7 +90,7 @@ struct LoginView: View {
         Button("Sign in") {
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             Task {
-                await viewModel.loginWithEmail(using: authUseCase)
+                await viewModel.loginWithEmail(using: useCase)
             }
         }
         .buttonStyle(GLCTAButton())
@@ -119,7 +119,7 @@ struct LoginView: View {
         HStack(spacing: 20) {
             SocialLoginButtonView(type: .apple) {
                 Task {
-                    await viewModel.appleLogin(using: authUseCase)
+                    await viewModel.appleLogin(using: useCase)
                 }
             }
             SocialLoginButtonView(type: .kakao) {

@@ -40,9 +40,9 @@ final class DetailViewStore {
     private var filterId: String = ""
     
     /// 의존성 주입을 통한 초기화
-    private let filterDetailUseCase: FilterDetailUseCase
+    private let filterDetailUseCase: DetailViewUseCase
     
-    init(filterDetailUseCase: FilterDetailUseCase) {
+    init(filterDetailUseCase: DetailViewUseCase) {
         self.filterDetailUseCase = filterDetailUseCase
     }
     

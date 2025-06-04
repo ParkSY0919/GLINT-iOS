@@ -8,7 +8,7 @@
 import Foundation
 
 struct AuthRepository {
-    var checkEmailValidation: (_ request: RequestDTO.CheckEmailValidation) async throws -> Void
+    var checkEmailValidation: (_ email: String) async throws -> Void
     var signUp: (_ request: RequestDTO.SignUp) async throws -> ResponseDTO.SignUp
     var signIn: (_ request: RequestDTO.SignIn) async throws -> ResponseDTO.SignIn
     var signInApple: (_ request: RequestDTO.SignInForApple) async throws -> ResponseDTO.SignIn
@@ -19,8 +19,8 @@ extension AuthRepository {
     static func create<T: NetworkServiceInterface>(networkService: T.Type)
     -> AuthRepository where T.E == AuthEndPoint {
         return AuthRepository(
-            checkEmailValidation: { request in
-                let endPoint = T.E.checkEmailValidation(request)
+            checkEmailValidation: { email in
+                let endPoint = T.E.checkEmailValidation(email: email)
                 try await networkService.requestNonToken(endPoint)
             },
             signUp: { request in

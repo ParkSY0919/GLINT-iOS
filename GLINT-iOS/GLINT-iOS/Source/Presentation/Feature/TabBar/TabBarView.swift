@@ -12,8 +12,8 @@ struct TabBarView: View {
     @State private var tabBarVisibility = TabBarVisibilityManager()
     
     // 의존성 주입을 위한 초기화 추가
-    init(todayPickUseCase: TodayPickUseCase) {
-        self._viewModel = State(wrappedValue: TabBarViewModel(todayPickUseCase: todayPickUseCase))
+    init(mainViewUseCase: MainViewUseCase) {
+        self._viewModel = State(wrappedValue: TabBarViewModel(mainViewUseCase: mainViewUseCase))
     }
     
     var body: some View {
@@ -69,7 +69,7 @@ extension TabBarView {
     @ViewBuilder
     static func create() -> some View {
         EnvironmentReader { environment in
-            TabBarView(todayPickUseCase: environment.todayPickUseCase)
+            TabBarView(mainViewUseCase: environment.mainViewUseCase)
         }
     }
 }

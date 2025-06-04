@@ -17,6 +17,20 @@ struct PhotoSectionView: View {
     let onUndo: () -> Void
     let onRedo: () -> Void
     
+    init(originalImage: UIImage, filteredImage: UIImage, showingOriginal: Bool, canUndo: Bool, canRedo: Bool, onToggleImage: @escaping () -> Void, onUndo: @escaping () -> Void, onRedo: @escaping () -> Void) {
+        self.originalImage = originalImage
+        self.filteredImage = filteredImage
+        self.showingOriginal = showingOriginal
+        self.canUndo = canUndo
+        self.canRedo = canRedo
+        self.onToggleImage = onToggleImage
+        self.onUndo = onUndo
+        self.onRedo = onRedo
+        
+        GTLogger.i("originalImage: \(originalImage.jpegData(compressionQuality: 0.6)!)")
+        GTLogger.i("filteredImage: \(String(describing: filteredImage.jpegData(compressionQuality: 0.6)))")
+    }
+    
     var body: some View {
         let screenWidth = UIScreen.main.bounds.width
         let maxHeight: CGFloat = 554

@@ -1,5 +1,5 @@
 //
-//  AuthUseCase.swift
+//  LoginViewUseCase.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/19/25.
@@ -7,22 +7,21 @@
 
 import SwiftUI
 
-struct AuthUseCase {
-    var checkEmailValidation: @Sendable (_ request: RequestEntity.CheckEmailValidation) async throws -> Bool
+struct LoginViewUseCase {
+    var checkEmailValidation: @Sendable (_ email: String) async throws -> Bool
     var signUp: @Sendable (_ request: RequestEntity.SignUp) async throws -> ResponseEntity.SignIn
     var signIn: @Sendable (_ request: RequestEntity.SignIn) async throws -> ResponseEntity.SignIn
     var signInApple: @Sendable (_ request: RequestEntity.SignInApple) async throws -> ResponseEntity.SignIn
     var signInKakao: @Sendable (_ request: RequestEntity.SignInKakao) async throws -> ResponseEntity.SignIn
 }
 
-extension AuthUseCase {
-    static let liveValue: AuthUseCase = {
+extension LoginViewUseCase {
+    static let liveValue: LoginViewUseCase = {
         let repository: AuthRepository = .liveValue
         
-        return AuthUseCase(
-            checkEmailValidation: { entity in
-                let request = entity.toRequest()
-                try await repository.checkEmailValidation(request)
+        return LoginViewUseCase(
+            checkEmailValidation: { email in
+                try await repository.checkEmailValidation(email)
                 print("이메일 유효성 검사 요청 성공 (UseCase)")
                 return true
             },
@@ -92,19 +91,19 @@ extension AuthUseCase {
 }
 
 // MARK: - Environment Key
-struct AuthUseCaseKey: EnvironmentKey {
-    static let defaultValue: AuthUseCase = .liveValue
+struct LoginViewUseCaseKey: EnvironmentKey {
+    static let defaultValue: LoginViewUseCase = .liveValue
 }
 
 extension EnvironmentValues {
-    var authUseCase: AuthUseCase {
-        get { self[AuthUseCaseKey.self] }
-        set { self[AuthUseCaseKey.self] = newValue }
+    var loginViewUseCase: LoginViewUseCase {
+        get { self[LoginViewUseCaseKey.self] }
+        set { self[LoginViewUseCaseKey.self] = newValue }
     }
 }
 
-extension AuthUseCase {
-    static let mockValue: AuthUseCase = {
+extension LoginViewUseCase {
+    static let mockValue: LoginViewUseCase = {
         let mockEntity = ResponseEntity.SignIn(
             userID: "mock_user_id",
             email: "mock@test.com",
@@ -113,11 +112,11 @@ extension AuthUseCase {
             refreshToken: "mock_refresh_token"
         )
         
-        return AuthUseCase(
-            checkEmailValidation: { request in
-                print("Mock: 이메일 유효성 검사 - \(request.email)")
+        return LoginViewUseCase(
+            checkEmailValidation: { email in
+                print("Mock: 이메일 유효성 검사 - \(email)")
                 // 특정 이메일에서 실패 테스트
-                if request.email == "invalid@test.com" {
+                if email == "invalid@test.com" {
                     throw URLError(.badURL)
                 }
                 return true

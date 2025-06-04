@@ -30,7 +30,7 @@ final class MainViewStore {
     private(set) var state = MainViewState()
     
     // UseCase 의존성 주입
-    private let todayPickUseCase: TodayPickUseCase
+    private let todayPickUseCase: MainViewUseCase
     // Router 참조를 위한 약한 참조
     weak var router: NavigationRouter<MainTabRoute>?
     
@@ -38,7 +38,7 @@ final class MainViewStore {
     private let cacheExpirationTime: TimeInterval = 300
     
     /// 의존성 주입을 통한 초기화
-    init(todayPickUseCase: TodayPickUseCase) {
+    init(todayPickUseCase: MainViewUseCase) {
         self.todayPickUseCase = todayPickUseCase
     }
     

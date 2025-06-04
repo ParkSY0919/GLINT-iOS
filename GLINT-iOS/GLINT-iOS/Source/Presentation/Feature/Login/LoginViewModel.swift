@@ -25,14 +25,14 @@ final class LoginViewModel {
     
     private let keychain: KeychainManager
     
-    init(userUseCase: AuthUseCase = .liveValue, keychain: KeychainManager = .shared) {
+    init(useCase: LoginViewUseCase = .liveValue, keychain: KeychainManager = .shared) {
         self.keychain = keychain
         keychain.saveDeviceUUID()
     }
     
     // MARK: - 서버 이메일 중복/유효성 검사
     @MainActor
-    func checkEmailAvailability(using authUseCase: AuthUseCase) async {
+    func checkEmailAvailability(using authUseCase: LoginViewUseCase) async {
         guard validateEmailFormat(email) else {
             isEmailValidForUI = false
             return
@@ -43,7 +43,7 @@ final class LoginViewModel {
         let request = RequestEntity.CheckEmailValidation(email: email)
         
         do {
-            isEmailValidForUI = try await authUseCase.checkEmailValidation(request)
+            isEmailValidForUI = try await authUseCase.checkEmailValidation(email)
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {
@@ -54,7 +54,7 @@ final class LoginViewModel {
     
     // MARK: - 회원가입 메서드
     @MainActor
-    func signUp(using authUseCase: AuthUseCase) async {
+    func signUp(using authUseCase: LoginViewUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -92,7 +92,7 @@ final class LoginViewModel {
     
     // MARK: - 일반 로그인 메서드
     @MainActor
-    func loginWithEmail(using authUseCase: AuthUseCase) async {
+    func loginWithEmail(using authUseCase: LoginViewUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -130,7 +130,7 @@ final class LoginViewModel {
     
     // MARK: - Apple 로그인 메서드
     @MainActor
-    func appleLogin(using authUseCase: AuthUseCase) async {
+    func appleLogin(using authUseCase: LoginViewUseCase) async {
         loginState = .loading
         
         do {
@@ -153,6 +153,7 @@ final class LoginViewModel {
             
             // 서버에 로그인 요청
             let response = try await authUseCase.signInApple(request)
+            GTLogger.i("accessToken: \(response.accessToken)")
             keychain.saveAccessToken(response.accessToken)
             keychain.saveRefreshToken(response.refreshToken)
             loginState = .success
@@ -195,6 +196,6 @@ extension LoginViewModel {
 // MARK: - Test/Preview용 ViewModel 생성
 extension LoginViewModel {
     static func mock() -> LoginViewModel {
-        return LoginViewModel(userUseCase: .mockValue)
+        return LoginViewModel(useCase: .mockValue)
     }
 }
