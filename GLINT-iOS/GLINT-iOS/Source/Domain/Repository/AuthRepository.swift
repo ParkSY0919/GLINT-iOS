@@ -15,33 +15,41 @@ struct AuthRepository {
     var signInKakao: (_ request: RequestDTO.SignInForKakao) async throws -> ResponseDTO.SignIn
 }
 
-//TODO: 현재 Domain(Repo) -> Data(NetworkServiceProvider)형태 (의존성 역전 상황) 개선 필요
-extension AuthRepository: NetworkServiceProvider {
-    typealias E = AuthEndPoint
-    
-    static let liveValue: AuthRepository = {
-        
+extension AuthRepository {
+    static func create<T: NetworkServiceInterface>(networkService: T.Type)
+    -> AuthRepository where T.E == AuthEndPoint {
         return AuthRepository(
             checkEmailValidation: { request in
-                let endPoint = AuthEndPoint.checkEmailValidation(request)
-                try await Self.requestNonToken(endPoint)
+                let endPoint = T.E.checkEmailValidation(request)
+                try await networkService.requestNonToken(endPoint)
             },
             signUp: { request in
-                let endPoint = AuthEndPoint.signUp(request)
-                return try await Self.requestNonToken(endPoint)
+                let endPoint = T.E.signUp(request)
+                return try await networkService.requestNonToken(endPoint)
             },
             signIn: { request in
-                let endPoint = AuthEndPoint.signIn(request)
-                return try await Self.requestNonToken(endPoint)
+                let endPoint = T.E.signIn(request)
+                return try await networkService.requestNonToken(endPoint)
             },
             signInApple: { request in
-                let endPoint = AuthEndPoint.signInForApple(request)
-                return try await Self.requestNonToken(endPoint)
+                let endPoint = T.E.signInForApple(request)
+                return try await networkService.requestNonToken(endPoint)
             },
             signInKakao: { request in
-                let endPoint = AuthEndPoint.signInForKakao(request)
-                return try await Self.requestNonToken(endPoint)
+                let endPoint = T.E.signInForKakao(request)
+                return try await networkService.requestNonToken(endPoint)
             }
         )
+    }
+}
+
+// Application Layer - Composition Root (의존성 조립)
+extension AuthRepository {
+    static let liveValue: AuthRepository = {
+        return create(networkService: NetworkService<AuthEndPoint>.self)
     }()
+    
+//    static let mockValue: AuthRepository = {
+//        return create(networkService: MockNetworkService<AuthEndPoint>.self)
+//    }()
 }

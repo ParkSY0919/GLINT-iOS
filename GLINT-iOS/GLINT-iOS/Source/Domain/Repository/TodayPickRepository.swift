@@ -13,23 +13,28 @@ struct TodayPickRepository {
     var hotTrend: () async throws -> ResponseDTO.HotTrend
 }
 
-extension TodayPickRepository: NetworkServiceProvider {
-    typealias E = TodayPickEndPoint
-    
-    static let liveValue: TodayPickRepository = {
-        return TodayPickRepository(
+extension TodayPickRepository {
+    static func create<T: NetworkServiceInterface>(networkService: T.Type)
+    -> TodayPickRepository where T.E == TodayPickEndPoint {
+        return .init(
             todayAuthor: {
                 let endPoint = TodayPickEndPoint.todayAuthor
-                return try await Self.requestAsync(endPoint)
+                return try await networkService.requestAsync(endPoint)
             },
             todayFilter: {
                 let endPoint = TodayPickEndPoint.todayFilter
-                return try await Self.requestAsync(endPoint)
+                return try await networkService.requestAsync(endPoint)
             },
             hotTrend: {
                 let endPoint = TodayPickEndPoint.hotTrend
-                return try await Self.requestAsync(endPoint)
+                return try await networkService.requestAsync(endPoint)
             }
         )
+    }
+}
+
+extension TodayPickRepository {
+    static let liveValue: TodayPickRepository = {
+        return create(networkService: NetworkService<TodayPickEndPoint>.self)
     }()
 }

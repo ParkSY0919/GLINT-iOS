@@ -11,15 +11,18 @@ struct FilterDetailRepository {
     var filterDetail: (_ filterId: String) async throws -> FilterDetailResponse
 }
 
-extension FilterDetailRepository: NetworkServiceProvider {
-    typealias E = FilterDetailEndPoint
-    
+extension FilterDetailRepository {
+    static func create<T: NetworkServiceInterface>(networkService: T.Type)
+    -> FilterDetailRepository where T.E == FilterDetailEndPoint {
+        return .init(filterDetail: {
+            let endpoint = FilterDetailEndPoint.filterDetail(filterId: $0)
+            return try await networkService.requestAsync(endpoint)
+        })
+    }
+}
+
+extension FilterDetailRepository {
     static let liveValue: FilterDetailRepository = {
-        return FilterDetailRepository (
-            filterDetail: { filterId in
-                let endPoint = FilterDetailEndPoint.filterDetail(filterId: filterId)
-                return try await Self.requestAsync(endPoint)
-            }
-        )
+        return create(networkService: NetworkService<FilterDetailEndPoint>.self)
     }()
 }

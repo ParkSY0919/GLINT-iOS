@@ -172,11 +172,12 @@
 				};
 			};
 			buildConfigurationList = 9EF71DE12DCE4AF50011A8E1 /* Build configuration list for PBXProject "GLINT-iOS" */;
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				ko,
 			);
 			mainGroup = 9EF71DDD2DCE4AF50011A8E1;
 			minimizedProjectReferenceProxies = 1;
