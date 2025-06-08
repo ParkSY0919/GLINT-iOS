@@ -9,9 +9,9 @@ import Foundation
 import AuthenticationServices
 
 final class LoginManager: NSObject {
-    private var continuation: CheckedContinuation<ResponseDTO.SocialLogin, Error>?
+    private var continuation: CheckedContinuation<SignInAppleEntity.Request, Error>?
         
-    func appleLogin() async throws -> ResponseDTO.SocialLogin {
+    func appleLogin() async throws -> SignInAppleEntity.Request {
         return try await withCheckedThrowingContinuation { [weak self] continuation in
             self?.continuation = continuation
             self?.requestAppleLogin()
@@ -56,9 +56,9 @@ extension LoginManager: ASAuthorizationControllerDelegate, ASAuthorizationContro
         print("🍎 [appleLogin] authorizationCode: \(authorizationCodeString)")
         let nick = appleIDCredential.fullName?.givenName ?? "anonymous"
         
-        continuation?.resume(returning: ResponseDTO.SocialLogin(
+        continuation?.resume(returning: SignInAppleEntity.Request(
             idToken: idTokenString,
-            authorizationCode: authorizationCodeString,
+            deviceToken: authorizationCodeString,
             nick: nick
         ))
         continuation = nil

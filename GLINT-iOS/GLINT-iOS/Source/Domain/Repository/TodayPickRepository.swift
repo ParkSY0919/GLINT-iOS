@@ -16,6 +16,7 @@ struct TodayPickRepository {
 extension TodayPickRepository {
     static func create<T: NetworkServiceInterface>(networkService: T.Type)
     -> TodayPickRepository where T.E == TodayPickEndPoint {
+        let networkService = NetworkService<TodayPickEndPoint>()
         return .init(
             todayAuthor: {
                 let endPoint = TodayPickEndPoint.todayAuthor

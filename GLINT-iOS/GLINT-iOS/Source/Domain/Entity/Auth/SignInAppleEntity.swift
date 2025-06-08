@@ -1,5 +1,5 @@
 //
-//  SignInKakao.swift
+//  SignInAppleEntity.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/31/25.
@@ -7,8 +7,8 @@
 
 import Foundation
 
-enum SignInKakaoEntity {
+enum SignInAppleEntity {
     struct Request {
-        let oauthToken, deviceToken: String
+        let idToken, deviceToken, nick: String
     }
 }

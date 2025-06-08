@@ -16,7 +16,7 @@ typealias ResponseData = Decodable & Sendable
 let defaultSession = Session()
 
 struct NetworkService<E: EndPoint>: NetworkServiceInterface {
-    static func requestAsyncMultipart<T: ResponseData>(_ endPoint: E) async throws -> T {
+    func requestAsyncMultipart<T: ResponseData>(_ endPoint: E) async throws -> T {
         let request = defaultSession.request(
             endPoint,
             interceptor: Interceptor(interceptors: [GTInterceptor(type: .multipart)])
@@ -48,7 +48,7 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         }
     }
     
-    static func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T {
+    func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T {
         let request = defaultSession.request(
             endPoint,
             interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)])
@@ -80,8 +80,8 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         }
     }
     
-    static func requestAsync(_ endPoint: E) async throws {
-        GTLogger.shared.networkRequest("NetworkStart")
+    func requestAsyncVoid(_ endPoint: E) async throws {
+        GTLogger.shared.networkRequest("N/Start: noRes, noToken")
         
         let response = await defaultSession.request(
             endPoint,
@@ -110,7 +110,7 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         }
     }
     
-    static func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T {
+    func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T {
         GTLogger.shared.networkRequest("NetworkStart")
         
         let response = await defaultSession.request(endPoint)
@@ -131,7 +131,7 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         }
     }
     
-    static func requestNonToken(_ endPoint: E) async throws {
+    func requestNonToken(_ endPoint: E) async throws {
         GTLogger.shared.networkRequest("NetworkStart")
         
         let response = await defaultSession.request(endPoint)

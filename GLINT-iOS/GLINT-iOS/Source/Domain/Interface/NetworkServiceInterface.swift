@@ -13,10 +13,10 @@ protocol NetworkServiceInterface {
     associatedtype E: EndPoint
     
     // 토큰 포함 요청
-    static func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T
-    static func requestAsync(_ endPoint: E) async throws
+    func requestAsync<T: ResponseData>(_ endPoint: E) async throws -> T
+    func requestAsyncVoid(_ endPoint: E) async throws
     
     // 토큰 없이 요청 (adaptable 파라미터 추가)
-    static func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T
-    static func requestNonToken(_ endPoint: E) async throws
+    func requestNonToken<T: ResponseData>(_ endPoint: E) async throws -> T
+    func requestNonToken(_ endPoint: E) async throws
 }

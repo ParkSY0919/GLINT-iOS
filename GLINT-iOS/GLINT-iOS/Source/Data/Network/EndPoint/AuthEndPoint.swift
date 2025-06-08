@@ -11,10 +11,10 @@ import Alamofire
 
 enum AuthEndPoint {
     case checkEmailValidation(email: String)
-    case signUp(RequestDTO.SignUp)
-    case signIn(RequestDTO.SignIn)
-    case signInForApple(RequestDTO.SignInForApple)
-    case signInForKakao(RequestDTO.SignInForKakao)
+    case signUp(SignUpDTO.Request)
+    case signIn(SignInDTO.Request)
+    case signInForApple(SignInAppleDTO.Request)
+    case signInForKakao(SignInKakaoDTO.Request)
     case refreshToken(RequestDTO.RefreshToken)
 }
 
