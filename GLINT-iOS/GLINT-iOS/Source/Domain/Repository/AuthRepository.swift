@@ -15,6 +15,7 @@ struct AuthRepository {
     var signInKakao: (_ request: RequestDTO.SignInForKakao) async throws -> ResponseDTO.SignIn
 }
 
+//모듈화 더 공부, file private
 extension AuthRepository {
     static func create<T: NetworkServiceInterface>(networkService: T.Type)
     -> AuthRepository where T.E == AuthEndPoint {

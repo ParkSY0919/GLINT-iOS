@@ -104,7 +104,7 @@ enum CategoryType: String, CaseIterable {
     case 인물 = "인물"
     case 풍경 = "풍경"
     case 야경 = "야경"
-    case 빈 = "빈"
+    case 별 = "별"
     
     var displayName: String {
         return self.rawValue

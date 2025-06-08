@@ -17,7 +17,7 @@ extension DetailViewUseCase {
         
         return DetailViewUseCase (
             filterDetail: { filterID in
-                return try await repo.filterDetail(filterID).toEntity()
+                return try await repo.filterDetail(filterID)
             }
         )
     }()

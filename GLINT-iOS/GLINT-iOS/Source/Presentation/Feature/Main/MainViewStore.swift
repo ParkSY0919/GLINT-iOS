@@ -5,6 +5,7 @@
 //  Created by 박신영 on 5/24/25.
 //
 
+//TODO: 설득 잘 해야함. MVVM 대신 TCA를 사용할 이유와 사용하지 않은 이유.
 import SwiftUI
 
 // MARK: - State

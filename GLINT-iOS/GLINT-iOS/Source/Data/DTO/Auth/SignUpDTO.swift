@@ -16,7 +16,7 @@ extension RequestDTO {
 
 // MARK: - Response
 extension ResponseDTO {
-    struct SignUp: Decodable {
+    struct SignUp: ResponseData {
         let userID, email, nick, accessToken: String
         let refreshToken: String
         
