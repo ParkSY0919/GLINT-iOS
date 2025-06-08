@@ -1,5 +1,5 @@
 //
-//  MainViewUseCase.swift
+//  MainViewUseCase+.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/29/25.
@@ -7,12 +7,7 @@
 
 import SwiftUI
 
-struct MainViewUseCase {
-    var todayAuthor: @Sendable () async throws -> ResponseEntity.TodayAuthor // 오늘의 작가 소개
-    var todayFilter: @Sendable () async throws -> ResponseEntity.TodayFilter // 오늘의 필터 소개
-    var hotTrend: @Sendable () async throws -> ResponseEntity.HotTrend
-}
-
+//TODO: LoginView와 같도록 수정
 extension MainViewUseCase {
     static let liveValue: MainViewUseCase = {
         let repository: TodayPickRepository = .liveValue

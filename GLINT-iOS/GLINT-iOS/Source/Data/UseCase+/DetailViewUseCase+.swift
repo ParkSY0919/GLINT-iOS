@@ -1,5 +1,5 @@
 //
-//  DetailViewUseCase.swift
+//  DetailViewUseCase+.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/1/25.
@@ -7,10 +7,7 @@
 
 import SwiftUI
 
-struct DetailViewUseCase {
-    var filterDetail: @Sendable (_ filterID: String) async throws -> FilterDetailEntity
-}
-
+//TODO: LoginView와 같도록 수정
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
         let repo: FilterDetailRepository = .liveValue
