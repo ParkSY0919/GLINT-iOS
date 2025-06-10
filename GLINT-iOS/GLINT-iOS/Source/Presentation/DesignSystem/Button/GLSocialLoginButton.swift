@@ -11,7 +11,7 @@ struct GLSocialLoginButton: ButtonStyle {
     let backgroundColor: Color
     let foregroundColor: Color
 
-    init(backgroundColor: Color = .socialButtonBackground, foregroundColor: Color = .socialButtonForeground) {
+    init(backgroundColor: Color = .gray100, foregroundColor: Color = .gray0) {
         self.backgroundColor = backgroundColor
         self.foregroundColor = foregroundColor
     }

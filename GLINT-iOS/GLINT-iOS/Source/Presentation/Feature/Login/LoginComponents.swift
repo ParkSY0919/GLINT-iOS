@@ -41,7 +41,7 @@ struct FormFieldView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(formCase.label)
                 .font(.fieldLabel)
-                .foregroundColor(.labelText)
+                .foregroundColor(.gray0)
             
             if isSecure {
                 formFieldStyle(SecureField(formCase.placeholder, text: $text))
@@ -66,7 +66,7 @@ struct FormFieldView: View {
     private func formFieldStyle<Content: View>(_ content: Content) -> some View {
         content
             .padding()
-            .background(Color.textFieldBackground) // 이전 정의 사용
+            .background(.gray60) // 이전 정의 사용
             .cornerRadius(8)
             .font(.textFieldFont)
     }
