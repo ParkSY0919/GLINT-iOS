@@ -166,26 +166,6 @@ struct PhotoEditState {
     var canRedo: Bool {
         return historyIndex < history.count - 1
     }
-    
-    // FilterParameters로 변환하는 메서드 추가
-    var filterParameters: ImageFilterManager.FilterParameters {
-        var params = ImageFilterManager.FilterParameters()
-        
-        params.brightness = parameters[.brightness]?.currentValue ?? 0.0
-        params.exposure = parameters[.exposure]?.currentValue ?? 0.0
-        params.contrast = parameters[.contrast]?.currentValue ?? 1.0
-        params.saturation = parameters[.saturation]?.currentValue ?? 1.0
-        params.sharpness = parameters[.sharpness]?.currentValue ?? 0.0
-        params.blur = parameters[.blur]?.currentValue ?? 0.0
-        params.vignette = parameters[.vignette]?.currentValue ?? 0.0
-        params.noiseReduction = parameters[.noiseReduction]?.currentValue ?? 0.0
-        params.highlights = parameters[.highlights]?.currentValue ?? 0.0
-        params.shadows = parameters[.shadows]?.currentValue ?? 0.0
-        params.temperature = parameters[.temperature]?.currentValue ?? 6500.0
-        params.blackPoint = parameters[.blackPoint]?.currentValue ?? 0.0
-        
-        return params
-    }
 }
 
 struct PhotoEditAction {

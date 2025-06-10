@@ -12,24 +12,35 @@ struct FilterPresetsView: View {
     let onPropertySelected: (FilterPropertyType) -> Void
     
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(FilterPropertyType.allCases, id: \.self) { property in
-                    FilterPresetButton(
-                        property: property,
-                        isSelected: selectedProperty == property,
-                        onTap: {
-                            onPropertySelected(property)
-                        }
-                    )
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(FilterPropertyType.allCases, id: \.self) { property in
+                        FilterPresetButton(
+                            property: property,
+                            isSelected: selectedProperty == property,
+                            onTap: {
+                                onPropertySelected(property)
+                            }
+                        )
+                        .id(property)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            }
+            .frame(height: 80)
+            .background(.gray100)
+            .onChange(of: selectedProperty) { _, newProperty in
+                // 첫 2개 프리셋 제외하고 가운데로 스크롤
+                let allCases = FilterPropertyType.allCases
+                if let index = allCases.firstIndex(of: newProperty), index >= 2 {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        proxy.scrollTo(newProperty, anchor: .center)
+                    }
                 }
             }
-            .padding(.horizontal, 20)
-//            .frame(height: 80)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
-        .frame(height: 80)
-        .background(.gray100)
     }
 }
 

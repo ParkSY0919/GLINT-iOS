@@ -103,12 +103,29 @@ struct PhotoSectionView: View {
                     Button {
                         onToggleImage()
                     } label: {
-                        Image(systemName: showingOriginal ? "eye.slash" : "eye")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.gray0)
-                            .frame(width: 40, height: 32)
-                            .background(.brandBlack.opacity(0.5))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        if showingOriginal {
+                            // 원본 이미지를 보여줄 때
+                            Image(systemName: "eye")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(.gray0)
+                                .frame(width: 40, height: 32)
+                                .background(.brandBlack.opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            // 필터된 이미지를 보여줄 때 - 그라디언트 적용
+                            Image(systemName: "eye")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.sliderLeft, .sliderRight],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: 40, height: 32)
+                                .background(.brandBlack.opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                     }
                 }
                 .padding(.horizontal, 20)
