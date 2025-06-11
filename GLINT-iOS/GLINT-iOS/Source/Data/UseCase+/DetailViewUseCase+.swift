@@ -12,6 +12,7 @@ extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
         let repo: FilterDetailRepository = .liveValue
         let orderRepo: OrderRepository = .value
+        let paymentRepo: PaymentRepository = .value
         
         return DetailViewUseCase (
             filterDetail: { filterID in
@@ -24,6 +25,10 @@ extension DetailViewUseCase {
             
             infoOrder: {
                 return try await orderRepo.infoOrder()
+            },
+            
+            paymentValidation: { request in
+                return try await paymentRepo.paymentValidation(request)
             }
         )
     }()

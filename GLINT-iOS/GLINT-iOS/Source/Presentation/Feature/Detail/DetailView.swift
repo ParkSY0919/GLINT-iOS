@@ -17,8 +17,16 @@ struct DetailView: View {
     
     let id: String
     let router: NavigationRouter<MainTabRoute>
-    @State private var store = DetailViewStore(filterDetailUseCase: .liveValue, orderUseCase: .liveValue)
-    @State private var isLiked = false
+    
+    @State
+    private var store = DetailViewStore(
+        filterDetailUseCase: .liveValue,
+        orderUseCase: .liveValue,
+        paymentUseCase: .liveValue
+    )
+    
+    @State
+    private var isLiked = false
     
     var body: some View {
         Group {

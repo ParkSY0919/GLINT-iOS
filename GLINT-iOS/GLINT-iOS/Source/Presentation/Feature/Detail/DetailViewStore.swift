@@ -48,10 +48,16 @@ final class DetailViewStore {
     /// 의존성 주입을 통한 초기화
     private let filterDetailUseCase: DetailViewUseCase
     private let orderUseCase: DetailViewUseCase
+    private let paymentUseCase: DetailViewUseCase
     
-    init(filterDetailUseCase: DetailViewUseCase, orderUseCase: DetailViewUseCase) {
+    init(
+        filterDetailUseCase: DetailViewUseCase,
+        orderUseCase: DetailViewUseCase,
+        paymentUseCase: DetailViewUseCase
+    ) {
         self.filterDetailUseCase = filterDetailUseCase
         self.orderUseCase = orderUseCase
+        self.paymentUseCase = paymentUseCase
     }
     
     /// - Parameter action: 처리할 액션
@@ -114,7 +120,6 @@ private extension DetailViewStore {
                 
                 print("response: \(String(describing: state.createOrderResult))")
                 
-                state.isPurchased = true
                 state.showPaymentSheet = true  // 결제 화면 표시
                 state.isLoading = false
             } catch {
@@ -130,12 +135,11 @@ private extension DetailViewStore {
     func handlePaymentCompleted(response: IamportResponse?) async {
         if let response, response.success == true {
             GTLogger.shared.i("결제 성공: \(response.imp_uid ?? "")")
-            state.isPurchased = true
-            
-            // 🔥 결제 성공 후 로직 실행 (비동기)
-            await executeAfterSuccessfulPayment()
+
+            await executeAfterSuccessfulPayment(imp_uid: response.imp_uid)
             
             // 모든 로직 완료 후 화면 닫기
+            state.isPurchased = true
             state.showPaymentSheet = false
             
         } else {
@@ -147,11 +151,14 @@ private extension DetailViewStore {
         }
     }
     
-    private func executeAfterSuccessfulPayment() async {
+    private func executeAfterSuccessfulPayment(imp_uid: String?) async {
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 시작!")
-        // 이 곳에 서버와 통신하는 등 비동기 작업을 추가할 수 있습니다.
-        // 예시로 1초 딜레이를 주어 비동기 작업을 시뮬레이션합니다.
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
+        
+        if let imp_uid {
+            let request = PaymentValidationEntity.Request(imp_uid: imp_uid)
+            let response = try? await paymentUseCase.paymentValidation(request)
+        }
+        
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 완료!")
     }
     

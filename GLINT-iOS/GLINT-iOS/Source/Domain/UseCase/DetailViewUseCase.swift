@@ -11,4 +11,5 @@ struct DetailViewUseCase {
     var filterDetail: @Sendable (_ filterID: String) async throws -> FilterDetailEntity
     var createOrder: @Sendable (_ request: CreateOrderEntity.Request) async throws -> CreateOrderEntity.Response
     var infoOrder: @Sendable () async throws -> InfoOrderEntity.Response
+    var paymentValidation: @Sendable (_ request: PaymentValidationEntity.Request) async throws -> PaymentValidationEntity.Response
 }
