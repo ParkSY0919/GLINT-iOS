@@ -11,10 +11,19 @@ import SwiftUI
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
         let repo: FilterDetailRepository = .liveValue
+        let orderRepo: OrderRepository = .value
         
         return DetailViewUseCase (
             filterDetail: { filterID in
                 return try await repo.filterDetail(filterID)
+            },
+            
+            createOrder: { request in
+                return try await orderRepo.createOrder(request)
+            },
+            
+            infoOrder: {
+                return try await orderRepo.infoOrder()
             }
         )
     }()

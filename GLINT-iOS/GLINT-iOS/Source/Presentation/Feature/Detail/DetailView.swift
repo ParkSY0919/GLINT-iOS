@@ -9,11 +9,15 @@ import SwiftUI
 import MapKit
 
 import NukeUI
+import iamport_ios
 
 struct DetailView: View {
+    @Environment(\.openURL)
+    private var openURL
+    
     let id: String
     let router: NavigationRouter<MainTabRoute>
-    @State private var store = DetailViewStore(filterDetailUseCase: .liveValue)
+    @State private var store = DetailViewStore(filterDetailUseCase: .liveValue, orderUseCase: .liveValue)
     @State private var isLiked = false
     
     var body: some View {
@@ -26,6 +30,18 @@ struct DetailView: View {
                 }
             } else {
                 contentView
+            }
+        }
+        .sheet(isPresented: $store.state.showPaymentSheet) {
+            if let orderData = store.state.createOrderResult,
+               let filterData = store.state.filterData {
+                IamportPaymentView(
+                    orderData: orderData,
+                    filterData: filterData,
+                    onComplete: { response in
+                        store.send(.paymentCompleted(response))
+                    }
+                )
             }
         }
         .navigationTitle(store.state.filterData?.title ?? "")
@@ -51,6 +67,9 @@ struct DetailView: View {
         .onAppear {
             store.send(.viewAppeared(id: id))
             setupNavigationAppearance()
+        }
+        .onOpenURL { openURL in
+            Iamport.shared.receivedURL(openURL)
         }
     }
 }
@@ -90,7 +109,7 @@ private extension DetailView {
                     filterPresetsData: store.state.filterPresetsData?.toStringArray()
                 )
                 
-                PayButtonSectionView(
+                PayButtonSectionView( 
                     isPurchased: store.state.isPurchased,
                     onPurchaseButtonTapped: {
                         store.send(.purchaseButtonTapped)
