@@ -25,7 +25,7 @@ extension OrderEndPoint: EndPoint {
     
     var method: Alamofire.HTTPMethod {
         switch self {
-        case .createOrder(let request):
+        case .createOrder:
             return .post
         case .infoOrder:
             return .get
@@ -40,6 +40,4 @@ extension OrderEndPoint: EndPoint {
             return .none
         }
     }
-    
-    
 }

@@ -19,7 +19,7 @@ extension OrderRepository {
             },
             
             infoOrder: {
-                let response: InfoOrderDTO.Response = try await provider.requestAsync(.infoOrder)
+                let response: OrderHistoryDTO.Response = try await provider.requestAsync(.infoOrder)
                 return response.toEntity()
             }
         )
