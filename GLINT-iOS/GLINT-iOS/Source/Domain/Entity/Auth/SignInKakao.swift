@@ -7,12 +7,8 @@
 
 import Foundation
 
-extension RequestEntity {
-    struct SignInKakao {
+enum SignInKakaoEntity {
+    struct Request {
         let oauthToken, deviceToken: String
-        
-        func toKakaoRequest() -> RequestDTO.SignInForKakao {
-            return .init(oauthToken: oauthToken, deviceToken: deviceToken)
-        }
     }
 }

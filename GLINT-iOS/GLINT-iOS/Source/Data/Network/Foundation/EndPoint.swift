@@ -51,6 +51,8 @@ extension EndPoint {
             return try JSONEncoding.default.encode(request, with: encodableParams?.toDictionary())
         case .none:
             return request
+        case .multipartData(_):
+            return request
         }
     }
     

@@ -7,11 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9E68E2602DE99B840096903A /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E25F2DE99B840096903A /* Nuke */; };
-		9E68E2622DE99B840096903A /* NukeExtensions in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2612DE99B840096903A /* NukeExtensions */; };
-		9E68E2642DE99B840096903A /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2632DE99B840096903A /* NukeUI */; };
-		9E68E2662DE99B840096903A /* NukeVideo in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2652DE99B840096903A /* NukeVideo */; };
-		9E68E2692DE99BC00096903A /* NukeAlamofirePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */; };
+		9E7976722DF9475300E27F77 /* iamport-ios in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976712DF9475300E27F77 /* iamport-ios */; };
+		9E7976752DF9476100E27F77 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976742DF9476100E27F77 /* Nuke */; };
+		9E7976772DF9476100E27F77 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976762DF9476100E27F77 /* NukeUI */; };
+		9E79767A2DF9476D00E27F77 /* NukeAlamofirePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */; };
 		9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF71E002DCF71F50011A8E1 /* Alamofire */; };
 /* End PBXBuildFile section */
 
@@ -68,12 +67,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E7976752DF9476100E27F77 /* Nuke in Frameworks */,
 				9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */,
-				9E68E2602DE99B840096903A /* Nuke in Frameworks */,
-				9E68E2662DE99B840096903A /* NukeVideo in Frameworks */,
-				9E68E2622DE99B840096903A /* NukeExtensions in Frameworks */,
-				9E68E2642DE99B840096903A /* NukeUI in Frameworks */,
-				9E68E2692DE99BC00096903A /* NukeAlamofirePlugin in Frameworks */,
+				9E7976722DF9475300E27F77 /* iamport-ios in Frameworks */,
+				9E7976772DF9476100E27F77 /* NukeUI in Frameworks */,
+				9E79767A2DF9476D00E27F77 /* NukeAlamofirePlugin in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,11 +140,10 @@
 			name = "GLINT-iOS";
 			packageProductDependencies = (
 				9EF71E002DCF71F50011A8E1 /* Alamofire */,
-				9E68E25F2DE99B840096903A /* Nuke */,
-				9E68E2612DE99B840096903A /* NukeExtensions */,
-				9E68E2632DE99B840096903A /* NukeUI */,
-				9E68E2652DE99B840096903A /* NukeVideo */,
-				9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */,
+				9E7976712DF9475300E27F77 /* iamport-ios */,
+				9E7976742DF9476100E27F77 /* Nuke */,
+				9E7976762DF9476100E27F77 /* NukeUI */,
+				9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */,
 			);
 			productName = "GLINT-iOS";
 			productReference = 9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */;
@@ -182,8 +179,9 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */,
-				9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */,
+				9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */,
+				9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */,
+				9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EF71DE72DCE4AF50011A8E1 /* Products */;
@@ -517,7 +515,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */ = {
+		9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/iamport/iamport-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.4.7;
+			};
+		};
+		9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kean/Nuke.git";
 			requirement = {
@@ -525,7 +531,7 @@
 				minimumVersion = 12.8.0;
 			};
 		};
-		9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */ = {
+		9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kean/Nuke-Alamofire-Plugin.git";
 			requirement = {
@@ -544,29 +550,24 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9E68E25F2DE99B840096903A /* Nuke */ = {
+		9E7976712DF9475300E27F77 /* iamport-ios */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			package = 9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */;
+			productName = "iamport-ios";
+		};
+		9E7976742DF9476100E27F77 /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = Nuke;
 		};
-		9E68E2612DE99B840096903A /* NukeExtensions */ = {
+		9E7976762DF9476100E27F77 /* NukeUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
-			productName = NukeExtensions;
-		};
-		9E68E2632DE99B840096903A /* NukeUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
+			package = 9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */;
 			productName = NukeUI;
 		};
-		9E68E2652DE99B840096903A /* NukeVideo */ = {
+		9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9E68E25E2DE99B840096903A /* XCRemoteSwiftPackageReference "Nuke" */;
-			productName = NukeVideo;
-		};
-		9E68E2682DE99BC00096903A /* NukeAlamofirePlugin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 9E68E2672DE99BC00096903A /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */;
+			package = 9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */;
 			productName = NukeAlamofirePlugin;
 		};
 		9EF71E002DCF71F50011A8E1 /* Alamofire */ = {

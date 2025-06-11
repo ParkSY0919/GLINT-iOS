@@ -61,26 +61,29 @@ struct FilterSliderView: View {
                         .fill(.gray75)
                         .frame(height: trackHeight)
                     
-                    // 핸들 기준 좌측 전체 색칠
+                    // 좌측부터 현재 위치까지 색칠
+                    let currentPosition = getSliderPosition(in: geometry.size.width)
+                    
                     RoundedRectangle(cornerRadius: 2)
                         .fill(
                             LinearGradient(
-                                colors: [.brandDeep, Color(red: 0.0, green: 0.8, blue: 0.4)],
+                                colors: [.sliderLeft, .sliderRight],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: getSliderPosition(in: geometry.size.width), height: trackHeight)
+                        .frame(width: currentPosition, height: trackHeight)
                     
                     // 슬라이더 핸들
                     Circle()
                         .fill(.brandDeep)
                         .frame(width: handleSize, height: handleSize)
                         .shadow(color: .black.opacity(0.2), radius: 2, x: 0, y: 1)
-                        .position(x: getSliderPosition(in: geometry.size.width), y: handleSize / 2)
+                        .position(x: currentPosition, y: handleSize / 2)
                 }
                 .contentShape(Rectangle())
                 .gesture(
+                    // 최적화된 드래그 제스처: 디바운싱과 백그라운드 처리로 성능 향상
                     DragGesture(minimumDistance: 0)
                         .onChanged { gesture in
                             isDragging = true
@@ -111,6 +114,14 @@ struct FilterSliderView: View {
         let normalizedValue = (value - range.lowerBound) / (range.upperBound - range.lowerBound)
         let usableWidth = width - handleSize
         return (CGFloat(normalizedValue) * usableWidth) + (handleSize / 2)
+    }
+    
+    private func getDefaultValuePosition(in width: CGFloat) -> CGFloat {
+        let range = propertyType.range
+        let defaultValue = propertyType.defaultValue
+        let normalizedDefaultValue = (defaultValue - range.lowerBound) / (range.upperBound - range.lowerBound)
+        let usableWidth = width - handleSize
+        return (CGFloat(normalizedDefaultValue) * usableWidth) + (handleSize / 2)
     }
     
     private var formattedValue: String {
@@ -148,3 +159,5 @@ struct Triangle: Shape {
         return path
     }
 }
+
+

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MakeView: View {
     @State private var store = MakeViewStore()
+    @Environment(\.makeViewUseCase) private var makeViewUseCase
     
     var body: some View {
         Group {
@@ -34,6 +35,23 @@ struct MakeView: View {
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(.gray0)
                 }
+            }
+        }
+        .onAppear {
+            store.setUseCase(makeViewUseCase)
+        }
+        .alert("저장 완료", isPresented: Binding(
+            get: { store.state.showingSaveAlert },
+            set: { _ in store.state.showingSaveAlert = false }
+        )) {
+            Button("확인") {
+                store.state.showingSaveAlert = false
+            }
+        } message: {
+            if let result = store.state.saveResult {
+                Text("결과: \(result.joined(separator: ", "))")
+            } else {
+                Text("필터 저장이 완료되었습니다.")
             }
         }
         .navigationDestination(isPresented: Binding(
@@ -136,3 +154,4 @@ private extension MakeView {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 } 
+ 

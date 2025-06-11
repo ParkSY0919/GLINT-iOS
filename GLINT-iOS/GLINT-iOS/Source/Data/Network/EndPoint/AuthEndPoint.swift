@@ -10,11 +10,11 @@ import Foundation
 import Alamofire
 
 enum AuthEndPoint {
-    case checkEmailValidation(RequestDTO.CheckEmailValidation)
-    case signUp(RequestDTO.SignUp)
-    case signIn(RequestDTO.SignIn)
-    case signInForApple(RequestDTO.SignInForApple)
-    case signInForKakao(RequestDTO.SignInForKakao)
+    case checkEmailValidation(email: String)
+    case signUp(SignUpDTO.Request)
+    case signIn(SignInDTO.Request)
+    case signInForApple(SignInAppleDTO.Request)
+    case signInForKakao(SignInKakaoDTO.Request)
     case refreshToken(RequestDTO.RefreshToken)
 }
 
@@ -49,8 +49,8 @@ extension AuthEndPoint: EndPoint {
     
     var requestType: RequestType {
         switch self {
-        case .checkEmailValidation(let request):
-            return .bodyEncodable(request)
+        case .checkEmailValidation(let email):
+            return .bodyEncodable(["email": email])
         case .signUp(let reuqest):
             return .bodyEncodable(reuqest)
         case .signIn(let reuqest):

@@ -18,4 +18,5 @@ enum GLError: Error {
     case networkFailure(AFError)
     case retryFailed(AFError)
     case unknown(Error)
+    case typeError(String)
 }

@@ -22,8 +22,8 @@ final class TabBarViewModel {
     let mainViewStore: MainViewStore
     
     /// 의존성 주입을 통한 초기화
-    init(todayPickUseCase: TodayPickUseCase) {
-        self.mainViewStore = MainViewStore(todayPickUseCase: todayPickUseCase)
+    init(mainViewUseCase: MainViewUseCase) {
+        self.mainViewStore = MainViewStore(todayPickUseCase: mainViewUseCase)
     }
     
     func selectTab(_ index: Int) {

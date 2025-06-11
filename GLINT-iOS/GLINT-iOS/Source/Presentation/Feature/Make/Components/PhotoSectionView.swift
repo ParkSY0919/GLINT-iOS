@@ -17,6 +17,20 @@ struct PhotoSectionView: View {
     let onUndo: () -> Void
     let onRedo: () -> Void
     
+    init(originalImage: UIImage, filteredImage: UIImage, showingOriginal: Bool, canUndo: Bool, canRedo: Bool, onToggleImage: @escaping () -> Void, onUndo: @escaping () -> Void, onRedo: @escaping () -> Void) {
+        self.originalImage = originalImage
+        self.filteredImage = filteredImage
+        self.showingOriginal = showingOriginal
+        self.canUndo = canUndo
+        self.canRedo = canRedo
+        self.onToggleImage = onToggleImage
+        self.onUndo = onUndo
+        self.onRedo = onRedo
+        
+        GTLogger.i("originalImage: \(originalImage.jpegData(compressionQuality: 0.6)!)")
+        GTLogger.i("filteredImage: \(String(describing: filteredImage.jpegData(compressionQuality: 0.6)))")
+    }
+    
     var body: some View {
         let screenWidth = UIScreen.main.bounds.width
         let maxHeight: CGFloat = 554
@@ -89,12 +103,29 @@ struct PhotoSectionView: View {
                     Button {
                         onToggleImage()
                     } label: {
-                        Image(systemName: showingOriginal ? "eye.slash" : "eye")
-                            .font(.system(size: 24, weight: .medium))
-                            .foregroundColor(.gray0)
-                            .frame(width: 40, height: 32)
-                            .background(.brandBlack.opacity(0.5))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        if showingOriginal {
+                            // 원본 이미지를 보여줄 때
+                            Image(systemName: "eye")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(.gray0)
+                                .frame(width: 40, height: 32)
+                                .background(.brandBlack.opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            // 필터된 이미지를 보여줄 때 - 그라디언트 적용
+                            Image(systemName: "eye")
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.sliderLeft, .sliderRight],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .frame(width: 40, height: 32)
+                                .background(.brandBlack.opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
                     }
                 }
                 .padding(.horizontal, 20)

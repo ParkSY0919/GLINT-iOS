@@ -25,14 +25,14 @@ final class LoginViewModel {
     
     private let keychain: KeychainManager
     
-    init(userUseCase: AuthUseCase = .liveValue, keychain: KeychainManager = .shared) {
+    init(useCase: LoginViewUseCase = .liveValue, keychain: KeychainManager = .shared) {
         self.keychain = keychain
         keychain.saveDeviceUUID()
     }
     
     // MARK: - 서버 이메일 중복/유효성 검사
     @MainActor
-    func checkEmailAvailability(using authUseCase: AuthUseCase) async {
+    func checkEmailAvailability(using authUseCase: LoginViewUseCase) async {
         guard validateEmailFormat(email) else {
             isEmailValidForUI = false
             return
@@ -40,10 +40,11 @@ final class LoginViewModel {
         isEmailValidForUI = true
         
         loginState = .loading
-        let request = RequestEntity.CheckEmailValidation(email: email)
+        let request = EmailValidationEntity.Request(email: email)
         
         do {
-            isEmailValidForUI = try await authUseCase.checkEmailValidation(request)
+            try await authUseCase.checkEmailValidation(request)
+            isEmailValidForUI = true
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {
@@ -54,7 +55,7 @@ final class LoginViewModel {
     
     // MARK: - 회원가입 메서드
     @MainActor
-    func signUp(using authUseCase: AuthUseCase) async {
+    func signUp(using authUseCase: LoginViewUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -74,7 +75,7 @@ final class LoginViewModel {
             return
         }
         
-        let request = RequestEntity.SignUp(
+        let request = SignUpEntity.Request(
             email: email,
             password: password,
             deviceToken: deviceToken
@@ -92,7 +93,7 @@ final class LoginViewModel {
     
     // MARK: - 일반 로그인 메서드
     @MainActor
-    func loginWithEmail(using authUseCase: AuthUseCase) async {
+    func loginWithEmail(using authUseCase: LoginViewUseCase) async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -113,7 +114,7 @@ final class LoginViewModel {
             return
         }
         
-        let request = RequestEntity.SignIn(
+        let request = SignInEntity.Request(
             email: email,
             password: password,
             deviceToken: deviceId
@@ -130,29 +131,25 @@ final class LoginViewModel {
     
     // MARK: - Apple 로그인 메서드
     @MainActor
-    func appleLogin(using authUseCase: AuthUseCase) async {
+    func appleLogin(using authUseCase: LoginViewUseCase) async {
         loginState = .loading
         
         do {
             // 애플 로그인 요청
             let manager = LoginManager()
-            let socialLoginResponse = try await manager.appleLogin()
+            let request = try await manager.appleLogin()
+            GTLogger.d("Apple 로그인 요청: \(request)")
+            print(request)
             
             // deviceToken 가져오기
-            guard let deviceToken = keychain.getDeviceUUID() else {
+            guard keychain.getDeviceUUID() != nil else {
                 loginState = .failure("디바이스 ID를 찾을 수 없습니다.")
                 return
             }
             
-            // RequestEntity.SignInApple 생성
-            let request = RequestEntity.SignInApple(
-                idToken: socialLoginResponse.idToken,
-                deviceToken: deviceToken,
-                nick: socialLoginResponse.nick
-            )
-            
             // 서버에 로그인 요청
             let response = try await authUseCase.signInApple(request)
+            GTLogger.i("accessToken: \(response.accessToken)")
             keychain.saveAccessToken(response.accessToken)
             keychain.saveRefreshToken(response.refreshToken)
             loginState = .success
@@ -187,14 +184,5 @@ extension LoginViewModel {
     func validateInputs() {
         isEmailValidForUI = email.isEmpty ? true : validateEmailFormat(email)
         isPasswordValid = password.isEmpty ? true : validatePasswordFormat(password)
-    }
-}
-
-
-
-// MARK: - Test/Preview용 ViewModel 생성
-extension LoginViewModel {
-    static func mock() -> LoginViewModel {
-        return LoginViewModel(userUseCase: .mockValue)
     }
 }

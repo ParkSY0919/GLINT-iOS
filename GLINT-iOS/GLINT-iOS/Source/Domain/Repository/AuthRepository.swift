@@ -8,40 +8,9 @@
 import Foundation
 
 struct AuthRepository {
-    var checkEmailValidation: (_ request: RequestDTO.CheckEmailValidation) async throws -> Void
-    var signUp: (_ request: RequestDTO.SignUp) async throws -> ResponseDTO.SignUp
-    var signIn: (_ request: RequestDTO.SignIn) async throws -> ResponseDTO.SignIn
-    var signInApple: (_ request: RequestDTO.SignInForApple) async throws -> ResponseDTO.SignIn
-    var signInKakao: (_ request: RequestDTO.SignInForKakao) async throws -> ResponseDTO.SignIn
-}
-
-//TODO: 현재 Domain(Repo) -> Data(NetworkServiceProvider)형태 (의존성 역전 상황) 개선 필요
-extension AuthRepository: NetworkServiceProvider {
-    typealias E = AuthEndPoint
-    
-    static let liveValue: AuthRepository = {
-        
-        return AuthRepository(
-            checkEmailValidation: { request in
-                let endPoint = AuthEndPoint.checkEmailValidation(request)
-                try await Self.requestNonToken(endPoint)
-            },
-            signUp: { request in
-                let endPoint = AuthEndPoint.signUp(request)
-                return try await Self.requestNonToken(endPoint)
-            },
-            signIn: { request in
-                let endPoint = AuthEndPoint.signIn(request)
-                return try await Self.requestNonToken(endPoint)
-            },
-            signInApple: { request in
-                let endPoint = AuthEndPoint.signInForApple(request)
-                return try await Self.requestNonToken(endPoint)
-            },
-            signInKakao: { request in
-                let endPoint = AuthEndPoint.signInForKakao(request)
-                return try await Self.requestNonToken(endPoint)
-            }
-        )
-    }()
+    var checkEmailValidation: (_ request: EmailValidationEntity.Request) async throws -> Void
+    var signUp: (_ request: SignUpEntity.Request) async throws -> SignUpEntity.Response
+    var signIn: (_ request: SignInEntity.Request) async throws -> SignInEntity.Response
+    var signInApple: (_ request: SignInAppleEntity.Request) async throws -> SignInEntity.Response
+    var signInKakao: (_ request: SignInKakaoEntity.Request) async throws -> SignInEntity.Response
 }

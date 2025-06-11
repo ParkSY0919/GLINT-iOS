@@ -7,16 +7,12 @@
 
 import Foundation
 
-// MARK: - Request
-extension RequestDTO {
-    struct SignUp: Codable {
+enum SignUpDTO {
+    struct Request: RequestData {
         let email, password, nick, deviceToken: String
     }
-}
-
-// MARK: - Response
-extension ResponseDTO {
-    struct SignUp: Decodable {
+    
+    struct Response: ResponseData {
         let userID, email, nick, accessToken: String
         let refreshToken: String
         
@@ -24,5 +20,16 @@ extension ResponseDTO {
             case userID = "user_id"
             case email, nick, accessToken, refreshToken
         }
+    }
+}
+
+extension SignUpEntity.Request {
+    func toDTO() -> SignUpDTO.Request {
+        return .init(
+            email: email,
+            password: password,
+            nick: "psy",
+            deviceToken: deviceToken
+        )
     }
 }

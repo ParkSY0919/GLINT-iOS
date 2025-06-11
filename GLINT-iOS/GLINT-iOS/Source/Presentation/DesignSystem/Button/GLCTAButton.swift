@@ -13,8 +13,8 @@ struct GLCTAButton: ButtonStyle {
             .font(.buttonFont)
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color.primaryButtonBackground)
-            .foregroundColor(Color.primaryButtonText)
+            .background(.brandBright)
+            .foregroundColor(.gray0)
             .cornerRadius(8)
             .opacity(configuration.isPressed ? 0.8 : 1.0)
     }

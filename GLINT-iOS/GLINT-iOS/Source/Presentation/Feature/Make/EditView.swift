@@ -65,7 +65,9 @@ struct EditView: View {
             FilterPresetsView(
                 selectedProperty: store.state.selectedPropertyType,
                 onPropertySelected: { property in
-                    store.send(.propertySelected(property))
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        store.send(.propertySelected(property))
+                    }
                 }
             )
             .frame(height: 80)

@@ -5,6 +5,7 @@
 //  Created by 박신영 on 5/24/25.
 //
 
+//TODO: 설득 잘 해야함. MVVM 대신 TCA를 사용할 이유와 사용하지 않은 이유.
 import SwiftUI
 
 // MARK: - State
@@ -30,7 +31,7 @@ final class MainViewStore {
     private(set) var state = MainViewState()
     
     // UseCase 의존성 주입
-    private let todayPickUseCase: TodayPickUseCase
+    private let todayPickUseCase: MainViewUseCase
     // Router 참조를 위한 약한 참조
     weak var router: NavigationRouter<MainTabRoute>?
     
@@ -38,7 +39,7 @@ final class MainViewStore {
     private let cacheExpirationTime: TimeInterval = 300
     
     /// 의존성 주입을 통한 초기화
-    init(todayPickUseCase: TodayPickUseCase) {
+    init(todayPickUseCase: MainViewUseCase) {
         self.todayPickUseCase = todayPickUseCase
     }
     

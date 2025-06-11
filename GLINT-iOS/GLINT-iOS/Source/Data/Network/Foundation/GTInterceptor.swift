@@ -12,6 +12,7 @@ import Alamofire
 final class GTInterceptor: RequestInterceptor {
     enum InterceptorType {
         case `default`
+        case multipart
         case nuke
     }
     
@@ -25,7 +26,7 @@ final class GTInterceptor: RequestInterceptor {
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         var adaptedRequest = urlRequest
         
-        if type == .nuke {
+        if type != .default {
             adaptedRequest.setValue("\(Config.sesacKey)", forHTTPHeaderField: "SeSACKey")
         }
         if !shouldAddAuthHeader(for: urlRequest) {
@@ -33,6 +34,7 @@ final class GTInterceptor: RequestInterceptor {
                 adaptedRequest.setValue("\(accessToken)", forHTTPHeaderField: "Authorization")
             }
         }
+        
         completion(.success(adaptedRequest))
     }
     

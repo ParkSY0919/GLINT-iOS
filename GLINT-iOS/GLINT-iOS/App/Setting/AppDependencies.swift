@@ -7,14 +7,10 @@
 
 import Foundation
 
-struct AppDependencies {
-    let userUseCase: AuthUseCase
-    
-    static let live = AppDependencies(
-        userUseCase: .liveValue
-    )
-    
-    static let mock = AppDependencies(
-        userUseCase: .mockValue
-    )
-}
+//struct AppDependencies {
+//    let userUseCase: LoginViewUseCase
+//    
+//    static let live = AppDependencies(
+//        userUseCase: .liveValue
+//    )
+//}
