@@ -37,7 +37,7 @@ struct GLINT_iOSApp: App {
         
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().compactAppearance = appearance // 추가 권장
+        UINavigationBar.appearance().compactAppearance = appearance
     }
     
     private func setupImagePipeline() {

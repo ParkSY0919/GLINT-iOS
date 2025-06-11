@@ -14,6 +14,7 @@ final class MakeViewStore {
         var filterName: String = ""
         var selectedCategory: CategoryType? = nil
         var selectedImage: UIImage?
+        var filteredImage: UIImage?
         var imageMetaData: PhotoMetadataModel?
         var address: String?
         var introduce: String = ""
@@ -22,6 +23,8 @@ final class MakeViewStore {
         
         var isLoading: Bool = false
         var errorMessage: String?
+        var saveResult: [String]? = nil
+        var showingSaveAlert: Bool = false
     }
     
     enum Action {
@@ -39,6 +42,7 @@ final class MakeViewStore {
     }
     
     var state = State()
+    private var makeViewUseCase: MakeViewUseCase?
     
     func send(_ action: Action) {
         switch action {
@@ -89,13 +93,60 @@ final class MakeViewStore {
     }
     
     private func saveFilter() {
-        state.isLoading = true
-        
-        // TODO: 필터 저장 API 호출 로직 구현
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.state.isLoading = false
-            GTLogger.shared.i("Filter saved successfully")
+        guard let originalImage = state.selectedImage,
+              let makeViewUseCase = makeViewUseCase else {
+            state.errorMessage = "이미지 또는 UseCase가 없습니다."
+            return
         }
+        
+        state.isLoading = true
+        state.errorMessage = nil
+        
+        Task {
+            do {
+                // 원본 이미지와 필터된 이미지를 base64로 변환
+                guard let originalData = originalImage.jpegData(compressionQuality: 0.8) else {
+                    throw NSError(domain: "ImageConversion", code: -1, userInfo: [NSLocalizedDescriptionKey: "원본 이미지 변환 실패"])
+                }
+                
+                let filteredData: Data
+                if let filteredImage = state.filteredImage {
+                    guard let data = filteredImage.jpegData(compressionQuality: 0.8) else {
+                        throw NSError(domain: "ImageConversion", code: -1, userInfo: [NSLocalizedDescriptionKey: "필터 이미지 변환 실패"])
+                    }
+                    filteredData = data
+                } else {
+                    filteredData = originalData  // 필터가 없으면 원본 사용
+                }
+                
+                let originalBase64 = originalData.base64EncodedString()
+                let filteredBase64 = filteredData.base64EncodedString()
+                
+                GTLogger.shared.i("API 호출 시작 - 원본: \(originalData.count) bytes, 필터: \(filteredData.count) bytes")
+                
+                let result = try await makeViewUseCase.files([originalData, filteredData])
+                
+                await MainActor.run {
+                    state.isLoading = false
+                    state.saveResult = result.files
+                    state.showingSaveAlert = true
+                    GTLogger.shared.i("Filter save success: \(result.files)")
+                }
+            } catch {
+                await MainActor.run {
+                    state.isLoading = false
+                    state.errorMessage = error.localizedDescription
+                    GTLogger.shared.w("Filter save failed: \(error)")
+                }
+            }
+        }
+    }
+}
+
+// UseCase 설정을 위한 메서드 추가
+extension MakeViewStore {
+    func setUseCase(_ useCase: MakeViewUseCase) {
+        self.makeViewUseCase = useCase
     }
 }
 

@@ -13,7 +13,8 @@ extension FilterRepository {
         
         return FilterRepository(
             filterFiles: { files in
-                return try await provider.requestAsyncMultipart(.filterFiles(files: files))
+                let request = FilesEntity.Request(files: files)
+                return try await provider.requestAsyncMultipart(.filterFiles(files: request))
             }
         )
     }()

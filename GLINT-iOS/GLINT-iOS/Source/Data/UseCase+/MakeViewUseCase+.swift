@@ -12,8 +12,7 @@ extension MakeViewUseCase {
         let repo: FilterRepository = .value
         return MakeViewUseCase(
             files: { files in
-                let request = files
-                let response = try await repo.filterFiles(request)
+                let response = try await repo.filterFiles(files)
                 return response
             }
         )
