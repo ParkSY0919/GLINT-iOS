@@ -13,8 +13,8 @@ enum AuthEndPoint {
     case checkEmailValidation(email: String)
     case signUp(SignUpDTO.Request)
     case signIn(SignInDTO.Request)
-    case signInForApple(SignInAppleDTO.Request)
-    case signInForKakao(SignInKakaoDTO.Request)
+    case signInForApple(SignInAppleDTO)
+    case signInForKakao(SignInKakaoDTO)
     case refreshToken(RequestDTO.RefreshToken)
 }
 

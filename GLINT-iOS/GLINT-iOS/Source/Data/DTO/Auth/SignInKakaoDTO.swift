@@ -7,17 +7,16 @@
 
 import Foundation
 
-enum SignInKakaoDTO {
-    struct Request: Codable {
-        let oauthToken, deviceToken: String
-    }
+struct SignInKakaoDTO: RequestData {
+    let oauthToken: String
+    let deviceToken: String
 }
 
-extension SignInKakaoEntity.Request {
-    func toDTO() -> SignInKakaoDTO.Request {
-        return .init(
-            oauthToken: oauthToken,
-            deviceToken: deviceToken
-        )
+extension SocialLoginEntity.Request {
+    func toKakaoDTO() -> SignInKakaoDTO {
+        guard case .kakao(let oauthToken) = provider else {
+            fatalError("Wrong provider")
+        }
+        return .init(oauthToken: oauthToken, deviceToken: deviceToken)
     }
 }

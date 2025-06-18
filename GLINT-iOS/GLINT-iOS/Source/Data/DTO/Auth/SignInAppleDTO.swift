@@ -7,18 +7,17 @@
 
 import Foundation
 
-enum SignInAppleDTO {
-    struct Request: Codable {
-        let idToken, deviceToken, nick: String
-    }
+struct SignInAppleDTO: RequestData {
+    let idToken: String
+    let deviceToken: String
+    let nick: String
 }
 
-extension SignInAppleEntity.Request {
-    func toDTO() -> SignInAppleDTO.Request {
-        return .init(
-            idToken: idToken,
-            deviceToken: deviceToken,
-            nick: nick
-        )
+extension SocialLoginEntity.Request {
+    func toAppleDTO() -> SignInAppleDTO {
+        guard case .apple(let idToken, let nick) = provider else {
+            fatalError("Wrong provider")
+        }
+        return .init(idToken: idToken, deviceToken: deviceToken, nick: nick)
     }
 }

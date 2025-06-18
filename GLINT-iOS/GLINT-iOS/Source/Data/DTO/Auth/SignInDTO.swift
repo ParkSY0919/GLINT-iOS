@@ -20,6 +20,16 @@ enum SignInDTO {
             case userID = "user_id"
             case email, nick, accessToken, refreshToken
         }
+        
+        func toEntity() -> SignInEntity.Response {
+            return .init(
+                userID: userID,
+                email: email,
+                nick: nick,
+                accessToken: accessToken,
+                refreshToken: refreshToken
+            )
+        }
     }
 }
 
@@ -29,18 +39,6 @@ extension SignInEntity.Request {
             email: email,
             password: password,
             deviceToken: deviceToken
-        )
-    }
-}
-
-extension SignInDTO.Response {
-    func toEntity() -> SignInEntity.Response {
-        return .init(
-            userID: userID,
-            email: email,
-            nick: nick,
-            accessToken: accessToken,
-            refreshToken: refreshToken
         )
     }
 }
