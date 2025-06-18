@@ -9,12 +9,14 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var rootRouter = RootRouter()
+    @Environment(\.loginViewUseCase)
+    private var useCase
     
     var body: some View {
         Group {
             switch rootRouter.currentRoute {
             case .login:
-                LoginView(rootRouter: rootRouter)
+                LoginView(useCase: useCase, rootRouter: rootRouter)
             case .tabBar:
                 TabBarView.create()
             }

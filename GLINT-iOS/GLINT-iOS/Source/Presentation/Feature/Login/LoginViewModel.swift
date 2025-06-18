@@ -24,16 +24,18 @@ final class LoginViewModel {
     var isPasswordValid: Bool = true
     
     private let keychain: KeychainManager
+    private let useCase: LoginViewUseCase
     
-    init(useCase: LoginViewUseCase = .liveValue, keychain: KeychainManager = .shared) {
+    init(useCase: LoginViewUseCase, keychain: KeychainManager = .shared) {
         self.keychain = keychain
+        self.useCase = useCase
         keychain.saveDeviceUUID()
     }
     
     // MARK: - 서버 이메일 중복/유효성 검사
     @MainActor
-    func checkEmailAvailability(using authUseCase: LoginViewUseCase) async {
-        guard validateEmailFormat(email) else {
+    func checkEmailAvailability() async {
+        guard Validator.isValidEmailFormat(email) else {
             isEmailValidForUI = false
             return
         }
@@ -42,7 +44,7 @@ final class LoginViewModel {
         loginState = .loading
         
         do {
-            try await authUseCase.checkEmailValidation(email)
+            try await useCase.checkEmailValidation(email)
             isEmailValidForUI = true
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
@@ -54,7 +56,7 @@ final class LoginViewModel {
     
     // MARK: - 회원가입 메서드
     @MainActor
-    func signUp(using authUseCase: LoginViewUseCase) async {
+    func signUp() async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -74,14 +76,15 @@ final class LoginViewModel {
             return
         }
         
-        let request = SignUpEntity.Request(
+        let request = SignUpRequest(
             email: email,
             password: password,
+            nick: "anonymous",
             deviceToken: deviceToken
         )
         
         do {
-            let response = try await authUseCase.signUp(request)
+            let response = try await useCase.signUp(request)
             loginState = .success
             print("회원가입 성공 (ViewModel): \(response)")
         } catch {
@@ -92,7 +95,7 @@ final class LoginViewModel {
     
     // MARK: - 일반 로그인 메서드
     @MainActor
-    func loginWithEmail(using authUseCase: LoginViewUseCase) async {
+    func loginWithEmail() async {
         validateInputs()
         
         guard isEmailValidForUI, isPasswordValid else {
@@ -120,7 +123,7 @@ final class LoginViewModel {
         )
         
         do {
-            let response = try await authUseCase.signIn(request)
+            let response = try await useCase.signIn(request)
             loginState = .success
             print("response: \n\(response)")
         } catch {
@@ -130,7 +133,7 @@ final class LoginViewModel {
     
     // MARK: - Apple 로그인 메서드
     @MainActor
-    func appleLogin(using authUseCase: LoginViewUseCase) async {
+    func appleLogin() async {
         loginState = .loading
         
         do {
@@ -147,7 +150,7 @@ final class LoginViewModel {
             }
             
             // 서버에 로그인 요청
-            let response = try await authUseCase.signInApple(request)
+            let response = try await useCase.signInApple(request)
             GTLogger.i("accessToken: \(response.accessToken)")
             keychain.saveAccessToken(response.accessToken)
             keychain.saveRefreshToken(response.refreshToken)
@@ -166,22 +169,10 @@ final class LoginViewModel {
 
 //MARK: Extension - 로컬
 extension LoginViewModel {
-    private func validateEmailFormat(_ email: String) -> Bool {
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
-        let emailPredicate = NSPredicate(format: "SELF MATCHES %@", emailRegex)
-        return emailPredicate.evaluate(with: email)
-    }
-    
-    private func validatePasswordFormat(_ password: String) -> Bool {
-        let passwordRegex = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$"
-        let passwordPredicate = NSPredicate(format: "SELF MATCHES %@", passwordRegex)
-        return passwordPredicate.evaluate(with: password)
-    }
-    
     // MARK: - 실시간 유효성 검사
     @MainActor
     func validateInputs() {
-        isEmailValidForUI = email.isEmpty ? true : validateEmailFormat(email)
-        isPasswordValid = password.isEmpty ? true : validatePasswordFormat(password)
+        isEmailValidForUI = email.isEmpty ? true : Validator.isValidEmailFormat(email)
+        isPasswordValid = password.isEmpty ? true : Validator.validatePasswordFormat(password)
     }
 }
