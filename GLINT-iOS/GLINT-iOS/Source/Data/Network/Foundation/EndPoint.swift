@@ -38,22 +38,26 @@ extension EndPoint {
     }
 
     func asURLRequest() throws -> URLRequest {
-        let request = try URLRequest(
-            url: baseURL + path,
-            method: method,
-            headers: headers
-        )
+        var request = URLRequest(url: URL(string: baseURL + path)!)
+        request.method = method
+        request.headers = headers
         
         switch requestType {
-        case .queryEncodable(let encodableParams):
-            return try URLEncoding.queryString.encode(request, with: encodableParams?.toDictionary())
-        case .bodyEncodable(let encodableParams):
-            return try JSONEncoding.default.encode(request, with: encodableParams?.toDictionary())
-        case .none:
-            return request
-        case .multipartData(_):
-            return request
+        case .queryEncodable(let parameters):
+            if let parameters = parameters {
+                request = try URLEncodedFormParameterEncoder.default.encode(parameters, into: request)
+            }
+            
+        case .bodyEncodable(let parameters):
+            if let parameters = parameters {
+                request = try JSONParameterEncoder.default.encode(parameters, into: request)
+            }
+            
+        case .none, .multipartData:
+            break
         }
+        
+        return request
     }
     
     func throwError(_ error: Alamofire.AFError) -> GLError {
