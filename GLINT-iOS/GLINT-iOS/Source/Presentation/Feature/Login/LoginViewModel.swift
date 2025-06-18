@@ -40,10 +40,9 @@ final class LoginViewModel {
         isEmailValidForUI = true
         
         loginState = .loading
-        let request = EmailValidationEntity.Request(email: email)
         
         do {
-            try await authUseCase.checkEmailValidation(request)
+            try await authUseCase.checkEmailValidation(email)
             isEmailValidForUI = true
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")

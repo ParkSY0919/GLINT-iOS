@@ -12,9 +12,8 @@ extension AuthRepository {
         let provider = NetworkService<AuthEndPoint>()
         
         return AuthRepository(
-            checkEmailValidation: { request in
-                let request = request.toDTO()
-                try await provider.requestAsyncVoid(.checkEmailValidation(email: request.email))
+            checkEmailValidation: { email in
+                try await provider.requestAsyncVoid(.checkEmailValidation(email: email))
             },
             signUp: { request in
                 let request = request.toDTO()
