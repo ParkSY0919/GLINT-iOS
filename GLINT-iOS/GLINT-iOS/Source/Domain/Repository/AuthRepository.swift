@@ -9,8 +9,8 @@ import Foundation
 
 struct AuthRepository {
     var checkEmailValidation: (_ email: String) async throws -> Void
-    var signUp: (_ request: SignUpEntity.Request) async throws -> SignUpEntity.Response
-    var signIn: (_ request: SignInEntity.Request) async throws -> SignInEntity.Response
-    var signInApple: (_ request: SocialLoginEntity.Request) async throws -> SignInEntity.Response
-    var signInKakao: (_ request: SocialLoginEntity.Request) async throws -> SignInEntity.Response
+    var signUp: (_ request: SignUpRequest) async throws -> SignUpResponse
+    var signIn: (_ request: SignInRequest) async throws -> SignInResponse
+    var signInApple: (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
+    var signInKakao: (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
 }

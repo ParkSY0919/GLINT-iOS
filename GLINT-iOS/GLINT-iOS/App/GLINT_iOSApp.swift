@@ -16,12 +16,13 @@ struct GLINT_iOSApp: App {
     init() {
         setupNavigationAppearance()
         setupImagePipeline()
+        KeychainManager.shared.saveDeviceUUID()
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environment(\.loginViewUseCase, .liveValue) 
+                .environment(\.loginViewUseCase, .liveValue)
         }
     }
     

@@ -151,12 +151,12 @@ final class GTInterceptor: RequestInterceptor {
             return
         }
         
-        let refreshRequest = RequestDTO.RefreshToken(refreshToken: refreshToken)
+        let refreshRequest = RefreshTokenRequest(refreshToken: refreshToken)
         let endpoint = AuthEndPoint.refreshToken(refreshRequest)
         
         AF.request(endpoint, interceptor: GTInterceptor(type: .default))
             .validate(statusCode: 200..<300)
-            .responseDecodable(of: ResponseDTO.RefreshToken.self) { [weak self] response in
+            .responseDecodable(of: RefreshTokenResponse.self) { [weak self] response in
                 switch response.result {
                 case .success(let refreshResponse):
                     self?.keychain.saveAccessToken(refreshResponse.accessToken)
@@ -173,20 +173,5 @@ final class GTInterceptor: RequestInterceptor {
                     completion(.failure(error))
                 }
             }
-    }
-}
-
-// MARK: - Auth Errors
-enum AuthError: LocalizedError {
-    case noTokenFound
-    case tokenRefreshFailed
-    case tokenSaveFailed
-    
-    var errorDescription: String? {
-        switch self {
-        case .noTokenFound: return "저장된 토큰이 없습니다."
-        case .tokenRefreshFailed: return "토큰 갱신에 실패했습니다."
-        case .tokenSaveFailed: return "토큰 저장에 실패했습니다."
-        }
     }
 }

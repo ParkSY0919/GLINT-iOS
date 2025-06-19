@@ -20,32 +20,30 @@ final class LoginViewModel {
     var email: String = ""
     var password: String = ""
     var loginState: LoginState = .idle
-    var isEmailValidForUI: Bool = true
+    var isEmailValid: Bool = true
     var isPasswordValid: Bool = true
     
-    private let keychain: KeychainManager
+    
     private let useCase: LoginViewUseCase
     
-    init(useCase: LoginViewUseCase, keychain: KeychainManager = .shared) {
-        self.keychain = keychain
+    init(useCase: LoginViewUseCase) {
         self.useCase = useCase
-        keychain.saveDeviceUUID()
     }
     
     // MARK: - 서버 이메일 중복/유효성 검사
     @MainActor
     func checkEmailAvailability() async {
         guard Validator.isValidEmailFormat(email) else {
-            isEmailValidForUI = false
+            isEmailValid = false
             return
         }
-        isEmailValidForUI = true
+        isEmailValid = true
         
         loginState = .loading
         
         do {
             try await useCase.checkEmailValidation(email)
-            isEmailValidForUI = true
+            isEmailValid = true
             loginState = .idle
             print("서버 이메일 유효성 검사 성공 (ViewModel)")
         } catch {
@@ -59,46 +57,32 @@ final class LoginViewModel {
     func signUp() async {
         validateInputs()
         
-        guard isEmailValidForUI, isPasswordValid else {
+        guard isEmailValid, isPasswordValid else {
             loginState = .failure("입력 정보를 확인해주세요.")
             return
         }
         
         guard !email.isEmpty, !password.isEmpty else {
-            loginState = .failure("이메일과 비밀번호를 입력해주세요.")
+            loginState = .failure("이메일과 비밀번호를 모두 입력해주세요.")
             return
         }
         
         loginState = .loading
         
-        guard let deviceToken = keychain.getDeviceUUID() else {
-            loginState = .failure("디바이스 ID를 찾을 수 없습니다.")
-            return
-        }
-        
-        let request = SignUpRequest(
-            email: email,
-            password: password,
-            nick: "anonymous",
-            deviceToken: deviceToken
-        )
-        
         do {
-            let response = try await useCase.signUp(request)
+            let response = try await useCase.signUp(email, password, "anonymous")
             loginState = .success
-            print("회원가입 성공 (ViewModel): \(response)")
         } catch {
             loginState = .failure("회원가입 실패: \(error.localizedDescription)")
-            print("회원가입 실패 (ViewModel): \(error.localizedDescription)")
         }
     }
     
-    // MARK: - 일반 로그인 메서드
+    // MARK: - 로그인 메서드
     @MainActor
     func loginWithEmail() async {
         validateInputs()
         
-        guard isEmailValidForUI, isPasswordValid else {
+        guard isEmailValid, isPasswordValid else {
             loginState = .failure("입력 정보를 확인해주세요.")
             return
         }
@@ -110,24 +94,11 @@ final class LoginViewModel {
         
         loginState = .loading
         
-        guard let deviceId = keychain.getDeviceUUID() else {
-            loginState = .failure("디바이스 ID를 찾을 수 없습니다.")
-            print("deviceId 없음")
-            return
-        }
-        
-        let request = SignInEntity.Request(
-            email: email,
-            password: password,
-            deviceToken: deviceId
-        )
-        
         do {
-            let response = try await useCase.signIn(request)
+            let response = try await useCase.signIn(email, password)
             loginState = .success
-            print("response: \n\(response)")
         } catch {
-            loginState = .failure("일반 로그인 실패: \(error.localizedDescription)")
+            loginState = .failure("로그인 실패: \(error.localizedDescription)")
         }
     }
     
@@ -137,27 +108,10 @@ final class LoginViewModel {
         loginState = .loading
         
         do {
-            // 애플 로그인 요청
-            let manager = LoginManager()
-            let request = try await manager.appleLogin()
-            GTLogger.d("Apple 로그인 요청: \(request)")
-            print(request)
-            
-            // deviceToken 가져오기
-            guard keychain.getDeviceUUID() != nil else {
-                loginState = .failure("디바이스 ID를 찾을 수 없습니다.")
-                return
-            }
-            
-            // 서버에 로그인 요청
-            let response = try await useCase.signInApple(request)
-            GTLogger.i("accessToken: \(response.accessToken)")
-            keychain.saveAccessToken(response.accessToken)
-            keychain.saveRefreshToken(response.refreshToken)
+            let response = try await useCase.signInApple()
             loginState = .success
         } catch {
             loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
-            print("Apple 로그인 실패: \(error.localizedDescription)")
         }
     }
     
@@ -167,12 +121,11 @@ final class LoginViewModel {
     }
 }
 
-//MARK: Extension - 로컬
 extension LoginViewModel {
-    // MARK: - 실시간 유효성 검사
+    // email, password 유효 여부 UI 반영
     @MainActor
     func validateInputs() {
-        isEmailValidForUI = email.isEmpty ? true : Validator.isValidEmailFormat(email)
-        isPasswordValid = password.isEmpty ? true : Validator.validatePasswordFormat(password)
+        isEmailValid = email.isEmpty ? true : Validator.isValidEmailFormat(email)
+        isPasswordValid = password.isEmpty ? true : Validator.isValidPasswordFormat(password)
     }
 }

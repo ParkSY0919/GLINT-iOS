@@ -9,8 +9,8 @@ import Foundation
 
 struct LoginViewUseCase {
     var checkEmailValidation: @Sendable (_ email: String) async throws -> Void
-    var signUp: @Sendable (_ request: SignUpEntity.Request) async throws -> SignUpEntity.Response
-    var signIn: @Sendable (_ request: SignInEntity.Request) async throws -> SignInEntity.Response
-    var signInApple: @Sendable (_ request: SocialLoginEntity.Request) async throws -> SignInEntity.Response
-    var signInKakao: @Sendable (_ request: SocialLoginEntity.Request) async throws -> SignInEntity.Response
+    var signUp: @Sendable (_ email: String, _ password: String, _ nick: String) async throws -> SignUpResponse
+    var signIn: @Sendable (_ email: String, _ password: String) async throws -> SignInResponse
+    var signInApple: @Sendable () async throws -> SignInResponse
+    var signInKakao: @Sendable (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
 }

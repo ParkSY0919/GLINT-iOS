@@ -64,7 +64,7 @@ private extension LoginView {
         VStack(spacing: 20) {
             FormFieldView(
                 formCase: .email,
-                errorMessage: !viewModel.email.isEmpty && !viewModel.isEmailValidForUI
+                errorMessage: !viewModel.email.isEmpty && !viewModel.isEmailValid
                 ? "유효한 이메일을 입력해주세요" : nil,
                 text: $viewModel.email
             )
@@ -99,7 +99,7 @@ private extension LoginView {
                 }
             }
             .buttonStyle(GLCTAButton())
-            .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || !viewModel.isEmailValidForUI || !viewModel.isPasswordValid || viewModel.loginState == .loading)
+            .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || !viewModel.isEmailValid || !viewModel.isPasswordValid || viewModel.loginState == .loading)
             .padding(.top, 30)
             
             if case .failure(let message) = viewModel.loginState {

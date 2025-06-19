@@ -16,21 +16,20 @@ extension AuthRepository {
                 try await provider.requestAsyncVoid(.checkEmailValidation(email: email))
             },
             signUp: { request in
-                let request = request.toDTO()
                 return try await provider.requestAsync(.signUp(request))
             },
             signIn: { request in
-                let request = request.toDTO()
                 return try await provider.requestAsync(.signIn(request))
             },
             signInApple: { request in
-                let request = request.toAppleDTO()
-                let response: SignInDTO.Response = try await provider.requestAsync(.signInForApple(request))
-                return response.toEntity()
+                let request = request.toAppleRequest()
+                let response: SignInResponse = try await provider.requestAsync(.signInForApple(request))
+                return response
             },
             signInKakao: { request in
-                let request = request.toKakaoDTO()
-                return try await provider.requestAsync(.signInForKakao(request))
+                let request = request.toKakaoRequest()
+                let response: SignInResponse = try await provider.requestAsync(.signInForKakao(request))
+                return response
             }
         )
     }()

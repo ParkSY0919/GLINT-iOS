@@ -19,6 +19,7 @@ extension LoginViewUseCase {
     static let liveValue: LoginViewUseCase = {
         let repository: AuthRepository = .value
         let keychain: KeychainManager = .shared
+        let manager = LoginManager()
         
         return LoginViewUseCase(
             // email 유효성검사
@@ -50,17 +51,35 @@ extension LoginViewUseCase {
                 )
                 
                 let response = try await repository.signUp(request)
+                GTLogger.i("회원가입 응답: \(response)")
                 return response
             },
             // 로그인
-            signIn: { entity in
-                let request = entity
+            signIn: { email, password in
+                guard Validator.isValidEmailFormat(email) else {
+                    throw AuthError.invalidEmailFormat
+                }
+                
+                guard Validator.isValidPasswordFormat(password) else {
+                    throw AuthError.invalidPasswordFormat
+                }
+                
+                guard let deviceToken = keychain.getDeviceUUID() else {
+                    throw AuthError.noDeviceTokenFound
+                }
+                
+                let request = SignInRequest(
+                    email: email,
+                    password: password,
+                    deviceToken: deviceToken
+                )
+                
                 let response = try await repository.signIn(request)
                 return response
             },
             // 로그인-apple
-            signInApple: { entity in
-                let request = entity
+            signInApple: {
+                let request = try await manager.appleLogin()
                 let response = try await repository.signInApple(request)
                 
                 GTLogger.i("Apple 로그인 응답: \(response)")
@@ -72,31 +91,9 @@ extension LoginViewUseCase {
             signInKakao: { entity in
                 let request = entity
                 let response = try await repository.signInKakao(request)
+                GTLogger.i("Kakao 로그인 응답: \(response)")
                 return response
             }
         )
     }()
 }
-
-// MARK: - Auth Errors
-enum AuthError: LocalizedError {
-    case noTokenFound
-    case tokenRefreshFailed
-    case tokenSaveFailed
-    case invalidEmailFormat
-    case invalidPasswordFormat
-    case noDeviceTokenFound
-    
-    var errorDescription: String? {
-        switch self {
-        case .noTokenFound: return "저장된 토큰이 없습니다."
-        case .tokenRefreshFailed: return "토큰 갱신에 실패했습니다."
-        case .tokenSaveFailed: return "토큰 저장에 실패했습니다."
-        case .invalidEmailFormat: return "올바른 이메일 형식이 아닙니다."
-        case .invalidPasswordFormat: return "올바른 비밀번호 형식이 아닙니다."
-        case .noDeviceTokenFound: return "디바이스 토큰이 없습니다."
-        }
-    }
-}
-
-
