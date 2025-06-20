@@ -11,7 +11,7 @@ import iamport_ios
 
 struct IamportPaymentView: UIViewControllerRepresentable {
     let orderData: CreateOrderEntity.Response
-    let filterData: FilterModel
+    let filterData: FilterEntity
     let onComplete: (IamportResponse?) -> Void
     
     func makeUIViewController(context: Context) -> IamportPaymentViewController {
@@ -25,10 +25,10 @@ struct IamportPaymentView: UIViewControllerRepresentable {
 
 final class IamportPaymentViewController: UIViewController {
     let orderData: CreateOrderEntity.Response
-    let filterData: FilterModel
+    let filterData: FilterEntity
     var onComplete: ((IamportResponse?) -> Void)?
     
-    init(orderData: CreateOrderEntity.Response, filterData: FilterModel) {
+    init(orderData: CreateOrderEntity.Response, filterData: FilterEntity) {
         self.orderData = orderData
         self.filterData = filterData
         super.init(nibName: nil, bundle: nil)

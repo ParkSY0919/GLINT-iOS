@@ -11,8 +11,8 @@ import iamport_ios
 
 // MARK: - State
 struct DetailViewState {
-    var filterData: FilterModel?
-    var userInfoData: UserInfoModel?
+    var filterData: FilterEntity?
+    var userInfoData: ProfileEntity?
     var photoMetaData: PhotoMetadataModel?
     var filterPresetsData: FilterPresetsModel?
     
@@ -115,7 +115,7 @@ private extension DetailViewStore {
         Task {
             do {
                 state.isLoading = true
-                let requestEntity = CreateOrderEntity.Request(filter_id: state.filterData?.filterID ?? "", total_price: state.filterData?.price ?? 0)
+                let requestEntity = CreateOrderEntity.Request(filter_id: state.filterData?.id ?? "", total_price: state.filterData?.price ?? 0)
                 state.createOrderResult = try await orderUseCase.createOrder(requestEntity)
                 
                 print("response: \(String(describing: state.createOrderResult))")

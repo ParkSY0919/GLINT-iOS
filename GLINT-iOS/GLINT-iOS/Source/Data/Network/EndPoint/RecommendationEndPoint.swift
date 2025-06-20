@@ -1,5 +1,5 @@
 //
-//  TodayPickEndPoint.swift
+//  RecommendationEndPoint.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/29/25.
@@ -9,13 +9,13 @@ import Foundation
 
 import Alamofire
 
-enum TodayPickEndPoint {
+enum RecommendationEndPoint {
     case todayAuthor
     case todayFilter
     case hotTrend
 }
 
-extension TodayPickEndPoint: EndPoint {
+extension RecommendationEndPoint: EndPoint {
     var utilPath: String {
         switch self {
         case .todayAuthor:

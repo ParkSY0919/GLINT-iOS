@@ -8,20 +8,21 @@
 import Foundation
 
 struct FilterMapper {
-    static func map(from response: FilterDetailResponse) -> FilterModel {
+    static func map(from response: FilterDetailResponse) -> FilterEntity {
         let original = response.files.first
         let filtered = response.files.last
         
         return .init(
-            filterID: response.filterID,
+            id: response.filterID,
             category: response.category,
             title: response.title,
+            introduction: nil,
             description: response.description,
             original: original?.imageURL,
             filtered: filtered?.imageURL,
-            price: response.price,
-            isLiked: response.isLiked,
             isDownloaded: response.isDownloaded,
+            isLiked: response.isLiked,
+            price: response.price,
             likeCount: response.likeCount,
             buyerCount: response.buyerCount,
             createdAt: response.createdAt,

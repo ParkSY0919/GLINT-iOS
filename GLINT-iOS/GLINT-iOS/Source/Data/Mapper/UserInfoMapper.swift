@@ -8,27 +8,25 @@
 import Foundation
 
 struct UserInfoMapper {
-    static func map(from response: AuthorResponse) -> UserInfoModel {
-        return UserInfoModel(
+    static func map(from response: UserInfo) -> ProfileEntity {
+        return ProfileEntity(
             userID: response.userID,
-            name: response.nick ?? "",
+            nick: response.description ?? "", name: response.nick,
             introduction: response.name ?? "",
             description: response.introduction ?? "",
-            nick: response.description ?? "",
-            profileImage: response.profileImage?.imageURL ?? "",
-            hashTags: response.hashTags ?? []
+            profileImageURL: response.profileImage?.imageURL ?? "",
+            hashTags: response.hashTags
         )
     }
     
-    static func map(from response: FilterDetailResponse) -> UserInfoModel {
-        return UserInfoModel(
+    static func map(from response: FilterDetailResponse) -> ProfileEntity {
+        return ProfileEntity(
             userID: response.creator.userID,
-            name: response.creator.name ?? "",
+            nick: response.creator.nick, name: response.creator.name ?? "",
             introduction: response.creator.introduction ?? "",
             description: response.creator.description ?? "",
-            nick: response.creator.nick ?? "",
-            profileImage: response.creator.profileImage ?? "",
-            hashTags: response.creator.hashTags ?? []
+            profileImageURL: response.creator.profileImage?.imageURL,
+            hashTags: response.creator.hashTags
         )
     }
 }

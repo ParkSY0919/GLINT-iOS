@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct FilterDetailEntity: Codable {
-    let filter: FilterModel
-    let author: UserInfoModel
+struct FilterDetailEntity: ResponseData {
+    let filter: FilterEntity
+    let author: ProfileEntity
     let photoMetadata: PhotoMetadataModel
     let filterValues: FilterPresetsModel
     //TODO: 추후 댓글 추가

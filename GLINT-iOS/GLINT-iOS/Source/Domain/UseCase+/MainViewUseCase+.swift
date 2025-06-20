@@ -7,33 +7,41 @@
 
 import SwiftUI
 
-//TODO: LoginView와 같도록 수정
 extension MainViewUseCase {
     static let liveValue: MainViewUseCase = {
-        let repository: TodayPickRepository = .liveValue
+        let repository: RecommendationRepository = .liveValue
         
         return MainViewUseCase(
             todayAuthor: {
-                return try await repository.todayAuthor().toEntity()
+                return try await repository.todayAuthor()
             },
             todayFilter: {
-                return try await repository.todayFilter().toEntity()
+                return try await repository.todayFilter()
             },
             hotTrend: {
-                return try await repository.hotTrend().toEntity()
+                return try await repository.hotTrend()
+            },
+            loadMainViewState: {
+                async let author = repository.todayAuthor()
+                async let filter = repository.todayFilter()
+                async let trend = repository.hotTrend()
+                
+                let (authorData, filterData, trendData) = try await (author, filter, trend)
+                
+                print("todayAuthor: \(authorData)\n")
+                print("todayFilter: \(filterData)\n")
+                print("hotTrend: \(trendData)\n")
+                
+                return MainViewState(
+                    todayFilter: filterData,
+                    todayArtist: authorData,
+                    hotTrends: trendData,
+                    isLoading: false,
+                    errorMessage: nil,
+                    hasLoadedOnce: true
+                )
             }
         )
     }()
 }
 
-// MARK: - Environment Key
-struct MainViewUseCaseKey: EnvironmentKey {
-    static let defaultValue: MainViewUseCase = .liveValue
-}
-
-extension EnvironmentValues {
-    var mainViewUseCase: MainViewUseCase {
-        get { self[MainViewUseCaseKey.self] }
-        set { self[MainViewUseCaseKey.self] = newValue }
-    }
-}

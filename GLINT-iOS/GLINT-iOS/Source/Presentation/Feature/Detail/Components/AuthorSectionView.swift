@@ -9,7 +9,7 @@ import SwiftUI
 import NukeUI
 
 struct AuthorSectionView: View {
-    let userInfo: UserInfoModel?
+    let userInfo: ProfileEntity?
     let onSendMessageTapped: () -> Void
     
     var body: some View {
@@ -17,8 +17,8 @@ struct AuthorSectionView: View {
             // 작가 프로필 섹션
             HStack(spacing: 12) {
                 // 프로필 이미지
-                if userInfo?.profileImage != "" {
-                    LazyImage(url: URL(string: userInfo?.profileImage ?? "")) { state in
+                if userInfo?.profileImageURL != "" {
+                    LazyImage(url: URL(string: userInfo?.profileImageURL ?? "")) { state in
                         lazyImageTransform(state) { image in
                             image.aspectRatio(contentMode: .fill)
                         }

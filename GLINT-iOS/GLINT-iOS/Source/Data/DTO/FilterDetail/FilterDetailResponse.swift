@@ -11,7 +11,7 @@ struct FilterDetailResponse: ResponseData {
     let filterID, category, title, description: String
     let files: [String]
     let price: Int
-    let creator: AuthorResponse
+    let creator: UserInfo
     let photoMetadata: PhotoMetadataResponse
     let filterValues: [String: Double]
     let isLiked, isDownloaded: Bool

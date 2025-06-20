@@ -8,9 +8,9 @@
 import Foundation
 
 // MARK: - Comment
-struct FilterDetailCommentResponse: Codable {
+struct FilterDetailCommentResponse: ResponseData {
     let commentID, content, createdAt: String
-    let creator: AuthorResponse
+    let creator: ProfileEntity
     let replies: [FilterDetailCommentResponse]?
     
     enum CodingKeys: String, CodingKey {

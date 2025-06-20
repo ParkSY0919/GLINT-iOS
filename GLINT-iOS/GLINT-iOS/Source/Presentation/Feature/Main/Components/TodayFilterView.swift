@@ -9,7 +9,7 @@ import SwiftUI
 import NukeUI
 
 struct TodayFilterView: View {
-    @Binding var todayFilter: ResponseEntity.TodayFilter?
+    @Binding var todayFilter: TodayFilterResponse?
     let router: NavigationRouter<MainTabRoute>
     let onTryFilterTapped: () -> Void
     
@@ -41,7 +41,8 @@ struct TodayFilterView: View {
 private extension TodayFilterView {
     @ViewBuilder
     var backgroundImageView: some View {
-        LazyImage(url: URL(string: todayFilter?.filtered ?? "")) { state in
+        let entity = todayFilter?.toFilterEntity()
+        LazyImage(url: URL(string: entity?.filtered ?? "")) { state in
             lazyImageTransform(state) { image in
                 GeometryReader { proxy in
                     let global = proxy.frame(in: .global)

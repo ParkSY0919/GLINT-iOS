@@ -6,13 +6,14 @@
 //
 
 //TODO: 설득 잘 해야함. MVVM 대신 TCA를 사용할 이유와 사용하지 않은 이유.
+// - 본격적인 TCA 사용에 앞서 MVI 패턴을 다뤄보고자 함.
 import SwiftUI
 
 // MARK: - State
 struct MainViewState {
-    var todayFilter: ResponseEntity.TodayFilter?
-    var todayArtist: ResponseEntity.TodayAuthor?
-    var hotTrends: ResponseEntity.HotTrend?
+    var todayFilter: TodayFilterResponse?
+    var todayArtist: TodayAuthorResponse?
+    var hotTrends: HotTrendResponse?
     var isLoading: Bool = true
     var errorMessage: String?
     var hasLoadedOnce: Bool = false  // 한 번이라도 로드했는지 추적
@@ -20,10 +21,10 @@ struct MainViewState {
 
 // MARK: - Action
 enum MainViewAction {
-    case viewAppeared      // 뷰가 나타났을 때
-    case tryFilterTapped   // 오늘의 필터 사용 버튼 탭
+    case viewAppeared                // 뷰가 나타났을 때
+    case tryFilterTapped            // 오늘의 필터 사용 버튼 탭
     case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
-    case retryButtonTapped // 재시도 버튼 탭
+    case retryButtonTapped          // 재시도 버튼 탭
 }
 
 @Observable
@@ -31,16 +32,13 @@ final class MainViewStore {
     private(set) var state = MainViewState()
     
     // UseCase 의존성 주입
-    private let todayPickUseCase: MainViewUseCase
+    private let useCase: MainViewUseCase
     // Router 참조를 위한 약한 참조
     weak var router: NavigationRouter<MainTabRoute>?
     
-    // 캐시 만료 시간 (5분)
-    private let cacheExpirationTime: TimeInterval = 300
-    
     /// 의존성 주입을 통한 초기화
     init(todayPickUseCase: MainViewUseCase) {
-        self.todayPickUseCase = todayPickUseCase
+        self.useCase = todayPickUseCase
     }
     
     /// - Parameter action: 처리할 액션
@@ -68,13 +66,9 @@ private extension MainViewStore {
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared() {
         // 이미 데이터가 있고 에러가 없으면 로딩하지 않음
-        if hasDataAndNoError() {
-            
-            return
-        }
+        if hasDataAndNoError() { return }
         
-        print("state.hasLoadedOnce: \(state.hasLoadedOnce)")
-        // 처음 로드이거나 캐시가 만료된 경우에만 로딩
+        // 첫 로드일 시 로드
         if !state.hasLoadedOnce {
             loadData()
         }
@@ -110,18 +104,8 @@ private extension MainViewStore {
         
         Task {
             do {
-                // TodayPickUseCase를 사용해서 병렬로 데이터 로드
-                async let todayAuthor = todayPickUseCase.todayAuthor()
-                async let todayFilter = todayPickUseCase.todayFilter()
-                async let todayHotTrend = todayPickUseCase.hotTrend()
-                
-                let (author, filter, hotTrend) = try await (todayAuthor, todayFilter, todayHotTrend)
-                
-                state.todayFilter = filter
-                state.todayArtist = author
-                state.hotTrends = hotTrend
-                state.isLoading = false
-                state.hasLoadedOnce = true
+                let newState = try await useCase.loadMainViewState()
+                state = newState
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
