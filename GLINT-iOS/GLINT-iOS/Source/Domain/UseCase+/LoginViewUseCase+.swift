@@ -24,9 +24,7 @@ extension LoginViewUseCase {
         return LoginViewUseCase(
             // email 유효성검사
             checkEmailValidation: { email in
-                guard Validator.isValidEmailFormat(email) else {
-                    throw AuthError.invalidEmailFormat
-                }
+                try Validator.validateEmail(email)
                 try await repository.checkEmailValidation(email)
             },
             // 회원가입
@@ -56,14 +54,8 @@ extension LoginViewUseCase {
             },
             // 로그인
             signIn: { email, password in
-                guard Validator.isValidEmailFormat(email) else {
-                    throw AuthError.invalidEmailFormat
-                }
-                
-                guard Validator.isValidPasswordFormat(password) else {
-                    throw AuthError.invalidPasswordFormat
-                }
-                
+                try Validator.validateEmail(email)
+                try Validator.validatePassword(password)
                 guard let deviceToken = keychain.getDeviceUUID() else {
                     throw AuthError.noDeviceTokenFound
                 }

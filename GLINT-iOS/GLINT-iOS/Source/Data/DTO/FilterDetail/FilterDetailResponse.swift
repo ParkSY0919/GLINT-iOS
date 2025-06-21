@@ -7,12 +7,14 @@
 
 import Foundation
 
+//TODO: 메타데이터는 없을 수 있다.
+
 struct FilterDetailResponse: ResponseData {
     let filterID, category, title, description: String
     let files: [String]
     let price: Int
     let creator: UserInfo
-    let photoMetadata: PhotoMetadataResponse
+    let photoMetadata: PhotoMetadataResponse?
     let filterValues: [String: Double]
     let isLiked, isDownloaded: Bool
     let likeCount, buyerCount: Int

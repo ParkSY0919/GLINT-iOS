@@ -38,6 +38,8 @@ final class GTInterceptor: RequestInterceptor {
         completion(.success(adaptedRequest))
     }
     
+    //TODO: 해당 retry 부분 refreshtoken도 usecase로 옮겨야함
+    // 그렇게 함으로써 여기서 'AuthError'를 사용하지 않을 수 있도록
     func retry(_ request: Request, for session: Session, dueTo error: Error, completion: @escaping (RetryResult) -> Void) {
         let isImageRequest = isImageRequest(request)
         

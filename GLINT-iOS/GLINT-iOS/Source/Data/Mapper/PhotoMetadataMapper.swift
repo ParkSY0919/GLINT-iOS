@@ -8,20 +8,23 @@
 import Foundation
 
 struct PhotoMetadataMapper {
-    static func map(from response: PhotoMetadataResponse) -> PhotoMetadataModel {
-        return .init(
-            camera: response.camera,
-            photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
-                lensInfo: response.lensInfo,
-                focalLength: response.focalLength,
-                aperture: response.aperture,
-                iso: response.iso),
-            megapixelInfo: MegapixelCalculator.calculateMPString(
-                width: response.pixelWidth,
-                height: response.pixelHeight,
-                fileSize: response.fileSize),
-            latitude: response.latitude ?? 0.0,
-            longitude: response.longitude ?? 0.0
-        )
+    static func map(from response: PhotoMetadataResponse?) -> PhotoMetadataModel? {
+        if let response = response {
+            return .init(
+                camera: response.camera,
+                photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
+                    lensInfo: response.lensInfo,
+                    focalLength: response.focalLength,
+                    aperture: response.aperture,
+                    iso: response.iso),
+                megapixelInfo: MegapixelCalculator.calculateMPString(
+                    width: response.pixelWidth,
+                    height: response.pixelHeight,
+                    fileSize: response.fileSize),
+                latitude: response.latitude ?? 0.0,
+                longitude: response.longitude ?? 0.0
+            )
+        }
+        return nil
     }
 }
