@@ -21,6 +21,13 @@ extension LoginViewUseCase {
         let keychain: KeychainManager = .shared
         let manager = LoginManager()
         
+        func getDeviceTokenOrThrow() throws -> String {
+            guard let token = keychain.getDeviceUUID() else {
+                throw AuthError.noDeviceTokenFound
+            }
+            return token
+        }
+        
         return LoginViewUseCase(
             // email 유효성검사
             checkEmailValidation: { email in
@@ -29,17 +36,9 @@ extension LoginViewUseCase {
             },
             // 회원가입
             signUp: {email, password, nick in
-                guard Validator.isValidEmailFormat(email) else {
-                    throw AuthError.invalidEmailFormat
-                }
-                
-                guard Validator.isValidPasswordFormat(password) else {
-                    throw AuthError.invalidPasswordFormat
-                }
-                
-                guard let deviceToken = keychain.getDeviceUUID() else {
-                    throw AuthError.noDeviceTokenFound
-                }
+                try Validator.validateEmail(email)
+                try Validator.validatePassword(password)
+                let deviceToken = try getDeviceTokenOrThrow()
                 
                 let request = SignUpRequest(
                     email: email,
@@ -56,9 +55,7 @@ extension LoginViewUseCase {
             signIn: { email, password in
                 try Validator.validateEmail(email)
                 try Validator.validatePassword(password)
-                guard let deviceToken = keychain.getDeviceUUID() else {
-                    throw AuthError.noDeviceTokenFound
-                }
+                let deviceToken = try getDeviceTokenOrThrow()
                 
                 let request = SignInRequest(
                     email: email,
