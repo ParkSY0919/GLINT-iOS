@@ -1,5 +1,5 @@
 //
-//  FilterResponse.swift
+//  FilterDetail.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/23/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FilterResponse: ResponseData {
+struct FilterDetail: ResponseData {
     let filterID: String
     let category: String
     let title: String
@@ -58,29 +58,5 @@ struct FilterResponse: ResponseData {
     }
 }
 
-// MARK: - Comment
-struct Comment: ResponseData {
-    let commentID: String
-    let content: String
-    let createdAt: String
-    let creator: UserInfo
-    let replies: [Reply]
 
-    enum CodingKeys: String, CodingKey {
-        case commentID = "comment_id"
-        case content, createdAt, creator, replies
-    }
-}
 
-// MARK: - Reply
-struct Reply: ResponseData {
-    let commentID: String
-    let content: String
-    let createdAt: String
-    let creator: UserInfo
-
-    enum CodingKeys: String, CodingKey {
-        case commentID = "comment_id"
-        case content, createdAt, creator
-    }
-}
