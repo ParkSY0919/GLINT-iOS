@@ -5,7 +5,7 @@
 //  Created by 박신영 on 6/10/25.
 //
 
-import SwiftUI
+import Foundation
 
 extension MakeViewUseCase {
     static let liveValue: MakeViewUseCase = {
@@ -19,13 +19,4 @@ extension MakeViewUseCase {
     }()
 }
 
-struct MakeViewUseCaseKey: EnvironmentKey {
-    static let defaultValue: MakeViewUseCase = .liveValue
-}
 
-extension EnvironmentValues {
-    var makeViewUseCase: MakeViewUseCase {
-        get { self[MakeViewUseCaseKey.self] }
-        set { self[MakeViewUseCaseKey.self] = newValue }
-    }
-}

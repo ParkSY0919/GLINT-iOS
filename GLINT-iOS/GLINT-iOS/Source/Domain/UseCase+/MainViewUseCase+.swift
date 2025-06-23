@@ -5,7 +5,7 @@
 //  Created by 박신영 on 5/29/25.
 //
 
-import SwiftUI
+import Foundation
 
 extension MainViewUseCase {
     static let liveValue: MainViewUseCase = {
