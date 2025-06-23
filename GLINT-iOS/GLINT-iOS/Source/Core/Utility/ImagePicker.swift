@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct ImagePicker: UIViewControllerRepresentable {
-    let onImageSelected: (UIImage, PhotoMetadataModel?) -> Void
+    let onImageSelected: (UIImage, PhotoMetadata?) -> Void
     @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -86,7 +86,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 메타데이터 추출
-        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadataModel? {
+        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadata? {
             // PHAsset
             if let assetIdentifier = result.assetIdentifier {
                 if let metadata = await extractFromPHAsset(identifier: assetIdentifier) {
@@ -99,7 +99,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - PHAsset을 통한 메타데이터 추출
-        private func extractFromPHAsset(identifier: String) async -> PhotoMetadataModel? {
+        private func extractFromPHAsset(identifier: String) async -> PhotoMetadata? {
             let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
             guard let asset = fetchResult.firstObject else {
                 return nil
@@ -124,7 +124,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 파일에서 직접 메타데이터 추출
-        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadataModel? {
+        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadata? {
             return await withCheckedContinuation { continuation in
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
                     guard let url = url, error == nil else {
@@ -144,34 +144,44 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - EXIF 데이터 추출 및 변환 (동기 함수 - 변경 없음)
-        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadataModel? {
+        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadata? {
             guard let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
                   let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [String: Any] else {
                 return nil
             }
             
-            // EXIF 데이터 추출
+            // 각 딕셔너리 추출
             let exifData = properties[kCGImagePropertyExifDictionary as String] as? [String: Any] ?? [:]
             let tiffData = properties[kCGImagePropertyTIFFDictionary as String] as? [String: Any] ?? [:]
             let gpsData = properties[kCGImagePropertyGPSDictionary as String] as? [String: Any] ?? [:]
-            let fileSizeOfByte = imageData.count
             
-            // Phone Info
+            // 기존 추출
             let phoneInfo = extractPhoneInfo(from: tiffData)
-            
-            // metaData
-            let metaData = extractPhotoMetaData(exifData: exifData, properties: properties)
-            
-            // megapixelInfo
-            let megapixelInfo = extractMegaPixels(fileSize: fileSizeOfByte, properties: properties)
-            
-            // GPS 정보
+            let (lensType, focalLength, aperture, iso) = extractPhotoMetaData(exifData: exifData, properties: properties)
             let (latitude, longitude) = extractGPSInfo(from: gpsData, asset: asset)
             
-            return PhotoMetadataModel(
+            // 추가 추출
+            let shutterSpeed = extractShutterSpeed(from: exifData)
+            let fileSize = imageData.count
+            let format = extractFileFormat(from: properties)
+            let dateTime = extractDateTime(from: exifData)
+            
+            // 픽셀 크기
+            let pixelWidth = properties[kCGImagePropertyPixelWidth as String] as? Int ?? 0
+            let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int ?? 0
+            
+            return PhotoMetadata(
                 camera: phoneInfo,
-                photoMetadataString: metaData,
-                megapixelInfo: megapixelInfo,
+                lensInfo: lensType,
+                focalLength: Int(focalLength),
+                aperture: aperture,
+                iso: iso,
+                shutterSpeed: shutterSpeed,
+                pixelWidth: pixelWidth,
+                pixelHeight: pixelHeight,
+                fileSize: fileSize,
+                format: format,
+                dateTimeOriginal: dateTime,
                 latitude: latitude,
                 longitude: longitude
             )
@@ -193,7 +203,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         
         // MARK: - 촬영 정보 추출
-        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> String {
+        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Double, Double, Int) {
             // 렌즈 정보
             var lensType = "카메라 정보 없음"
             var focalLengh: Double = 0
@@ -203,9 +213,6 @@ struct ImagePicker: UIViewControllerRepresentable {
             if let focalLength = exifData[kCGImagePropertyExifFocalLength as String] as? Double {
                 lensType = determineCameraTypeByFocalLength(focalLength)
             }
-//            exifData[kCGImagePropertyExifAuxLensInfo as String]
-//            exifData[kCGImagePropertyExifAuxLensModel as String]
-//            exifData[kCGImagePropertyExiflens as String]
             
             // 초점거리mm, 조리개𝒇, ISO
             if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Double,
@@ -217,14 +224,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                 iso = isoValue
             }
             
-            return FilterValueFormatter.photoMetaDataFormat(
-                lensInfo: lensType,
-                focalLength: focalLengh,
-                aperture: aperture,
-                iso: iso
-            )
-            
-            
+            return (lensType, focalLengh, aperture, iso)
         }
         
         private func extractMegaPixels(fileSize: Int, properties: [String: Any]) -> String {
@@ -276,7 +276,74 @@ struct ImagePicker: UIViewControllerRepresentable {
                 return "와이드 카메라"
             }
         }
+        
+        private func extractFileFormat(from properties: [String: Any]) -> String {
+            // ColorModel로 포맷 추정
+            if let colorModel = properties[kCGImagePropertyColorModel as String] as? String {
+                // RGB = JPEG, Gray = 흑백 등
+                return colorModel == "RGB" ? "JPEG" : "Unknown"
+            }
+            
+            // 또는 UTType으로 확인
+            // 이미지 파일의 확장자나 타입으로 판단
+            return "JPEG"  // 대부분의 사진은 JPEG
+        }
+        
+        private func extractShutterSpeed(from exifData: [String: Any]) -> String {
+            // 노출 시간 (초 단위)
+            if let exposureTime = exifData[kCGImagePropertyExifExposureTime as String] as? Double {
+                if exposureTime < 1.0 {
+                    // 1초 미만일 때는 분수로 표시 (예: 1/125)
+                    let denominator = Int(1.0 / exposureTime)
+                    return "1/\(denominator) sec"
+                } else {
+                    // 1초 이상일 때
+                    return "\(exposureTime) sec"
+                }
+            }
+            
+            // ExposureTime이 없으면 ShutterSpeedValue로 시도
+            if let shutterSpeedValue = exifData[kCGImagePropertyExifShutterSpeedValue as String] as? Double {
+                let exposureTime = pow(2, -shutterSpeedValue)
+                let denominator = Int(1.0 / exposureTime)
+                return "1/\(denominator) sec"
+            }
+            
+            return "정보 없음"
+        }
+        
+        private func extractDateTime(from exifData: [String: Any]) -> String {
+            // 촬영 날짜 (DateTimeOriginal)
+            if let dateTimeOriginal = exifData[kCGImagePropertyExifDateTimeOriginal as String] as? String {
+                // EXIF 날짜 형식: "2024:01:20 15:30:00"
+                return convertExifDateToISO8601(dateTimeOriginal)
+            }
+            
+            // DateTimeOriginal이 없으면 DateTimeDigitized 시도
+            if let dateTimeDigitized = exifData[kCGImagePropertyExifDateTimeDigitized as String] as? String {
+                return convertExifDateToISO8601(dateTimeDigitized)
+            }
+            
+            // 그것도 없으면 현재 시간
+            return ISO8601DateFormatter().string(from: Date())
+        }
+
+        // EXIF 날짜를 ISO8601 형식으로 변환
+        private func convertExifDateToISO8601(_ exifDate: String) -> String {
+            // "2024:01:20 15:30:00" → "2024-01-20T15:30:00Z"
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
+            formatter.timeZone = TimeZone(secondsFromGMT: 0)
+            
+            if let date = formatter.date(from: exifDate) {
+                return ISO8601DateFormatter().string(from: date)
+            }
+            
+            return ISO8601DateFormatter().string(from: Date())
+        }
     }
+    
+   
 }
 
 // MARK: - 에러 타입 정의

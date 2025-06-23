@@ -13,8 +13,8 @@ import iamport_ios
 struct DetailViewState {
     var filterData: FilterEntity?
     var userInfoData: ProfileEntity?
-    var photoMetaData: PhotoMetadataModel?
-    var filterPresetsData: FilterPresetsModel?
+    var photoMetaData: PhotoMetadata?
+    var filterPresetsData: FilterPresetsEntity?
     
     var address: String?
     
@@ -157,6 +157,7 @@ private extension DetailViewStore {
         if let imp_uid {
             let request = PaymentValidationEntity.Request(imp_uid: imp_uid)
             let response = try? await paymentUseCase.paymentValidation(request)
+            //TODO: 결제 이후 반환되는 response 활용하기
         }
         
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 완료!")
@@ -186,18 +187,18 @@ private extension DetailViewStore {
         
         Task {
             do {
-                async let filterDetail = filterDetailUseCase.filterDetail(filterId)
-                let filterData = try await filterDetail
+                let (filter, profile, metadata, presets) = try await filterDetailUseCase.filterDetail(filterId)
                 
-                state.filterData = filterData.filter
-                state.userInfoData = filterData.author
-                state.photoMetaData = filterData.photoMetadata
-                state.filterPresetsData = filterData.filterValues
-                state.address = await filterData.photoMetadata.getKoreanAddress()
-                
-                state.isPurchased = filterData.filter.isDownloaded ?? false
-                state.isLoading = false
-                state.hasLoadedOnce = true
+                state = await DetailViewState(
+                    filterData: filter,
+                    userInfoData: profile,
+                    photoMetaData: metadata,
+                    filterPresetsData: presets,
+                    address: metadata?.getKoreanAddress(),
+                    isLoading: false,
+                    hasLoadedOnce: true,
+                    isPurchased: filter.isDownloaded ?? false
+                )
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription

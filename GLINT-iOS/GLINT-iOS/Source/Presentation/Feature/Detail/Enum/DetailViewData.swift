@@ -8,11 +8,11 @@
 import Foundation
 
 // MARK: - Helper Extensions
-extension Array where Element == String {
-    func toStringArray() -> [String] {
-        return self
-    }
-}
+//extension Array where Element == String {
+//    func toStringArray() -> [String] {
+//        return self
+//    }
+//}
 
 // MARK: - Helper Functions
 struct DetailViewHelper {

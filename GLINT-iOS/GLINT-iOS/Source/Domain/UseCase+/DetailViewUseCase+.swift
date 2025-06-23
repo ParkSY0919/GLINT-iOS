@@ -7,16 +7,21 @@
 
 import SwiftUI
 
-//TODO: LoginView와 같도록 수정
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
-        let repo: FilterDetailRepository = .liveValue
+        let filterRepo: FilterDetailRepository = .liveValue
         let orderRepo: OrderRepository = .value
         let paymentRepo: PaymentRepository = .value
         
         return DetailViewUseCase (
             filterDetail: { filterID in
-                return try await repo.filterDetail(filterID)
+                let response = try await filterRepo.filterDetail(filterID)
+                let filter = response.toFilterEntity()
+                let profile = response.creator.toProfileEntity()
+                let metadata = response.photoMetadata
+                let presets = response.filterValues.toEntity()
+                
+                return (filter, profile, metadata, presets)
             },
             
             createOrder: { request in

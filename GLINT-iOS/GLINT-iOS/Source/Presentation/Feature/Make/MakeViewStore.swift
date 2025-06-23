@@ -15,7 +15,7 @@ final class MakeViewStore {
         var selectedCategory: CategoryType? = nil
         var selectedImage: UIImage?
         var filteredImage: UIImage?
-        var imageMetaData: PhotoMetadataModel?
+        var imageMetaData: PhotoMetadata?
         var address: String?
         var introduce: String = ""
         var price: String = ""
@@ -30,7 +30,7 @@ final class MakeViewStore {
     enum Action {
         case filterNameChanged(String)
         case categorySelected(CategoryType)
-        case imageSelected(UIImage, PhotoMetadataModel?)
+        case imageSelected(UIImage, PhotoMetadata?)
         case imageChangeRequested
         case editButtonTapped
         case editViewDismissed
@@ -54,7 +54,6 @@ final class MakeViewStore {
             
         case .imageSelected(let image, let metadata):
             state.selectedImage = image
-            // TODO: 이미지 메타데이터 추출 로직 구현
             extractImageMetaData(image: image, meta: metadata)
             
         case .imageChangeRequested:
@@ -84,7 +83,7 @@ final class MakeViewStore {
         }
     }
     
-    private func extractImageMetaData(image: UIImage, meta: PhotoMetadataModel?) {
+    private func extractImageMetaData(image: UIImage, meta: PhotoMetadata?) {
         Task {
             let address = await meta?.getKoreanAddress()
             state.imageMetaData = meta

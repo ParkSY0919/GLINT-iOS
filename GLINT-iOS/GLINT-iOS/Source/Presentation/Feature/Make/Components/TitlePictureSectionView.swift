@@ -10,9 +10,9 @@ import PhotosUI
 
 struct TitlePictureSectionView: View {
     let selectedImage: UIImage?
-    let imageMetaData: PhotoMetadataModel?
+    let imageMetaData: PhotoMetadata?
     let address: String?
-    let onImageSelected: (UIImage, PhotoMetadataModel?) -> Void // 메타데이터도 함께 전달
+    let onImageSelected: (UIImage, PhotoMetadata?) -> Void // 메타데이터도 함께 전달
     let onImageChangeRequested: () -> Void
     let onEditButtonTapped: () -> Void
     
@@ -69,14 +69,12 @@ struct TitlePictureSectionView: View {
                 }
                 .frame(height: calculateImageHeight(for: selectedImage, containerWidth: UIScreen.main.bounds.width - 40))
                 
-                
-                
                 // 메타데이터 표시
                 if let metaData = imageMetaData {
                     GLMetaDataView(
                         camera: metaData.camera,
-                        photoMetadataString: metaData.photoMetadataString,
-                        megapixelInfo: metaData.megapixelInfo,
+                        photoMetadataString: metaData.photoMetadataString ?? "정보 없음",
+                        megapixelInfo: metaData.megapixelInfoString ?? "정보 없음",
                         address: address,
                         latitude: metaData.latitude,
                         longitude: metaData.longitude

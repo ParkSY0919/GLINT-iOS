@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct FilterPresetsModel: Codable {
-    let values: [Double]
-    
-    func toStringArray() -> [String] {
-        return values.map { String(format: "%.1f", $0) }
-    }
-}
+//struct FilterPresetsModel: Codable {
+//    let values: [Double]
+//    
+//    func toStringArray() -> [String] {
+//        return values.map { String(format: "%.1f", $0) }
+//    }
+//}
