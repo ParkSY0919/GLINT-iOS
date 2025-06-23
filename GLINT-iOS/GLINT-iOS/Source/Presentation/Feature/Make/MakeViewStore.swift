@@ -161,10 +161,3 @@ enum CategoryType: String, CaseIterable {
         return self.rawValue
     }
 }
-
-struct PhotoMetaData {
-    let camera: String
-    let metaData: [String]
-    let latitude: Double?
-    let longitude: Double?
-} 

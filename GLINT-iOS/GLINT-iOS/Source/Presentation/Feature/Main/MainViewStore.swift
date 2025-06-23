@@ -104,8 +104,15 @@ private extension MainViewStore {
         
         Task {
             do {
-                let newState = try await useCase.loadMainViewState()
-                state = newState
+                let (a, f, t) = try await useCase.loadMainViewState()
+                state = MainViewState(
+                    todayFilter: f,
+                    todayArtist: a,
+                    hotTrends: t,
+                    isLoading: false,
+                    errorMessage: nil,
+                    hasLoadedOnce: true
+                )
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription

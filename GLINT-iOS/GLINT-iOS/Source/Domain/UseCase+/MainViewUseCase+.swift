@@ -32,14 +32,7 @@ extension MainViewUseCase {
                 print("todayFilter: \(filterData)\n")
                 print("hotTrend: \(trendData)\n")
                 
-                return MainViewState(
-                    todayFilter: filterData,
-                    todayArtist: authorData,
-                    hotTrends: trendData,
-                    isLoading: false,
-                    errorMessage: nil,
-                    hasLoadedOnce: true
-                )
+                return (authorData, filterData, trendData)
             }
         )
     }()
