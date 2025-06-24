@@ -7,8 +7,4 @@
 
 import Foundation
 
-enum OrderHistoryEntity {
-    struct Response: ResponseData {
-        let data: [Datum]
-    }
-}
+

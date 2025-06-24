@@ -24,7 +24,7 @@ struct DetailViewState {
     var isPurchased: Bool = false // 필터 구매 여부
     var sliderPosition: CGFloat = 0.5
     var showPaymentSheet: Bool = false
-    var createOrderResult: CreateOrderEntity.Response?
+    var createOrderResult: CreateOrderResponse?
 }
 
 // MARK: - Action
@@ -115,11 +115,13 @@ private extension DetailViewStore {
         Task {
             do {
                 state.isLoading = true
-                let requestEntity = CreateOrderEntity.Request(filter_id: state.filterData?.id ?? "", total_price: state.filterData?.price ?? 0)
-                state.createOrderResult = try await orderUseCase.createOrder(requestEntity)
-                
-                print("response: \(String(describing: state.createOrderResult))")
-                
+                guard let filterID = state.filterData?.id,
+                      let filterPrice = state.filterData?.price else {
+                    state.isLoading = false
+                    state.errorMessage = "필터 정보를 가져오지 못했습니다."
+                    return
+                }
+                state.createOrderResult = try await orderUseCase.createOrder(filterID, filterPrice)
                 state.showPaymentSheet = true  // 결제 화면 표시
                 state.isLoading = false
             } catch {
@@ -127,9 +129,7 @@ private extension DetailViewStore {
                 state.errorMessage = error.localizedDescription
             }
         }
-        
         state.isLoading = false
-        
     }
     
     func handlePaymentCompleted(response: IamportResponse?) async {
@@ -153,11 +153,23 @@ private extension DetailViewStore {
     
     private func executeAfterSuccessfulPayment(imp_uid: String?) async {
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 시작!")
+        guard let imp_uid else {
+            return
+        }
         
-        if let imp_uid {
-            let request = PaymentValidationEntity.Request(imp_uid: imp_uid)
-            let response = try? await paymentUseCase.paymentValidation(request)
-            //TODO: 결제 이후 반환되는 response 활용하기
+        Task {
+            do {
+                let response = try await paymentUseCase.paymentValidation(imp_uid)
+                
+                print(try await paymentUseCase.paymentInfo(response.orderItem.orderCode))
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                // 에러가 발생해도 hasLoadedOnce는 true로 유지 (이전 데이터 보존)
+                if !state.hasLoadedOnce {
+                    state.hasLoadedOnce = true
+                }
+            }
         }
         
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 완료!")
@@ -206,6 +218,27 @@ private extension DetailViewStore {
                     state.hasLoadedOnce = true
                 }
             }
+        }
+    }
+}
+
+@MainActor
+extension DetailViewStore {
+    func createPaymentData() -> IamportPayment {
+        guard let orderData = state.createOrderResult,
+              let filterData = state.filterData else {
+            fatalError("결제 데이터가 없습니다")
+        }
+        
+        return IamportPayment(
+            pg: PG.html5_inicis.makePgRawName(pgId: "INIpayTest"),
+            merchant_uid: orderData.orderCode,
+            amount: "\(filterData.price ?? 0)"
+        ).then {
+            $0.pay_method = PayMethod.card.rawValue
+            $0.name = filterData.title
+            $0.buyer_name = "박신영" //추후 사용자 nick
+            $0.app_scheme = "sesac"
         }
     }
 }

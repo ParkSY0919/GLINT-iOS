@@ -10,8 +10,7 @@ import Foundation
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
         let filterRepo: FilterDetailRepository = .liveValue
-        let orderRepo: OrderRepository = .value
-        let paymentRepo: PaymentRepository = .value
+        let purchaseRepo: PurchaseRepository = .liveValue
         
         return DetailViewUseCase (
             filterDetail: { filterID in
@@ -24,16 +23,25 @@ extension DetailViewUseCase {
                 return (filter, profile, metadata, presets)
             },
             
-            createOrder: { request in
-                return try await orderRepo.createOrder(request)
+            createOrder: { filterID, filterPrice in
+                let request = CreateOrderRequest(filter_id: filterID, total_price: filterPrice)
+                return try await purchaseRepo.createOrder(request)
             },
             
-            infoOrder: {
-                return try await orderRepo.infoOrder()
+            orderInfo: {
+                return try await purchaseRepo.orderInfo()
             },
             
-            paymentValidation: { request in
-                return try await paymentRepo.paymentValidation(request)
+            paymentValidation: { imp_uid in
+                let request = PaymentValidationRequest(imp_uid: imp_uid)
+                return try await purchaseRepo.paymentValidation(request)
+            },
+            
+            paymentInfo: { order_code in
+                let request = PaymentInfoRequest(order_code: order_code)
+                let resposne = try await purchaseRepo.paymentInfo(request)
+                print("paymentInfo resposne: \n\(resposne)")
+                return resposne
             }
         )
     }()

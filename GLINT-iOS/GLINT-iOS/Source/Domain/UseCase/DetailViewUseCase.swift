@@ -8,8 +8,14 @@
 import Foundation
 
 struct DetailViewUseCase {
-    var filterDetail: @Sendable (_ filterID: String) async throws -> (FilterEntity, ProfileEntity, PhotoMetadata?, FilterPresetsEntity)
-    var createOrder: @Sendable (_ request: CreateOrderEntity.Request) async throws -> CreateOrderEntity.Response
-    var infoOrder: @Sendable () async throws -> OrderHistoryEntity.Response
-    var paymentValidation: @Sendable (_ request: PaymentValidationEntity.Request) async throws -> PaymentValidationEntity.Response
+    var filterDetail: @Sendable (_ filterID: String) async throws -> (
+        FilterEntity,
+        ProfileEntity,
+        PhotoMetadata?,
+        FilterPresetsEntity
+    )
+    var createOrder: @Sendable (_ filterID: String, _ filterPrice: Int) async throws -> CreateOrderResponse
+    var orderInfo: @Sendable () async throws -> OrderInfoResponse
+    var paymentValidation: @Sendable (_ imp_uid: String) async throws -> PaymentValidationResponse
+    var paymentInfo: @Sendable (_ order_code: String) async throws -> PaymentInfoResponse
 }

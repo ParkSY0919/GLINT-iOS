@@ -10,12 +10,11 @@ import SwiftUI
 import iamport_ios
 
 struct IamportPaymentView: UIViewControllerRepresentable {
-    let orderData: CreateOrderEntity.Response
-    let filterData: FilterEntity
+    let paymentData: IamportPayment
     let onComplete: (IamportResponse?) -> Void
     
     func makeUIViewController(context: Context) -> IamportPaymentViewController {
-        let viewController = IamportPaymentViewController(orderData: orderData, filterData: filterData)
+        let viewController = IamportPaymentViewController(paymentData: paymentData)
         viewController.onComplete = self.onComplete
         return viewController
     }
@@ -24,13 +23,11 @@ struct IamportPaymentView: UIViewControllerRepresentable {
 }
 
 final class IamportPaymentViewController: UIViewController {
-    let orderData: CreateOrderEntity.Response
-    let filterData: FilterEntity
+    let paymentData: IamportPayment
     var onComplete: ((IamportResponse?) -> Void)?
     
-    init(orderData: CreateOrderEntity.Response, filterData: FilterEntity) {
-        self.orderData = orderData
-        self.filterData = filterData
+    init(paymentData: IamportPayment) {
+        self.paymentData = paymentData
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -43,39 +40,21 @@ final class IamportPaymentViewController: UIViewController {
         requestIamportPayment()
     }
     
-    func requestIamportPayment() {
+    private func requestIamportPayment() {
         let userCode = "imp14511373" // slp 식별코드
         Task {
-            let payment = await createPaymentData()
-            
-            print("payment: \(payment)")
-            
             let response = await withCheckedContinuation { continuation in
-                // UI 작업은 반드시 메인 스레드에서 실행해야 합니다.
                 DispatchQueue.main.async {
                     Iamport.shared.payment(
                         viewController: self,
                         userCode: userCode,
-                        payment: payment) { response in
+                        payment: self.paymentData) { response in
                             print("결제 결과: \(String(describing: response))")
                             continuation.resume(returning: response)
                         }
                 }
             }
             self.onComplete?(response)
-        }
-    }
-    
-    func createPaymentData() async -> IamportPayment {
-        return IamportPayment(
-            pg: PG.html5_inicis.makePgRawName(pgId: "INIpayTest"),
-            merchant_uid: orderData.orderCode,
-            amount: "\(filterData.price ?? 0)"
-        ).then {
-            $0.pay_method = PayMethod.card.rawValue
-            $0.name = filterData.title
-            $0.buyer_name = "박신영" // 실제 사용자 이름으로 변경
-            $0.app_scheme = "sesac"
         }
     }
 }

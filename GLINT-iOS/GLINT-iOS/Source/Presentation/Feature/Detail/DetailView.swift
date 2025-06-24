@@ -41,16 +41,12 @@ struct DetailView: View {
             }
         }
         .sheet(isPresented: $store.state.showPaymentSheet) {
-            if let orderData = store.state.createOrderResult,
-               let filterData = store.state.filterData {
-                IamportPaymentView(
-                    orderData: orderData,
-                    filterData: filterData,
-                    onComplete: { response in
-                        store.send(.paymentCompleted(response))
-                    }
-                )
-            }
+            IamportPaymentView(
+                paymentData: store.createPaymentData(),
+                onComplete: { response in
+                    store.send(.paymentCompleted(response))
+                }
+            )
         }
         .navigationTitle(store.state.filterData?.title ?? "")
         .navigationBarTitleDisplayMode(.inline)
@@ -68,7 +64,7 @@ struct DetailView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 LikeButton(isLiked: $isLiked) {
-                    //                    store.send(.likeButtonTapped)
+                    //store.send(.likeButtonTapped)
                 }
             }
         }
