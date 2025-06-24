@@ -15,7 +15,7 @@ enum AuthEndPoint {
     case signIn(SignInRequest)
     case signInForApple(SignInAppleRequest)
     case signInForKakao(SignInKakaoRequest)
-    case refreshToken(RefreshTokenRequest)
+    case refreshToken
 }
 
 extension AuthEndPoint: EndPoint {
@@ -41,7 +41,8 @@ extension AuthEndPoint: EndPoint {
     
     var method: Alamofire.HTTPMethod {
         switch self {
-        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao: return .post
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao:
+            return .post
         case .refreshToken:
             return .get
         }
@@ -59,8 +60,8 @@ extension AuthEndPoint: EndPoint {
             return .bodyEncodable(reuqest)
         case .signInForKakao(let reuqest):
             return .bodyEncodable(reuqest)
-        case .refreshToken(let request):
-            return .bodyEncodable(request)
+        case .refreshToken:
+            return .none
         }
     }
     

@@ -13,7 +13,7 @@ extension FilterDetailRepository {
         
         return FilterDetailRepository(
             filterDetail: { id in
-                return try await provider.requestAsync(.filterDetail(filterId: id))
+                return try await provider.request(.filterDetail(filterId: id))
             }
         )
     }()

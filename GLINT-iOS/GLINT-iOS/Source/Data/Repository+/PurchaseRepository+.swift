@@ -14,22 +14,22 @@ extension PurchaseRepository {
         return PurchaseRepository(
             //주문 생성
             createOrder: { request in
-                return try await provider.requestAsync(.createOrder(request))
+                return try await provider.request(.createOrder(request))
             },
             
             //주문 정보
             orderInfo: {
-                return try await provider.requestAsync(.infoOrder)
+                return try await provider.request(.infoOrder)
             },
             
             //결제 영수증 검증
             paymentValidation: { request in
-                return try await provider.requestAsync(.paymentValidation((request)))
+                return try await provider.request(.paymentValidation((request)))
             },
             
             //결제 영수증 조회
             paymentInfo: { request in
-                return try await provider.requestAsync(.paymentInfo((request)))
+                return try await provider.request(.paymentInfo((request)))
             }
         )
     }()

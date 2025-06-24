@@ -13,22 +13,22 @@ extension AuthRepository {
         
         return AuthRepository(
             checkEmailValidation: { email in
-                try await provider.requestAsyncVoid(.checkEmailValidation(email: email))
+                try await provider.requestVoid(.checkEmailValidation(email: email))
             },
             signUp: { request in
-                return try await provider.requestAsync(.signUp(request))
+                return try await provider.request(.signUp(request))
             },
             signIn: { request in
-                return try await provider.requestAsync(.signIn(request))
+                return try await provider.request(.signIn(request))
             },
             signInApple: { request in
                 let request = request.toAppleRequest()
-                let response: SignInResponse = try await provider.requestAsync(.signInForApple(request))
+                let response: SignInResponse = try await provider.request(.signInForApple(request))
                 return response
             },
             signInKakao: { request in
                 let request = request.toKakaoRequest()
-                let response: SignInResponse = try await provider.requestAsync(.signInForKakao(request))
+                let response: SignInResponse = try await provider.request(.signInForKakao(request))
                 return response
             }
         )

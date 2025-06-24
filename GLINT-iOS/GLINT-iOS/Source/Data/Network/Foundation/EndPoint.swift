@@ -11,7 +11,6 @@ import Alamofire
 
 protocol EndPoint: URLRequestConvertible {
     var baseURL: String { get }
-    var headers: HTTPHeaders { get }
     var utilPath: String { get }
     var path: String { get }
     var method: HTTPMethod { get }
@@ -27,10 +26,6 @@ extension EndPoint {
         return Config.baseURL
     }
     
-    var headers: HTTPHeaders {
-        return HeaderType.basic
-    }
-    
     var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         // 필요한 디코딩 전략 설정
@@ -40,7 +35,6 @@ extension EndPoint {
     func asURLRequest() throws -> URLRequest {
         var request = URLRequest(url: URL(string: baseURL + path)!)
         request.method = method
-        request.headers = headers
         
         switch requestType {
         case .queryEncodable(let parameters):

@@ -14,15 +14,15 @@ extension RecommendationRepository {
         return RecommendationRepository(
             // 오늘의 작가
             todayAuthor: {
-                return try await provider.requestAsync(.todayAuthor)
+                return try await provider.request(.todayAuthor)
             },
             // 오늘의 필터
             todayFilter: {
-                return try await provider.requestAsync(.todayFilter)
+                return try await provider.request(.todayFilter)
             },
             // 핫 트렌드
             hotTrend: {
-                return try await provider.requestAsync(.hotTrend)
+                return try await provider.request(.hotTrend)
             }
         )
     }()
