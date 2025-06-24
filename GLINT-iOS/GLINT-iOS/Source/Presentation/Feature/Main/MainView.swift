@@ -41,6 +41,7 @@ private extension MainView {
         ScrollView(showsIndicators: false) {
             scrollContent
         }
+        .detectScroll()
         .scrollContentBackground(.hidden)
     }
     
@@ -61,7 +62,9 @@ private extension MainView {
         TodayFilterView(
             todayFilter: .constant(store.state.todayFilter),
             router: router,
-            onTryFilterTapped: { store.send(.tryFilterTapped) }
+            onTryFilterTapped: { id in
+                store.send(.tryFilterTapped(id: id))
+            }
         )
     }
     

@@ -5,8 +5,6 @@
 //  Created by 박신영 on 5/24/25.
 //
 
-//TODO: 설득 잘 해야함. MVVM 대신 TCA를 사용할 이유와 사용하지 않은 이유.
-// - 본격적인 TCA 사용에 앞서 MVI 패턴을 다뤄보고자 함.
 import SwiftUI
 
 // MARK: - State
@@ -22,7 +20,7 @@ struct MainViewState {
 // MARK: - Action
 enum MainViewAction {
     case viewAppeared                // 뷰가 나타났을 때
-    case tryFilterTapped            // 오늘의 필터 사용 버튼 탭
+    case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
     case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
     case retryButtonTapped          // 재시도 버튼 탭
 }
@@ -48,11 +46,11 @@ final class MainViewStore {
         case .viewAppeared:
             handleViewAppeared()
             
-        case .tryFilterTapped:
-            handleTryFilterTapped()
+        case .tryFilterTapped(let id):
+            handleTryFilterTapped(id)
             
         case .hotTrendTapped(let id):
-            handleHotTrendTapped(id: id)
+            handleHotTrendTapped(id)
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
@@ -75,19 +73,20 @@ private extension MainViewStore {
     }
     
     /// 필터 사용 버튼 탭 처리
-    func handleTryFilterTapped() {
+    func handleTryFilterTapped(_ filterID: String) {
         print("오늘의 필터 사용해보기 버튼 탭됨")
         // DetailView로 네비게이션
-        if let todayFilter = state.todayFilter {
-            router?.push(.detail(id: todayFilter.filterID))
+        router?.push(.detail(id: filterID))
+        if let filterID = state.todayFilter?.filterID {
+            
         }
     }
     
     /// 핫 트렌드 아이템 탭 처리
-    func handleHotTrendTapped(id: String) {
-        print("핫 트렌드 아이템 \(id) 탭됨")
+    func handleHotTrendTapped(_ filterID: String) {
+        print("핫 트렌드 아이템 탭됨")
         // DetailView로 네비게이션
-        router?.push(.detail(id: id))
+        router?.push(.detail(id: filterID))
     }
     
     /// 재시도 버튼 탭 처리

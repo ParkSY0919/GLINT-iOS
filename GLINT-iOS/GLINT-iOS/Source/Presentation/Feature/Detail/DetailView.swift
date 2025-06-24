@@ -128,6 +128,7 @@ private extension DetailView {
                 )
             }
         }
+        .detectScroll()
         .background(.gray100)
     }
     

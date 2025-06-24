@@ -8,6 +8,7 @@
 import Foundation
 
 enum RequestType {
+    //query는 base path 끝 ? 이후 들어가는 것들 연결
     case queryEncodable(Encodable?)      // Encodable 객체를 쿼리로
     case bodyEncodable(Encodable?)       // Encodable 객체를 바디로
     case multipartData(MultipartConfig)  // MultipartConfig

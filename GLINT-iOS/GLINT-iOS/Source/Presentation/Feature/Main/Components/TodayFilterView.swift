@@ -11,7 +11,7 @@ import NukeUI
 struct TodayFilterView: View {
     @Binding var todayFilter: TodayFilterResponse?
     let router: NavigationRouter<MainTabRoute>
-    let onTryFilterTapped: () -> Void
+    let onTryFilterTapped: (String) -> Void
     
     @State private var scrollOffset: CGFloat = 0
     
@@ -107,7 +107,8 @@ private extension TodayFilterView {
             Spacer()
             
             Button {
-                onTryFilterTapped()
+                guard let id = todayFilter?.filterID else { return }
+                onTryFilterTapped(id)
             } label: {
                 Text("사용해보기")
                     .font(.pretendardFont(.caption_medium, size: 12))
@@ -129,7 +130,7 @@ private extension TodayFilterView {
     TodayFilterView(
         todayFilter: .constant(nil),
         router: NavigationRouter<MainTabRoute>(),
-        onTryFilterTapped: {
+        onTryFilterTapped: { id in
             print("필터 사용 버튼 탭됨")
         }
     )
