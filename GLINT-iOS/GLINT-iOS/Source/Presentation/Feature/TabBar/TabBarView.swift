@@ -8,87 +8,94 @@
 import SwiftUI
 
 struct TabBarView: View {
-    @State private var viewModel: TabBarViewModel
-    @State private var tabBarVisibility = TabBarVisibilityManager()
+    @Environment(\.mainViewUseCase)
+    private var mainViewUseCase
     
-    // 의존성 주입을 위한 초기화 추가
-    init(mainViewUseCase: MainViewUseCase, makeViewUseCase: MakeViewUseCase) {
-        self._viewModel = State(
-            wrappedValue: TabBarViewModel(
-                mainViewUseCase: mainViewUseCase,
-                makeViewUseCase: makeViewUseCase
-            )
-        )
-    }
+    @Environment(\.makeViewUseCase)
+    private var makeViewUseCase
+    
+    @State private var viewModel: TabBarViewModel?
+    @State private var tabBarVisibility = TabBarVisibilityManager()
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            Group {
-                switch viewModel.selectedTab {
-                case 0:
-                    MainTab(
-                        router: viewModel.mainRouter,
-                        mainViewStore: viewModel.mainViewStore
-                    )
-                case 2:
-                    MakeTab(
-                        router: viewModel.makeRouter,
-                        makeViewStore: viewModel.makeViewStore
-                    )
-                default:
-                    Text("알 수 없는 탭")
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .environment(tabBarVisibility)
-            
-            // 커스텀 탭 바
-            CustomTabBar(
-                selectedTab: Binding(
-                    get: { viewModel.selectedTab },
-                    set: { newValue in
-                        // 탭 변경 시 탭바 표시
-                        tabBarVisibility.showTabBar()
-                        
-                        if viewModel.selectedTab == newValue {
-                            viewModel.resetTabToRoot(newValue)
-                        } else {
-                            viewModel.selectTab(newValue)
-                        }
+            if let viewModel = viewModel {
+                Group {
+                    switch viewModel.selectedTab {
+                    case 0:
+                        MainTab(
+                            router: viewModel.mainRouter
+                        )
+                        .environment(viewModel.mainViewStore)
+                    case 2:
+                        MakeTab(
+                            router: viewModel.makeRouter
+                        )
+                        .environment(viewModel.makeViewStore)
+                    default:
+                        Text("알 수 없는 탭")
                     }
-                ),
-                items: TabBarItems.items
-            )
-            .opacity(tabBarVisibility.isVisible ? 1 : 0)
-            .offset(y: tabBarVisibility.isVisible ? 0 : 100)
-            .animation(.easeInOut(duration: 0.3), value: tabBarVisibility.isVisible)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .environment(tabBarVisibility)
+                
+                // 커스텀 탭 바
+                CustomTabBar(
+                    selectedTab: Binding(
+                        get: { viewModel.selectedTab },
+                        set: { newValue in
+                            // 탭 변경 시 탭바 표시
+                            tabBarVisibility.showTabBar()
+                            
+                            if viewModel.selectedTab == newValue {
+                                viewModel.resetTabToRoot(newValue)
+                            } else {
+                                viewModel.selectTab(newValue)
+                            }
+                        }
+                    ),
+                    items: TabBarItems.items
+                )
+                .opacity(tabBarVisibility.isVisible ? 1 : 0)
+                .offset(y: tabBarVisibility.isVisible ? 0 : 100)
+                .animation(.easeInOut(duration: 0.3), value: tabBarVisibility.isVisible)
+            } else {
+                // 로딩 상태
+                ProgressView("Loading...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .onAppear {
+            if viewModel == nil {
+                viewModel = TabBarViewModel(
+                    mainViewUseCase: mainViewUseCase,
+                    makeViewUseCase: makeViewUseCase
+                )
+            }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 }
 
+// MARK: - Factory Method (기존 create 메서드는 제거하거나 단순화)
 extension TabBarView {
     @ViewBuilder
     static func create() -> some View {
-        EnvironmentReader { environment in
-            TabBarView(
-                mainViewUseCase: environment.mainViewUseCase,
-                makeViewUseCase: environment.makeViewUseCase
-            )
-        }
+        TabBarView()
     }
 }
 
+// MARK: - Tab Views
 struct MainTab: View {
     @Bindable var router: NavigationRouter<MainTabRoute>
-    let mainViewStore: MainViewStore
+    @Environment(MainViewStore.self) private var store
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MainView(router: router, store: mainViewStore)
-//                .onAppear {
-//                    mainViewStore.router = router
-//                }
+            MainView(router: router)
+                .onAppear {
+                    store.router = router
+                }
         } destination: { route in
             destinationView(for: route)
         }
@@ -98,7 +105,7 @@ struct MainTab: View {
     private func destinationView(for route: MainTabRoute) -> some View {
         switch route {
         case .home:
-            MainView(router: router, store: mainViewStore)
+            MainView(router: router)
         case .detail(let id):
             DetailView(id: id, router: router)
         }
@@ -107,11 +114,10 @@ struct MainTab: View {
 
 struct MakeTab: View {
     @Bindable var router: NavigationRouter<MakeTabRoute>
-    let makeViewStore: MakeViewStore
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MakeView(store: makeViewStore)
+            MakeView()
         } destination: { route in
             destinationView(for: route)
         }
@@ -121,7 +127,7 @@ struct MakeTab: View {
     private func destinationView(for route: MakeTabRoute) -> some View {
         switch route {
         case .make:
-            MakeView(store: makeViewStore)
+            MakeView()
         }
     }
 }

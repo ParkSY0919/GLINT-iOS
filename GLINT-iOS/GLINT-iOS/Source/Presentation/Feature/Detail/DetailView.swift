@@ -12,21 +12,27 @@ import NukeUI
 import iamport_ios
 
 struct DetailView: View {
+//    @Environment(\.detailViewUseCase)
+//    private var useCase
+    //TODO: init형태로 바꾸기
+    
     @Environment(\.openURL)
     private var openURL
     
-    let id: String
-    let router: NavigationRouter<MainTabRoute>
-    
-    @State
-    private var store = DetailViewStore(
-        filterDetailUseCase: .liveValue,
-        orderUseCase: .liveValue,
-        paymentUseCase: .liveValue
-    )
-    
     @State
     private var isLiked = false
+    
+    @State
+    private var store: DetailViewStore
+    
+    let router: NavigationRouter<MainTabRoute>
+    let id: String
+        
+    init(id: String, router: NavigationRouter<MainTabRoute>) {
+        self.id = id
+        self.router = router
+        self._store = State(wrappedValue: DetailViewStore(useCase: .liveValue))
+    }
     
     var body: some View {
         Group {
@@ -40,7 +46,10 @@ struct DetailView: View {
                 contentView
             }
         }
-        .sheet(isPresented: $store.state.showPaymentSheet) {
+        .sheet(isPresented: Binding(
+                    get: { store.state.showPaymentSheet },
+                    set: { _ in store.send(.dismissPaymentSheet) }
+        )) {
             IamportPaymentView(
                 paymentData: store.createPaymentData(),
                 onComplete: { response in

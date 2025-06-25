@@ -19,7 +19,7 @@ extension DetailViewUseCase {
                 let profile = response.creator.toProfileEntity()
                 let metadata = response.photoMetadata
                 let presets = response.filterValues.toEntity()
-                
+
                 return (filter, profile, metadata, presets)
             },
             

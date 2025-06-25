@@ -9,7 +9,6 @@ import SwiftUI
 
 import iamport_ios
 
-// MARK: - State
 struct DetailViewState {
     var filterData: FilterEntity?
     var userInfoData: ProfileEntity?
@@ -27,7 +26,6 @@ struct DetailViewState {
     var createOrderResult: CreateOrderResponse?
 }
 
-// MARK: - Action
 enum DetailViewAction {
     case viewAppeared(id: String)
     case sliderPositionChanged(CGFloat)
@@ -38,30 +36,20 @@ enum DetailViewAction {
     case dismissPaymentSheet
 }
 
+@MainActor
 @Observable
 final class DetailViewStore {
-    var state = DetailViewState()
+    private(set) var state = DetailViewState()
+    
+    private let useCase: DetailViewUseCase
     
     // 필터 ID
     private var filterId: String = ""
     
-    /// 의존성 주입을 통한 초기화
-    private let filterDetailUseCase: DetailViewUseCase
-    private let orderUseCase: DetailViewUseCase
-    private let paymentUseCase: DetailViewUseCase
-    
-    init(
-        filterDetailUseCase: DetailViewUseCase,
-        orderUseCase: DetailViewUseCase,
-        paymentUseCase: DetailViewUseCase
-    ) {
-        self.filterDetailUseCase = filterDetailUseCase
-        self.orderUseCase = orderUseCase
-        self.paymentUseCase = paymentUseCase
+    init(useCase: DetailViewUseCase) {
+        self.useCase = useCase
     }
     
-    /// - Parameter action: 처리할 액션
-    @MainActor
     func send(_ action: DetailViewAction) {
         switch action {
         case .viewAppeared(let id):
@@ -121,7 +109,7 @@ private extension DetailViewStore {
                     state.errorMessage = "필터 정보를 가져오지 못했습니다."
                     return
                 }
-                state.createOrderResult = try await orderUseCase.createOrder(filterID, filterPrice)
+                state.createOrderResult = try await useCase.createOrder(filterID, filterPrice)
                 state.showPaymentSheet = true  // 결제 화면 표시
                 state.isLoading = false
             } catch {
@@ -159,9 +147,9 @@ private extension DetailViewStore {
         
         Task {
             do {
-                let response = try await paymentUseCase.paymentValidation(imp_uid)
+                let response = try await useCase.paymentValidation(imp_uid)
                 
-                print(try await paymentUseCase.paymentInfo(response.orderItem.orderCode))
+                print(try await useCase.paymentInfo(response.orderItem.orderCode))
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
@@ -199,7 +187,7 @@ private extension DetailViewStore {
         
         Task {
             do {
-                let (filter, profile, metadata, presets) = try await filterDetailUseCase.filterDetail(filterId)
+                let (filter, profile, metadata, presets) = try await useCase.filterDetail(filterId)
                 
                 state = await DetailViewState(
                     filterData: filter,

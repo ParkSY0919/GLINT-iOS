@@ -7,38 +7,39 @@
 
 import SwiftUI
 
+struct EditViewState {
+    var originalImage: UIImage
+    var filteredImage: UIImage
+    var showingOriginal: Bool = false
+    var selectedPropertyType: FilterPropertyType = .brightness
+    var editState: PhotoEditState = PhotoEditState()
+    var isSliderActive: Bool = false
+    
+    var currentValue: Float {
+        editState.parameters[selectedPropertyType]?.currentValue ?? selectedPropertyType.defaultValue
+    }
+    
+    init(originalImage: UIImage) {
+        self.originalImage = originalImage
+        self.filteredImage = originalImage
+    }
+}
+
+enum EditViewAction {
+    case propertySelected(FilterPropertyType)
+    case valueChanged(Float)
+    case valueChangeEnded(Float)
+    case toggleImageView
+    case undoButtonTapped
+    case redoButtonTapped
+    case saveButtonTapped
+    case backButtonTapped
+}
+
+
 @Observable
 final class EditViewStore {
-    struct State {
-        var originalImage: UIImage
-        var filteredImage: UIImage
-        var showingOriginal: Bool = false
-        var selectedPropertyType: FilterPropertyType = .brightness
-        var editState: PhotoEditState = PhotoEditState()
-        var isSliderActive: Bool = false
-        
-        var currentValue: Float {
-            editState.parameters[selectedPropertyType]?.currentValue ?? selectedPropertyType.defaultValue
-        }
-        
-        init(originalImage: UIImage) {
-            self.originalImage = originalImage
-            self.filteredImage = originalImage
-        }
-    }
-    
-    enum Action {
-        case propertySelected(FilterPropertyType)
-        case valueChanged(Float)
-        case valueChangeEnded(Float)
-        case toggleImageView
-        case undoButtonTapped
-        case redoButtonTapped
-        case saveButtonTapped
-        case backButtonTapped
-    }
-    
-    var state: State
+    var state: EditViewState
     private let imageFilterManager = ImageFilterManager()
     
     // 성능 최적화를 위한 변수들
@@ -48,14 +49,14 @@ final class EditViewStore {
     private var lastAppliedParameters: FilterParameters? // 마지막 적용된 파라미터들
     
     init(originalImage: UIImage) {
-        self.state = State(originalImage: originalImage)
+        self.state = EditViewState(originalImage: originalImage)
         // 매우 작은 프리뷰 이미지 생성
         self.basePreviewImage = originalImage.resized(to: previewSize) ?? originalImage
         // 초기 필터 적용
         applyAllFiltersToPreview()
     }
     
-    func send(_ action: Action) {
+    func send(_ action: EditViewAction) {
         switch action {
         case .propertySelected(let type):
             let previousType = state.selectedPropertyType

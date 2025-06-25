@@ -8,15 +8,15 @@
 import SwiftUI
 
 // MARK: - 카테고리 모델
-struct FilterCategory: Identifiable, Equatable {
+struct FilterCategoryModel: Identifiable, Equatable {
     let id = UUID()
     let icon: Image
     let name: String
 }
 
 struct CategoryButtonsView: View {
-    let categories: [FilterCategory]
-    @State private var selectedCategory: FilterCategory?
+    let categories: [FilterCategoryModel]
+    @State private var selectedCategory: FilterCategoryModel?
     
     // 버튼 크기 및 내부 요소 스타일 상수 정의
     private let buttonSize: CGFloat = 56
@@ -43,7 +43,7 @@ struct CategoryButtonsView: View {
     }
     
     // MARK: - Category Button
-    private func categoryButton(for category: FilterCategory) -> some View {
+    private func categoryButton(for category: FilterCategoryModel) -> some View {
         Button {
             handleCategorySelection(category)
         } label: {
@@ -53,7 +53,7 @@ struct CategoryButtonsView: View {
     }
     
     // MARK: - Button Content
-    private func categoryButtonContent(for category: FilterCategory) -> some View {
+    private func categoryButtonContent(for category: FilterCategoryModel) -> some View {
         categoryContentStack(for: category)
             .padding(.horizontal, 12)
             .frame(height: buttonSize)
@@ -69,7 +69,7 @@ struct CategoryButtonsView: View {
     }
     
     // MARK: - Content Stack
-    private func categoryContentStack(for category: FilterCategory) -> some View {
+    private func categoryContentStack(for category: FilterCategoryModel) -> some View {
         VStack(spacing: spacingBetweenIconAndText) {
             categoryIcon(for: category)
             categoryLabel(for: category)
@@ -77,7 +77,7 @@ struct CategoryButtonsView: View {
     }
     
     // MARK: - Icon
-    private func categoryIcon(for category: FilterCategory) -> some View {
+    private func categoryIcon(for category: FilterCategoryModel) -> some View {
         category.icon
             .resizable()
             .scaledToFit()
@@ -86,14 +86,14 @@ struct CategoryButtonsView: View {
     }
     
     // MARK: - Label
-    private func categoryLabel(for category: FilterCategory) -> some View {
+    private func categoryLabel(for category: FilterCategoryModel) -> some View {
         Text(category.name)
             .font(.pretendardFont(.caption_semi, size: 10))
             .foregroundColor(.gray60)
     }
     
     // MARK: - Actions
-    private func handleCategorySelection(_ category: FilterCategory) {
+    private func handleCategorySelection(_ category: FilterCategoryModel) {
         print("\(category.name) 카테고리 버튼 탭됨")
         self.selectedCategory = category
     }

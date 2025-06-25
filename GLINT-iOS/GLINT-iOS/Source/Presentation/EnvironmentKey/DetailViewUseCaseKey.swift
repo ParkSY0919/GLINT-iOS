@@ -12,7 +12,7 @@ struct DetailViewUseCaseKey: EnvironmentKey {
 }
 
 extension EnvironmentValues {
-    var DetailViewUseCase: DetailViewUseCase {
+    var detailViewUseCase: DetailViewUseCase {
         get { self[DetailViewUseCaseKey.self] }
         set { self[DetailViewUseCaseKey.self] = newValue }
     }

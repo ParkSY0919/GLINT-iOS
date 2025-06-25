@@ -9,6 +9,45 @@ import SwiftUI
 
 struct StateViewBuilder {
     
+    // MARK: - LoadingState Handler (새로 추가)
+    
+    /// LoadingState에 따라 적절한 뷰를 반환
+    /// - Parameters:
+    ///   - state: LoadingState
+    ///   - content: 로드된 데이터를 표시할 뷰
+    ///   - loadingMessage: 로딩 메시지 (옵션)
+    ///   - emptyMessage: 빈 상태 메시지 (옵션)
+    ///   - retryAction: 에러 시 재시도 액션
+    @ViewBuilder
+    static func buildView<T, Content: View>(
+        for state: LoadingState<T>,
+        @ViewBuilder content: @escaping (T) -> Content,
+        loadingMessage: String = "데이터를 불러오는 중...",
+        emptyMessage: String? = nil,
+        retryAction: (() -> Void)? = nil
+    ) -> some View {
+        switch state {
+        case .idle:
+            if let emptyMessage = emptyMessage {
+                emptyStateView(message: emptyMessage)
+            } else {
+                Color.clear
+            }
+            
+        case .loading:
+            loadingView(message: loadingMessage)
+            
+        case .loaded(let data):
+            content(data)
+            
+        case .failed(let error):
+            errorView(
+                errorMessage: error.localizedDescription,
+                retryAction: retryAction ?? {}
+            )
+        }
+    }
+    
     // MARK: - Loading View
     
     /// 로딩 상태를 표시하는 뷰
@@ -114,5 +153,26 @@ struct StateViewBuilder {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(backgroundColor)
         .transition(.opacity.combined(with: .scale(scale: 0.9)))
+    }
+}
+
+// MARK: - View Extension for Convenience
+
+extension View {
+    /// LoadingState에 따라 자동으로 뷰를 전환
+    func loadingState<T>(
+        _ state: LoadingState<T>,
+        @ViewBuilder content: @escaping (T) -> some View,
+        loadingMessage: String = "데이터를 불러오는 중...",
+        emptyMessage: String? = nil,
+        retryAction: (() -> Void)? = nil
+    ) -> some View {
+        StateViewBuilder.buildView(
+            for: state,
+            content: content,
+            loadingMessage: loadingMessage,
+            emptyMessage: emptyMessage,
+            retryAction: retryAction
+        )
     }
 }

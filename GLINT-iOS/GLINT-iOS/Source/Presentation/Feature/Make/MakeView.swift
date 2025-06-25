@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MakeView: View {
-    let store: MakeViewStore
+    @Environment(MakeViewStore.self) private var store
     
     var body: some View {
         Group {
@@ -137,3 +137,8 @@ private extension MakeView {
     }
 } 
  
+
+#Preview {
+    MakeView()
+        .environment(MakeViewStore(useCase: MakeViewUseCase.liveValue))
+}

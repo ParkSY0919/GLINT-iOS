@@ -25,22 +25,17 @@ enum MainViewAction {
     case retryButtonTapped          // 재시도 버튼 탭
 }
 
+@MainActor
 @Observable
 final class MainViewStore {
     private(set) var state = MainViewState()
-    
-    // UseCase 의존성 주입
     private let useCase: MainViewUseCase
-    // Router 참조를 위한 약한 참조
     weak var router: NavigationRouter<MainTabRoute>?
     
-    /// 의존성 주입을 통한 초기화
-    init(todayPickUseCase: MainViewUseCase) {
-        self.useCase = todayPickUseCase
+    init(useCase: MainViewUseCase) {
+        self.useCase = useCase
     }
     
-    /// - Parameter action: 처리할 액션
-    @MainActor
     func send(_ action: MainViewAction) {
         switch action {
         case .viewAppeared:
@@ -59,7 +54,6 @@ final class MainViewStore {
 }
 
 // MARK: - Private Action Handlers
-@MainActor
 private extension MainViewStore {
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared() {
@@ -77,9 +71,6 @@ private extension MainViewStore {
         print("오늘의 필터 사용해보기 버튼 탭됨")
         // DetailView로 네비게이션
         router?.push(.detail(id: filterID))
-        if let filterID = state.todayFilter?.filterID {
-            
-        }
     }
     
     /// 핫 트렌드 아이템 탭 처리

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainView: View {
     let router: NavigationRouter<MainTabRoute>
-    let store: MainViewStore
+    @Environment(MainViewStore.self) private var store
     
     var body: some View {
         Group {
@@ -69,11 +69,9 @@ private extension MainView {
     }
     
     var bannerSection: some View {
-        BannerView(
-            items: DummyFilterAppData.bannerItems,
-            router: router
-        )
-        .padding(.top, 20)
+        let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
+        return BannerView(items: bannerItems, router: router)
+            .padding(.top, 20)
     }
     
     var hotTrendSection: some View {

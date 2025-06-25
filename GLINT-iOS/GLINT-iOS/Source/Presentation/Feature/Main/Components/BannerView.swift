@@ -75,8 +75,8 @@ struct BannerView: View {
         }
     }
 }
-#Preview {
-    BannerView(items: DummyFilterAppData.bannerItems, router: NavigationRouter<MainTabRoute>())
-//        .padding()
-}
+//#Preview {
+//    BannerView(items: DummyFilterAppData.bannerItems, router: NavigationRouter<MainTabRoute>())
+////        .padding()
+//}
 
