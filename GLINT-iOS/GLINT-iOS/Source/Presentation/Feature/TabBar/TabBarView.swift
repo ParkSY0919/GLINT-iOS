@@ -12,8 +12,13 @@ struct TabBarView: View {
     @State private var tabBarVisibility = TabBarVisibilityManager()
     
     // 의존성 주입을 위한 초기화 추가
-    init(mainViewUseCase: MainViewUseCase) {
-        self._viewModel = State(wrappedValue: TabBarViewModel(mainViewUseCase: mainViewUseCase))
+    init(mainViewUseCase: MainViewUseCase, makeViewUseCase: MakeViewUseCase) {
+        self._viewModel = State(
+            wrappedValue: TabBarViewModel(
+                mainViewUseCase: mainViewUseCase,
+                makeViewUseCase: makeViewUseCase
+            )
+        )
     }
     
     var body: some View {
@@ -25,14 +30,11 @@ struct TabBarView: View {
                         router: viewModel.mainRouter,
                         mainViewStore: viewModel.mainViewStore
                     )
-                case 1:
-                    FeedTab(router: viewModel.categoryRouter)
                 case 2:
-                    MakeTab(router: viewModel.recommendationsRouter)
-                case 3:
-                    SearchTabView(router: viewModel.searchRouter)
-                case 4:
-                    ProfileTabView(router: viewModel.profileRouter)
+                    MakeTab(
+                        router: viewModel.makeRouter,
+                        makeViewStore: viewModel.makeViewStore
+                    )
                 default:
                     Text("알 수 없는 탭")
                 }
@@ -69,7 +71,10 @@ extension TabBarView {
     @ViewBuilder
     static func create() -> some View {
         EnvironmentReader { environment in
-            TabBarView(mainViewUseCase: environment.mainViewUseCase)
+            TabBarView(
+                mainViewUseCase: environment.mainViewUseCase,
+                makeViewUseCase: environment.makeViewUseCase
+            )
         }
     }
 }
@@ -80,14 +85,10 @@ struct MainTab: View {
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MainView(
-                router: router,
-                store: mainViewStore  // Store 직접 전달!
-            )
-            .onAppear {
-                // MainViewStore에 router 참조 설정
-                mainViewStore.router = router
-            }
+            MainView(router: router, store: mainViewStore)
+//                .onAppear {
+//                    mainViewStore.router = router
+//                }
         } destination: { route in
             destinationView(for: route)
         }
@@ -100,42 +101,17 @@ struct MainTab: View {
             MainView(router: router, store: mainViewStore)
         case .detail(let id):
             DetailView(id: id, router: router)
-        case .settings:
-            SettingsView(router: router)
-        }
-    }
-}
-
-struct FeedTab: View {
-    @Bindable var router: NavigationRouter<FeedTabRoute>
-    
-    var body: some View {
-        RouterNavigationStack(router: router) {
-            CategoryContentView(router: router)
-        } destination: { route in
-            destinationView(for: route)
-        }
-    }
-    
-    @ViewBuilder
-    private func destinationView(for route: FeedTabRoute) -> some View {
-        switch route {
-        case .categoryList:
-            CategoryContentView(router: router)
-        case .categoryDetail(let categoryId):
-            CategoryDetailView(categoryId: categoryId, router: router)
-        case .subCategory(let id):
-            SubCategoryView(id: id, router: router)
         }
     }
 }
 
 struct MakeTab: View {
     @Bindable var router: NavigationRouter<MakeTabRoute>
+    let makeViewStore: MakeViewStore
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MakeView()
+            MakeView(store: makeViewStore)
         } destination: { route in
             destinationView(for: route)
         }
@@ -145,59 +121,7 @@ struct MakeTab: View {
     private func destinationView(for route: MakeTabRoute) -> some View {
         switch route {
         case .make:
-            MakeView()
-        case .filterEditor:
-            RecommendationDetailView(router: router)
-        }
-    }
-}
-
-struct SearchTabView: View {
-    @Bindable var router: NavigationRouter<SearchTabRoute>
-    
-    var body: some View {
-        RouterNavigationStack(router: router) {
-            SearchContentView(router: router)
-        } destination: { route in
-            destinationView(for: route)
-        }
-    }
-    
-    @ViewBuilder
-    private func destinationView(for route: SearchTabRoute) -> some View {
-        switch route {
-        case .searchHome:
-            SearchContentView(router: router)
-        case .searchResults(let query):
-            SearchResultsView(query: query, router: router)
-        case .searchDetail(let id):
-            SearchDetailView(id: id, router: router)
-        }
-    }
-}
-
-struct ProfileTabView: View {
-    @Bindable var router: NavigationRouter<ProfileTabRoute>
-    
-    var body: some View {
-        RouterNavigationStack(router: router) {
-            ProfileContentView(router: router)
-        } destination: { route in
-            destinationView(for: route)
-        }
-    }
-    
-    @ViewBuilder
-    private func destinationView(for route: ProfileTabRoute) -> some View {
-        switch route {
-        case .profile:
-            ProfileContentView(router: router)
-        case .editProfile:
-            EditProfileView(router: router)
-        case .settings:
-            ProfileSettingsView(router: router)
-        case .orderHistory:
-            OrderHistoryView(router: router)
+            MakeView(store: makeViewStore)
         }
     }
 }

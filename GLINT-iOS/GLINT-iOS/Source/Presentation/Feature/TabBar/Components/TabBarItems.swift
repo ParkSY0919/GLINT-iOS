@@ -1,5 +1,5 @@
 //
-//  TabBarItemModel.swift
+//  TabBarItems.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/12/25.
@@ -15,7 +15,7 @@ struct TabBarItemModel: Identifiable {
     let tag: Int // 탭 식별자
 }
 
-struct TabBarItems {
+struct TabBarItems {   
     static let items: [TabBarItemModel] = [
         TabBarItemModel(
             icon: ImageLiterals.TabBar.home,
