@@ -1,5 +1,5 @@
 //
-//  FilterDetail.swift
+//  FilterDetailResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/23/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FilterDetail: ResponseData {
+struct FilterDetailResponse: ResponseData {
     let filterID: String
     let category: String
     let title: String
@@ -16,7 +16,7 @@ struct FilterDetail: ResponseData {
     let price: Int
     let creator: UserInfo
     let photoMetadata: PhotoMetadata?
-    let filterValues: FilterValues
+    let filterValues: FilterValuesResponse
     let isLiked: Bool
     let isDownloaded: Bool
     let likeCount: Int

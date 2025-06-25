@@ -42,7 +42,7 @@ final class KeychainManager: Sendable {
         }
         
         if let string = String(data: data, encoding: .utf8) {
-            GTLogger.shared.token(key, success: true, details: "읽기 성공")
+//            GTLogger.shared.token(key, success: true, details: "읽기 성공")
             return string
         }
         

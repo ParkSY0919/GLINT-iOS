@@ -6,7 +6,7 @@
 //
 
 import Foundation
-// MARK: - Photo Metadata
+//TODO: 이거 PhotoMetadataEntity로 분리
 struct PhotoMetadata: ResponseData {
     let camera: String
     let lensInfo: String

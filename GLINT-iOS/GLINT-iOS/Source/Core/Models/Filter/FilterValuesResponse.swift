@@ -1,5 +1,5 @@
 //
-//  FilterValues.swift
+//  FilterValuesResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/23/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 // MARK: - Filter Values
-struct FilterValues: ResponseData {
+struct FilterValuesResponse: ResponseData {
     let brightness: Double
     let exposure: Double
     let contrast: Double
