@@ -1,5 +1,5 @@
 //
-//  LoginViewModel.swift
+//  LoginViewStore.swift
 //  GLINT-iOS
 //
 //  Created by System on 6/29/25.
@@ -16,7 +16,7 @@ enum LoginState: Equatable {
 }
 
 @Observable
-final class LoginViewModel {
+final class LoginViewStore {
     var email: String = ""
     var password: String = ""
     var loginState: LoginState = .idle
@@ -121,7 +121,7 @@ final class LoginViewModel {
     }
 }
 
-extension LoginViewModel {
+extension LoginViewStore {
     // email, password 유효 여부 UI 반영
     @MainActor
     func validateInputs() {

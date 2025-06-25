@@ -2,7 +2,7 @@ import XCTest
 @testable import GLINT_iOS
 
 final class LoginViewModelTests: XCTestCase {
-    var viewModel: LoginViewModel!
+    var viewModel: LoginViewStore!
     
     // 성공 케이스용 Mock
     let mockSuccessUserUseCase = LoginViewUseCase(
@@ -40,7 +40,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_로그인_성공() async throws {
         print("\nㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
         print(#function)
-        viewModel = LoginViewModel(userUseCase: mockSuccessUserUseCase)
+        viewModel = LoginViewStore(userUseCase: mockSuccessUserUseCase)
         viewModel.email = "test@glint.com"
         viewModel.password = "Password1!"
         await viewModel.loginWithEmail()
@@ -50,7 +50,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_로그인_실패_잘못된_비밀번호() async throws {
         print("\nㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
         print(#function)
-        viewModel = LoginViewModel(userUseCase: mockFailUserUseCase)
+        viewModel = LoginViewStore(userUseCase: mockFailUserUseCase)
         viewModel.email = "test@glint.com"
         viewModel.password = "wrongPassword!"
         await viewModel.loginWithEmail()
@@ -64,7 +64,7 @@ final class LoginViewModelTests: XCTestCase {
     func test_이메일_형식_검증() {
         print("\nㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ")
         print(#function)
-        viewModel = LoginViewModel(userUseCase: LoginViewUseCase.mockValue)
+        viewModel = LoginViewStore(userUseCase: LoginViewUseCase.mockValue)
         viewModel.email = "invalid-email"
         // debounce가 있으므로 직접 검증 메서드 호출
 //        let isValid = store.value(forKey: "validateEmailFormat:") as? ((String) -> Bool)

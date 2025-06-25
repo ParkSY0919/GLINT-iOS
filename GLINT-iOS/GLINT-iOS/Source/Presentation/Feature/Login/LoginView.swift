@@ -10,11 +10,11 @@ import Combine
 
 struct LoginView: View {
     @State
-    private var viewModel: LoginViewModel
+    private var viewModel: LoginViewStore
     private var rootRouter: RootRouter
     
     init(useCase: LoginViewUseCase, rootRouter: RootRouter) {
-        self._viewModel = State(initialValue: LoginViewModel(useCase: useCase))
+        self._viewModel = State(initialValue: LoginViewStore(useCase: useCase))
         self.rootRouter = rootRouter
     }
     
