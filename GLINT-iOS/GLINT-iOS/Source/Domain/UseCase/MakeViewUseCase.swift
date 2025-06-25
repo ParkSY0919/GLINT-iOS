@@ -8,5 +8,5 @@
 import Foundation
 
 struct MakeViewUseCase {
-    var files: @Sendable ([Data]) async throws -> FilesEntity.Response
+    var files: @Sendable (_ files: [Data]) async throws -> FileUploadResponse
 }

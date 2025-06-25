@@ -9,10 +9,11 @@ import Foundation
 
 extension MakeViewUseCase {
     static let liveValue: MakeViewUseCase = {
-        let repo: FilterRepository = .value
+        let filterRepo: FilterRepository = .liveValue
+        
         return MakeViewUseCase(
             files: { files in
-                let response = try await repo.filterFiles(files)
+                let response = try await filterRepo.fileUpload(files)
                 return response
             }
         )

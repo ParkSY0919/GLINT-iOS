@@ -8,5 +8,5 @@
 import Foundation
 
 struct FilterDetailRepository {
-    var filterDetail: (_ filterId: String) async throws -> FilterDetail
+    var filterDetail: (_ filterId: String) async throws -> FilterDetailResponse
 }

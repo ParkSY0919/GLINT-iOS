@@ -8,43 +8,48 @@
 import SwiftUI
 import PhotosUI
 
+struct MakeViewState {
+    var filterName: String = ""
+    var selectedCategory: CategoryType? = nil
+    var selectedImage: UIImage?
+    var filteredImage: UIImage?
+    var imageMetaData: PhotoMetadata?
+    var address: String?
+    var introduce: String = ""
+    var price: String = ""
+    var showingEditView: Bool = false
+    
+    var isLoading: Bool = false
+    var errorMessage: String?
+    var saveResult: [String]? = nil
+    var showingSaveAlert: Bool = false
+}
+
+enum MakeViewAction {
+    case filterNameChanged(String)
+    case categorySelected(CategoryType)
+    case imageSelected(UIImage, PhotoMetadata?)
+    case imageChangeRequested
+    case editButtonTapped
+    case editViewDismissed
+    case filteredImageReceived(UIImage)
+    case introduceChanged(String)
+    case priceChanged(String)
+    case saveButtonTapped
+    case retryButtonTapped
+}
+
+@MainActor
 @Observable
 final class MakeViewStore {
-    struct State {
-        var filterName: String = ""
-        var selectedCategory: CategoryType? = nil
-        var selectedImage: UIImage?
-        var filteredImage: UIImage?
-        var imageMetaData: PhotoMetadata?
-        var address: String?
-        var introduce: String = ""
-        var price: String = ""
-        var showingEditView: Bool = false
-        
-        var isLoading: Bool = false
-        var errorMessage: String?
-        var saveResult: [String]? = nil
-        var showingSaveAlert: Bool = false
+    private(set) var state = MakeViewState()
+    private let useCase: MakeViewUseCase
+    
+    init(useCase: MakeViewUseCase) {
+        self.useCase = useCase
     }
     
-    enum Action {
-        case filterNameChanged(String)
-        case categorySelected(CategoryType)
-        case imageSelected(UIImage, PhotoMetadata?)
-        case imageChangeRequested
-        case editButtonTapped
-        case editViewDismissed
-        case filteredImageReceived(UIImage)
-        case introduceChanged(String)
-        case priceChanged(String)
-        case saveButtonTapped
-        case retryButtonTapped
-    }
-    
-    var state = State()
-    private var makeViewUseCase: MakeViewUseCase?
-    
-    func send(_ action: Action) {
+    func send(_ action: MakeViewAction) {
         switch action {
         case .filterNameChanged(let name):
             state.filterName = name
@@ -82,8 +87,10 @@ final class MakeViewStore {
             state.errorMessage = nil
         }
     }
-    
-    private func extractImageMetaData(image: UIImage, meta: PhotoMetadata?) {
+}
+
+private extension MakeViewStore {
+    func extractImageMetaData(image: UIImage, meta: PhotoMetadata?) {
         Task {
             let address = await meta?.getKoreanAddress()
             state.imageMetaData = meta
@@ -91,61 +98,30 @@ final class MakeViewStore {
         }
     }
     
-    private func saveFilter() {
-        guard let originalImage = state.selectedImage,
-              let makeViewUseCase = makeViewUseCase else {
-            state.errorMessage = "이미지 또는 UseCase가 없습니다."
-            return
-        }
-        
+    func saveFilter() {
         state.isLoading = true
         state.errorMessage = nil
         
         Task {
             do {
-                // 원본 이미지와 필터된 이미지를 base64로 변환
-                guard let originalData = originalImage.jpegData(compressionQuality: 0.8) else {
-                    throw NSError(domain: "ImageConversion", code: -1, userInfo: [NSLocalizedDescriptionKey: "원본 이미지 변환 실패"])
-                }
+                let imageData = try ImageConverter.convertToData(
+                    originalImage: state.selectedImage,
+                    filteredImage: state.filteredImage
+                )
                 
-                let filteredData: Data
-                if let filteredImage = state.filteredImage {
-                    guard let data = filteredImage.jpegData(compressionQuality: 0.8) else {
-                        throw NSError(domain: "ImageConversion", code: -1, userInfo: [NSLocalizedDescriptionKey: "필터 이미지 변환 실패"])
-                    }
-                    filteredData = data
-                } else {
-                    filteredData = originalData  // 필터가 없으면 원본 사용
-                }
+                let result = try await useCase.files(imageData)
                 
-                let originalBase64 = originalData.base64EncodedString()
-                let filteredBase64 = filteredData.base64EncodedString()
+                state.isLoading = false
+                state.saveResult = result.files
+                state.showingSaveAlert = true
+                GTLogger.shared.i("Filter save success: \(result.files)")
                 
-                GTLogger.shared.i("API 호출 시작 - 원본: \(originalData.count) bytes, 필터: \(filteredData.count) bytes")
-                
-                let result = try await makeViewUseCase.files([originalData, filteredData])
-                
-                await MainActor.run {
-                    state.isLoading = false
-                    state.saveResult = result.files
-                    state.showingSaveAlert = true
-                    GTLogger.shared.i("Filter save success: \(result.files)")
-                }
             } catch {
-                await MainActor.run {
-                    state.isLoading = false
-                    state.errorMessage = error.localizedDescription
-                    GTLogger.shared.w("Filter save failed: \(error)")
-                }
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                GTLogger.shared.w("Filter save failed: \(String(describing: state.errorMessage))")
             }
         }
-    }
-}
-
-// UseCase 설정을 위한 메서드 추가
-extension MakeViewStore {
-    func setUseCase(_ useCase: MakeViewUseCase) {
-        self.makeViewUseCase = useCase
     }
 }
 

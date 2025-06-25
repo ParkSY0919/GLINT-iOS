@@ -10,7 +10,7 @@ import Foundation
 import Alamofire
 
 enum FilterEndPoint {
-    case filterFiles(files: FilesEntity.Request)
+    case filterFiles(files: [Data])
 }
 
 extension FilterEndPoint: EndPoint {
@@ -38,7 +38,7 @@ extension FilterEndPoint: EndPoint {
     var requestType: RequestType {
         switch self {
         case .filterFiles(let files):
-            return .multipartData(MultipartConfig(files: files.files))
+            return .multipartData(MultipartConfig(files: files))
         }
     }
     

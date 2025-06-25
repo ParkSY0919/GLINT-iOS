@@ -8,13 +8,13 @@
 import Foundation
 
 extension FilterRepository {
-    static let value: FilterRepository = {
+    static let liveValue: FilterRepository = {
         let provider = NetworkService<FilterEndPoint>()
         
         return FilterRepository(
-            filterFiles: { files in
-                let request = FilesEntity.Request(files: files)
-                return try await provider.requestMultipart(.filterFiles(files: request))
+            // 파일 업로드
+            fileUpload: { files in
+                return try await provider.requestMultipart(.filterFiles(files: files))
             }
         )
     }()
