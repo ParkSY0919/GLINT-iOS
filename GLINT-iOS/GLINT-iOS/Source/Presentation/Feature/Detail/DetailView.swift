@@ -131,13 +131,13 @@ private extension DetailView {
                 
                 AuthorSectionView(
                     userInfo: store.state.userInfoData,
-                    onSendMessageTapped: {
+                    onTapMessageBtn: {
                         store.send(.sendMessageTapped)
                     }
                 )
+                
             }
         }
-        .detectScroll()
         .background(.gray100)
     }
     

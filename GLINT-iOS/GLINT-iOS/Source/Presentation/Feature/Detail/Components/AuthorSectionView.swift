@@ -6,87 +6,50 @@
 //
 
 import SwiftUI
-import NukeUI
 
+/// 작가 프로필 섹션
 struct AuthorSectionView: View {
     let userInfo: ProfileEntity?
-    let onSendMessageTapped: () -> Void
+    let onTapMessageBtn: () -> Void
     
     var body: some View {
+        content
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
+            .padding(.bottom, 32)
+    }
+}
+
+private extension AuthorSectionView {
+    var content: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 작가 프로필 섹션
-            HStack(spacing: 12) {
-                // 프로필 이미지
-                if userInfo?.profileImageURL != "" {
-                    LazyImage(url: URL(string: userInfo?.profileImageURL ?? "")) { state in
-                        lazyImageTransform(state) { image in
-                            image.aspectRatio(contentMode: .fill)
-                        }
-                    }
-                    .frame(width: 72, height: 72)
-                    .clipShape(Circle())
-                } else {
-                    ImageLiterals.TabBar.profile
-                        .frame(width: 72, height: 72)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white, lineWidth: 1)
-                        )
-                }
-                
-                // 작가 정보
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(userInfo?.name ?? "")
-                        .font(.pointFont(.body, size: 20))
-                        .foregroundColor(.gray30)
-                    
-                    Text(userInfo?.nick ?? "")
-                        .font(.pretendardFont(.body_medium, size: 16))
-                        .foregroundColor(.gray75)
-                }
-                
-                Spacer()
-                
-                // 메시지 보내기 버튼
-                Button {
-                    onSendMessageTapped()
-                } label: {
-                    Image(systemName: "paperplane.fill")
-                        .font(.system(size: 20))
-                        .foregroundColor(.gray0)
-                }
-                .frame(width: 44, height: 44)
-                .background(.brandBright)
-                .clipShape(Circle())
-            }
+            // 작가 프로필
+            GTProfileView(
+                userInfo: userInfo,
+                isEnableChat: true,
+                onTapMessageBtn: onTapMessageBtn
+            )
+            .prefetchImageIfPresent(userInfo?.profileImageURL)
             
             // 해시태그
-            HStack {
-                ForEach(userInfo?.hashTags ?? [], id: \.self) { tag in
-                    Text(tag)
-                        .font(.pointFont(.caption, size: 10))
-                        .foregroundColor(.gray60)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(.quaternary)
-                        .clipShape(Capsule())
-                }
+            if let hashTags = userInfo?.hashTags, !hashTags.isEmpty {
+                GTHashTagsView(hashTags: hashTags)
             }
             
             // 작가 소개
-            VStack(alignment: .leading, spacing: 12) {
-                Text(userInfo?.introduction ?? "")
-                    .font(.pointFont(.body, size: 14))
-                    .foregroundColor(.gray60)
-                
-                Text(userInfo?.description ?? "")
-                    .font(.pretendardFont(.caption, size: 12))
-                    .foregroundColor(.gray60)
+            if hasProfileInfo {
+                GTProfileInfoView(
+                    introduction: userInfo?.introduction,
+                    description: userInfo?.description
+                )
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
-        .padding(.bottom, 32)
+    }
+    
+    private var hasProfileInfo: Bool {
+        let hasIntro = userInfo?.introduction?.isEmpty == false
+        let hasDesc = userInfo?.description?.isEmpty == false
+        return hasIntro || hasDesc
     }
 }
+
