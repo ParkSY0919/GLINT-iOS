@@ -30,7 +30,7 @@ struct GLINT_iOSApp: App {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color.gray100)
-        if let pointFont = UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) {
+        if let pointFont = UIFont(name: "TTHakgyoansimMulgyeolB", size: 20) {
             appearance.titleTextAttributes = [
                 .font: pointFont,
                 .foregroundColor: UIColor(Color.gray0)
@@ -42,21 +42,6 @@ struct GLINT_iOSApp: App {
         UINavigationBar.appearance().compactAppearance = appearance
     }
     
-    private func setupImageCaching() {
-            // 메모리 캐시 크기 증가
-            ImageCache.shared.costLimit = 1024 * 1024 * 200 // 200MB
-            ImageCache.shared.countLimit = 200 // 이미지 개수
-            
-            // 디스크 캐시 설정
-            let dataCache = try! DataCache(name: "com.yourapp.nuke")
-            dataCache.sizeLimit = 1024 * 1024 * 500 // 500MB
-            
-            ImagePipeline.shared = ImagePipeline {
-                $0.dataCache = dataCache
-                $0.imageCache = ImageCache.shared
-                $0.dataCachePolicy = .automatic
-            }
-        }
     private func setupImagePipeline() {
         let imageSession = Session(interceptor: Interceptor(
             interceptors: [GTInterceptor(type: .nuke)])

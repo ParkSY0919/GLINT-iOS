@@ -16,6 +16,7 @@ struct DetailViewState {
     var filterPresetsData: FilterPresetsEntity?
     
     var address: String?
+    var navTitle: String = ""
     
     var isLoading: Bool = true
     var errorMessage: String?
@@ -195,6 +196,7 @@ private extension DetailViewStore {
                     photoMetaData: metadata,
                     filterPresetsData: presets,
                     address: metadata?.getKoreanAddress(),
+                    navTitle: filter.title ?? "",
                     isLoading: false,
                     hasLoadedOnce: true,
                     isPurchased: filter.isDownloaded ?? false

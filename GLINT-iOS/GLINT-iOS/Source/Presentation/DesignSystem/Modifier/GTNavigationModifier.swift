@@ -7,29 +7,40 @@
 
 import SwiftUI
 
-//TODO: Appear, titleStr, Font, backbtnhidden 등등 한번에 적용되도록 수정하기
-struct NavigationTitleFontModifier: ViewModifier {
-    let fontName: PointFontName
-    let fontSize: CGFloat
-    
-    init(fontName: PointFontName, fontSize: CGFloat) {
-        self.fontName = fontName
-        self.fontSize = fontSize
-    }
+struct GTNavigationSetupModifier: ViewModifier {
+    let title: String
+    let onBackButtonTapped: (() -> Void)?
     
     func body(content: Content) -> some View {
         content
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = UIColor(Color.gray100)
-                appearance.titleTextAttributes = [
-                    .font: UIFont(name: fontName.rawValue, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize, weight: .medium),
-                    .foregroundColor: UIColor(Color.gray0)
-                ]
-                
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                if let backAction = onBackButtonTapped {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: backAction) {
+                            Image(systemName: "arrow.left")
+                                .frame(width: 32, height: 32)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.gray75)
+                        }
+                    }
+                }
             }
+    }
+}
+
+extension View {
+    func navigationSetup(
+        title: String,
+        onBackButtonTapped: (() -> Void)? = nil
+    ) -> some View {
+        self.modifier(
+            GTNavigationSetupModifier(
+                title: title,
+                onBackButtonTapped: onBackButtonTapped
+            )
+        )
     }
 }

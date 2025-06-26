@@ -57,29 +57,12 @@ struct DetailView: View {
                 }
             )
         }
-        .navigationTitle(store.state.filterData?.title ?? "")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    router.pop()
-                } label: {
-                    Image(systemName: "arrow.left")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.gray75)
-                }
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                LikeButton(isLiked: $isLiked) {
-                    //store.send(.likeButtonTapped)
-                }
-            }
-        }
+        .navigationSetup(
+            title: store.state.navTitle,
+            onBackButtonTapped: { router.pop() }
+        )
         .onAppear {
             store.send(.viewAppeared(id: id))
-            setupNavigationAppearance()
         }
         .onOpenURL { openURL in
             Iamport.shared.receivedURL(openURL)
@@ -139,20 +122,5 @@ private extension DetailView {
             }
         }
         .background(.gray100)
-    }
-    
-    func setupNavigationAppearance() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.gray100)
-        if let pointFont = UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) {
-            appearance.titleTextAttributes = [
-                .font: pointFont,
-                .foregroundColor: UIColor(Color.gray0)
-            ]
-        }
-        
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 }
