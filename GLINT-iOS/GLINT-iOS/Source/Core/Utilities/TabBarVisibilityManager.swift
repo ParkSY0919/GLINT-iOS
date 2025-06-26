@@ -22,7 +22,7 @@ final class TabBarVisibilityManager {
             hideTimer?.invalidate()
             
             // 2초 후 숨기기
-            hideTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+            hideTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
                 self.isVisible = false
             }
         }
@@ -30,6 +30,7 @@ final class TabBarVisibilityManager {
     
     func setScrollable(_ scrollable: Bool) {
         isScrollableView = scrollable
+        
         if !scrollable {
             // 스크롤 불가능한 뷰에서는 항상 표시
             hideTimer?.invalidate()
