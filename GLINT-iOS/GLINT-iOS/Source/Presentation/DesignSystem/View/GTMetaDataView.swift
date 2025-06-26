@@ -1,5 +1,5 @@
 //
-//  GLMetaDataView.swift
+//  GTMetaDataView.swift
 //  GLINT-iOS
 //
 //  Created by AI Assistant on 1/19/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import MapKit
 
-struct GLMetaDataView: View {
+struct GTMetaDataView: View {
     let camera: String?
     let photoMetadataString: String
     let megapixelInfo: String
