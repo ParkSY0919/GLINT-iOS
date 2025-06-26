@@ -71,7 +71,7 @@ struct TitlePictureSectionView: View {
                 
                 // 메타데이터 표시
                 if let metaData = imageMetaData {
-                    GLMetaDataView(
+                    GTMetaDataView(
                         camera: metaData.camera,
                         photoMetadataString: metaData.photoMetadataString ?? "정보 없음",
                         megapixelInfo: metaData.megapixelInfoString ?? "정보 없음",

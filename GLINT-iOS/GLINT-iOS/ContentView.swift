@@ -18,7 +18,7 @@ struct ContentView: View {
             case .login:
                 LoginView(useCase: useCase, rootRouter: rootRouter)
             case .tabBar:
-                TabBarView.create()
+                TabBarView()
             }
         }
         .animation(.easeInOut(duration: 0.3), value: rootRouter.currentRoute)
