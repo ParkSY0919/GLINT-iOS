@@ -11,11 +11,8 @@ import MapKit
 import NukeUI
 import iamport_ios
 
+//TODO: store init형태로 바꾸기
 struct DetailView: View {
-//    @Environment(\.detailViewUseCase)
-//    private var useCase
-    //TODO: init형태로 바꾸기
-    
     @Environment(\.openURL)
     private var openURL
     
