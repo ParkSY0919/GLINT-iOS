@@ -19,6 +19,7 @@ struct DetailViewState {
     var navTitle: String = ""
     
     var isLoading: Bool = true
+    var isLiked: Bool = false
     var errorMessage: String?
     var hasLoadedOnce: Bool = false
     var isPurchased: Bool = false // 필터 구매 여부
@@ -31,6 +32,7 @@ enum DetailViewAction {
     case viewAppeared(id: String)
     case sliderPositionChanged(CGFloat)
     case sendMessageTapped
+    case likeButtonTapped
     case retryButtonTapped
     case purchaseButtonTapped
     case paymentCompleted(IamportResponse?)
@@ -61,6 +63,9 @@ final class DetailViewStore {
             
         case .purchaseButtonTapped:
             handlePurchaseButtonTapped()
+            
+        case .likeButtonTapped:
+            handleLikeTapped()
             
         case .sendMessageTapped:
             handleSendMessageTapped()
@@ -166,6 +171,12 @@ private extension DetailViewStore {
     
     func handleDismissPaymentSheet() {
         state.showPaymentSheet = false
+    }
+    
+    /// 찜 버튼 탭 처리
+    func handleLikeTapped() {
+        print("찜 버튼 탭됨")
+        //TODO: like api 연결
     }
     
     /// 메시지 보내기 버튼 탭 처리

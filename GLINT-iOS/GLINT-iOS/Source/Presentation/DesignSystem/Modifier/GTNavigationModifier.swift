@@ -9,7 +9,10 @@ import SwiftUI
 
 struct GTNavigationSetupModifier: ViewModifier {
     let title: String
+    let isLiked: Bool?
     let onBackButtonTapped: (() -> Void)?
+    let onLikeButtonTapped: (() -> Void)?
+    let onUplodButtonTapped: (() -> Void)?
     
     func body(content: Content) -> some View {
         content
@@ -27,6 +30,27 @@ struct GTNavigationSetupModifier: ViewModifier {
                         }
                     }
                 }
+                
+                if let likeAction = onLikeButtonTapped,
+                   let likedState = isLiked {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        GTLikeButton(
+                            likedState: likedState,
+                            action: likeAction
+                        )
+                    }
+                }
+                
+                if let uploadAction = onUplodButtonTapped {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: uploadAction) {
+                            ImageLiterals.Make.upload
+                                .frame(width: 32, height: 32)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.gray75)
+                        }
+                    }
+                }
             }
     }
 }
@@ -34,12 +58,18 @@ struct GTNavigationSetupModifier: ViewModifier {
 extension View {
     func navigationSetup(
         title: String,
-        onBackButtonTapped: (() -> Void)? = nil
+        isLiked: Bool,
+        onBackButtonTapped: (() -> Void)? = nil,
+        onLikeButtonTapped: (() -> Void)? = nil,
+        onUplodButtonTapped: (() -> Void)? = nil
     ) -> some View {
         self.modifier(
             GTNavigationSetupModifier(
                 title: title,
-                onBackButtonTapped: onBackButtonTapped
+                isLiked: isLiked,
+                onBackButtonTapped: onBackButtonTapped,
+                onLikeButtonTapped: onLikeButtonTapped,
+                onUplodButtonTapped: onUplodButtonTapped
             )
         )
     }

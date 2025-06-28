@@ -11,13 +11,10 @@ import MapKit
 import NukeUI
 import iamport_ios
 
-//TODO: store init형태로 바꾸기
+//TODO: store @Environment 형태로 바꾸기
 struct DetailView: View {
     @Environment(\.openURL)
     private var openURL
-    
-    @State
-    private var isLiked = false
     
     @State
     private var store: DetailViewStore
@@ -56,7 +53,9 @@ struct DetailView: View {
         }
         .navigationSetup(
             title: store.state.navTitle,
-            onBackButtonTapped: { router.pop() }
+            isLiked: store.state.isLiked,
+            onBackButtonTapped: { router.pop() },
+            onLikeButtonTapped: { store.send(.likeButtonTapped) }
         )
         .onAppear {
             store.send(.viewAppeared(id: id))
