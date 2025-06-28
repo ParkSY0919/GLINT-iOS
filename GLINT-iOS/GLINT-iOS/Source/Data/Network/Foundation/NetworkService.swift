@@ -60,23 +60,29 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
     func request<T: ResponseData>(_ endPoint: E) async throws -> T {
         let type: InterceptorType = endPoint.path == "refresh" ? .refresh : .default
         
-        // 🔧 여기서 먼저 정보 로깅
-        GTLogger.shared.networkRequest("NetworkStart: \(endPoint.method.rawValue) \(endPoint.baseURL)\(endPoint.path)")
+        GTLogger.shared.networkRequest("🚀 NetworkStart: \(endPoint.method.rawValue) \(endPoint.baseURL)\(endPoint.path)")
         
         let request = defaultSession.request(
             endPoint,
             interceptor: Interceptor(interceptors: [GTInterceptor(type: type)])
         )
         
-        let response = await request
-            .validate(statusCode: 200..<300)
-            .serializingDecodable(T.self, decoder: endPoint.decoder)
-            .response
+        print("📝 Step 1: Request created")
         
-        // 🔧 또는 여기서 실제 요청 정보 로깅
-        GTLogger.shared.networkRequest("NetworkCompleted: \(request.request?.description ?? "No request")")
-        
-        return try handleResponse(response, endPoint: endPoint)
+        do {
+            let response = await request
+                .validate(statusCode: 200..<300)
+                .serializingDecodable(T.self, decoder: endPoint.decoder)
+                .response
+            
+            print("📝 Step 2: Response received")
+            print("@@@", response)
+            
+            return try handleResponse(response, endPoint: endPoint)
+        } catch {
+            print("❌ Error occurred: \(error)")
+            throw error
+        }
     }
     
     //MARK: 응답값 X

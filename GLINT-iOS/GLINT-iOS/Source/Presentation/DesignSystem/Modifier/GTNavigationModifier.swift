@@ -58,7 +58,7 @@ struct GTNavigationSetupModifier: ViewModifier {
 extension View {
     func navigationSetup(
         title: String,
-        isLiked: Bool,
+        isLiked: Bool? = false,
         onBackButtonTapped: (() -> Void)? = nil,
         onLikeButtonTapped: (() -> Void)? = nil,
         onUplodButtonTapped: (() -> Void)? = nil

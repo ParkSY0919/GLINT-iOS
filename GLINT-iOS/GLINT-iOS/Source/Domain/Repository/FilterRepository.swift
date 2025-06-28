@@ -9,4 +9,5 @@ import Foundation
 
 struct FilterRepository {
     var fileUpload: (_ files: [Data]) async throws -> FileUploadResponse
+    var likeFilter: (_ filterID: String, _ likeStatus: Bool) async throws -> LikeFilterResponse
 }

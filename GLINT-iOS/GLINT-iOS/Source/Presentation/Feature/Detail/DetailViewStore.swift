@@ -18,8 +18,8 @@ struct DetailViewState {
     var address: String?
     var navTitle: String = ""
     
+    var isLiked: Bool? = false
     var isLoading: Bool = true
-    var isLiked: Bool = false
     var errorMessage: String?
     var hasLoadedOnce: Bool = false
     var isPurchased: Bool = false // 필터 구매 여부
@@ -129,7 +129,7 @@ private extension DetailViewStore {
     func handlePaymentCompleted(response: IamportResponse?) async {
         if let response, response.success == true {
             GTLogger.shared.i("결제 성공: \(response.imp_uid ?? "")")
-
+            
             await executeAfterSuccessfulPayment(imp_uid: response.imp_uid)
             
             // 모든 로직 완료 후 화면 닫기
@@ -176,7 +176,26 @@ private extension DetailViewStore {
     /// 찜 버튼 탭 처리
     func handleLikeTapped() {
         print("찜 버튼 탭됨")
-        //TODO: like api 연결
+        state.isLoading = true
+        state.errorMessage = nil
+        
+        Task {
+            do {
+                state.isLoading = true
+                guard let filterID = state.filterData?.id, let isLiked = state.isLiked else {
+                    state.isLoading = false
+                    state.errorMessage = "필터 정보를 가져오지 못했습니다."
+                    return
+                }
+                let newLikedState = !isLiked
+                state.isLiked = try await useCase.likeFilter(filterID, newLikedState).likeStatus
+                state.isLoading = false
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+            }
+        }
+        state.isLoading = false
     }
     
     /// 메시지 보내기 버튼 탭 처리
@@ -208,6 +227,7 @@ private extension DetailViewStore {
                     filterPresetsData: presets,
                     address: metadata?.getKoreanAddress(),
                     navTitle: filter.title ?? "",
+                    isLiked: filter.isLiked ?? false,
                     isLoading: false,
                     hasLoadedOnce: true,
                     isPurchased: filter.isDownloaded ?? false

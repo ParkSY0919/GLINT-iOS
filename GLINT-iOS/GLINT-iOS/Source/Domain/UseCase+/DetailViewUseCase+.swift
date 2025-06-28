@@ -9,18 +9,23 @@ import Foundation
 
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
-        let filterRepo: FilterDetailRepository = .liveValue
+        let filterRepo: FilterRepository = .liveValue
+        let filterDetailRepo: FilterDetailRepository = .liveValue
         let purchaseRepo: PurchaseRepository = .liveValue
         
         return DetailViewUseCase (
             filterDetail: { filterID in
-                let response = try await filterRepo.filterDetail(filterID)
+                let response = try await filterDetailRepo.filterDetail(filterID)
                 let filter = response.toFilterEntity()
                 let profile = response.creator.toProfileEntity()
                 let metadata = response.photoMetadata
                 let presets = response.filterValues.toEntity()
 
                 return (filter, profile, metadata, presets)
+            },
+            
+            likeFilter: { filterID, likeStatus in
+                return try await filterRepo.likeFilter(filterID, likeStatus)
             },
             
             createOrder: { filterID, filterPrice in

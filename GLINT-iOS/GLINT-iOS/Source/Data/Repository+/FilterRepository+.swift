@@ -15,6 +15,11 @@ extension FilterRepository {
             // 파일 업로드
             fileUpload: { files in
                 return try await provider.requestMultipart(.filterFiles(files: files))
+            },
+            
+            // 필터 좋아요
+            likeFilter: { filterID, likeStatus in
+                return try await provider.request(.likeFilter(filterID: filterID, likeStatus: likeStatus))
             }
         )
     }()
