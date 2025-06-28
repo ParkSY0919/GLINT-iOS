@@ -8,7 +8,7 @@
 import Foundation
 
 import Alamofire
-
+//TODO: 추후 프로퍼티 2개 이하 request 방식 변경
 enum PurchaseEndPoint {
     case createOrder(CreateOrderRequest)
     case infoOrder
