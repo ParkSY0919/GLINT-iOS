@@ -8,7 +8,8 @@
 import Foundation
 
 struct MainViewUseCase {
-    var todayAuthor: @Sendable () async throws -> ResponseEntity.TodayAuthor // 오늘의 작가 소개
-    var todayFilter: @Sendable () async throws -> ResponseEntity.TodayFilter // 오늘의 필터 소개
-    var hotTrend: @Sendable () async throws -> ResponseEntity.HotTrend
+    var todayAuthor: @Sendable () async throws -> TodayAuthorResponse
+    var todayFilter: @Sendable () async throws -> TodayFilterResponse
+    var hotTrend: @Sendable () async throws -> HotTrendResponse
+    var loadMainViewState: @Sendable () async throws -> (TodayAuthorResponse, TodayFilterResponse, HotTrendResponse)
 }

@@ -9,59 +9,50 @@ import SwiftUI
 
 import iamport_ios
 
-// MARK: - State
 struct DetailViewState {
-    var filterData: FilterModel?
-    var userInfoData: UserInfoModel?
-    var photoMetaData: PhotoMetadataModel?
-    var filterPresetsData: FilterPresetsModel?
+    var filterData: FilterEntity?
+    var userInfoData: ProfileEntity?
+    var photoMetaData: PhotoMetadata?
+    var filterPresetsData: FilterPresetsEntity?
     
     var address: String?
+    var navTitle: String = ""
     
     var isLoading: Bool = true
+    var isLiked: Bool = false
     var errorMessage: String?
     var hasLoadedOnce: Bool = false
     var isPurchased: Bool = false // 필터 구매 여부
     var sliderPosition: CGFloat = 0.5
     var showPaymentSheet: Bool = false
-    var createOrderResult: CreateOrderEntity.Response?
+    var createOrderResult: CreateOrderResponse?
 }
 
-// MARK: - Action
 enum DetailViewAction {
     case viewAppeared(id: String)
     case sliderPositionChanged(CGFloat)
     case sendMessageTapped
+    case likeButtonTapped
     case retryButtonTapped
     case purchaseButtonTapped
     case paymentCompleted(IamportResponse?)
     case dismissPaymentSheet
 }
 
+@MainActor
 @Observable
 final class DetailViewStore {
-    var state = DetailViewState()
+    private(set) var state = DetailViewState()
+    
+    private let useCase: DetailViewUseCase
     
     // 필터 ID
     private var filterId: String = ""
     
-    /// 의존성 주입을 통한 초기화
-    private let filterDetailUseCase: DetailViewUseCase
-    private let orderUseCase: DetailViewUseCase
-    private let paymentUseCase: DetailViewUseCase
-    
-    init(
-        filterDetailUseCase: DetailViewUseCase,
-        orderUseCase: DetailViewUseCase,
-        paymentUseCase: DetailViewUseCase
-    ) {
-        self.filterDetailUseCase = filterDetailUseCase
-        self.orderUseCase = orderUseCase
-        self.paymentUseCase = paymentUseCase
+    init(useCase: DetailViewUseCase) {
+        self.useCase = useCase
     }
     
-    /// - Parameter action: 처리할 액션
-    @MainActor
     func send(_ action: DetailViewAction) {
         switch action {
         case .viewAppeared(let id):
@@ -72,6 +63,9 @@ final class DetailViewStore {
             
         case .purchaseButtonTapped:
             handlePurchaseButtonTapped()
+            
+        case .likeButtonTapped:
+            handleLikeTapped()
             
         case .sendMessageTapped:
             handleSendMessageTapped()
@@ -115,11 +109,13 @@ private extension DetailViewStore {
         Task {
             do {
                 state.isLoading = true
-                let requestEntity = CreateOrderEntity.Request(filter_id: state.filterData?.filterID ?? "", total_price: state.filterData?.price ?? 0)
-                state.createOrderResult = try await orderUseCase.createOrder(requestEntity)
-                
-                print("response: \(String(describing: state.createOrderResult))")
-                
+                guard let filterID = state.filterData?.id,
+                      let filterPrice = state.filterData?.price else {
+                    state.isLoading = false
+                    state.errorMessage = "필터 정보를 가져오지 못했습니다."
+                    return
+                }
+                state.createOrderResult = try await useCase.createOrder(filterID, filterPrice)
                 state.showPaymentSheet = true  // 결제 화면 표시
                 state.isLoading = false
             } catch {
@@ -127,9 +123,7 @@ private extension DetailViewStore {
                 state.errorMessage = error.localizedDescription
             }
         }
-        
         state.isLoading = false
-        
     }
     
     func handlePaymentCompleted(response: IamportResponse?) async {
@@ -153,10 +147,23 @@ private extension DetailViewStore {
     
     private func executeAfterSuccessfulPayment(imp_uid: String?) async {
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 시작!")
+        guard let imp_uid else {
+            return
+        }
         
-        if let imp_uid {
-            let request = PaymentValidationEntity.Request(imp_uid: imp_uid)
-            let response = try? await paymentUseCase.paymentValidation(request)
+        Task {
+            do {
+                let response = try await useCase.paymentValidation(imp_uid)
+                
+                print(try await useCase.paymentInfo(response.orderItem.orderCode))
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+                // 에러가 발생해도 hasLoadedOnce는 true로 유지 (이전 데이터 보존)
+                if !state.hasLoadedOnce {
+                    state.hasLoadedOnce = true
+                }
+            }
         }
         
         GTLogger.shared.i("결제 성공 후 추가 로직 실행 완료!")
@@ -164,6 +171,12 @@ private extension DetailViewStore {
     
     func handleDismissPaymentSheet() {
         state.showPaymentSheet = false
+    }
+    
+    /// 찜 버튼 탭 처리
+    func handleLikeTapped() {
+        print("찜 버튼 탭됨")
+        //TODO: like api 연결
     }
     
     /// 메시지 보내기 버튼 탭 처리
@@ -186,18 +199,19 @@ private extension DetailViewStore {
         
         Task {
             do {
-                async let filterDetail = filterDetailUseCase.filterDetail(filterId)
-                let filterData = try await filterDetail
+                let (filter, profile, metadata, presets) = try await useCase.filterDetail(filterId)
                 
-                state.filterData = filterData.filter
-                state.userInfoData = filterData.author
-                state.photoMetaData = filterData.photoMetadata
-                state.filterPresetsData = filterData.filterValues
-                state.address = await filterData.photoMetadata.getKoreanAddress()
-                
-                state.isPurchased = filterData.filter.isDownloaded ?? false
-                state.isLoading = false
-                state.hasLoadedOnce = true
+                state = await DetailViewState(
+                    filterData: filter,
+                    userInfoData: profile,
+                    photoMetaData: metadata,
+                    filterPresetsData: presets,
+                    address: metadata?.getKoreanAddress(),
+                    navTitle: filter.title ?? "",
+                    isLoading: false,
+                    hasLoadedOnce: true,
+                    isPurchased: filter.isDownloaded ?? false
+                )
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
@@ -205,6 +219,27 @@ private extension DetailViewStore {
                     state.hasLoadedOnce = true
                 }
             }
+        }
+    }
+}
+
+@MainActor
+extension DetailViewStore {
+    func createPaymentData() -> IamportPayment {
+        guard let orderData = state.createOrderResult,
+              let filterData = state.filterData else {
+            fatalError("결제 데이터가 없습니다")
+        }
+        
+        return IamportPayment(
+            pg: PG.html5_inicis.makePgRawName(pgId: "INIpayTest"),
+            merchant_uid: orderData.orderCode,
+            amount: "\(filterData.price ?? 0)"
+        ).then {
+            $0.pay_method = PayMethod.card.rawValue
+            $0.name = filterData.title
+            $0.buyer_name = "박신영" //추후 사용자 nick
+            $0.app_scheme = "sesac"
         }
     }
 }

@@ -10,7 +10,8 @@ import SwiftUI
 import NukeUI
 
 struct TodayArtistView: View {
-    @Binding var todayArtist: ResponseEntity.TodayAuthor?
+    @Binding var author: TodayAuthInfo?
+    @Binding var filter: [FilterSummary]?
     let router: NavigationRouter<MainTabRoute>
     
     var body: some View {
@@ -48,7 +49,7 @@ struct TodayArtistView: View {
     }
     
     private func artistProfileImage() -> some View {
-        let imageUrlString = todayArtist?.author.profileImage ?? ""
+        let imageUrlString = author?.profileImageURL ?? ""
         
         return LazyImage(url: URL(string: imageUrlString)) { state in
             lazyImageTransform(state) { image in
@@ -67,13 +68,13 @@ struct TodayArtistView: View {
     }
     
     private func artistName() -> some View {
-        Text(todayArtist?.author.name ?? "")
+        Text(author?.name ?? "")
             .font(.pointFont(.body, size: 20))
             .foregroundColor(.gray30)
     }
     
     private func artistNickname() -> some View {
-        Text(todayArtist?.author.nick ?? "")
+        Text(author?.nick ?? "")
             .font(.pretendardFont(.body_medium, size: 16))
             .foregroundColor(.gray75)
     }
@@ -91,9 +92,10 @@ struct TodayArtistView: View {
     private func artistWorksHorizontalStack() -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                if let todayArtist = todayArtist {
-                    ForEach(todayArtist.filters, id: \.id) { filter in
-                        LazyImage(url: URL(string: filter.filtered ?? "")) { state in
+                if let filter = filter {
+                    ForEach(filter, id: \.filterID) { filter in
+                        let entity = filter.toEntity()
+                        LazyImage(url: URL(string: entity.filtered ?? "")) { state in
                             lazyImageTransform(state) { image in
                                 image.aspectRatio(contentMode: .fill)
                             }
@@ -112,7 +114,7 @@ struct TodayArtistView: View {
     // MARK: - Artist Tags Section
     private func artistTagsSection() -> some View {
         HStack {
-            ForEach(todayArtist?.author.hashTags ?? [], id: \.self) { tag in
+            ForEach(author?.hashTags ?? [], id: \.self) { tag in
                 artistTag(tag: tag)
             }
         }
@@ -141,20 +143,15 @@ struct TodayArtistView: View {
     }
     
     private func artistIntroductionTitle() -> some View {
-        Text(todayArtist?.author.introduction ?? "")
+        Text(author?.introduction ?? "")
             .font(.pointFont(.body, size: 14))
             .foregroundColor(.gray60)
     }
     
     private func artistIntroductionBody() -> some View {
-        Text(todayArtist?.author.description ?? "")
+        Text(author?.description ?? "")
             .font(.pretendardFont(.caption, size: 12))
             .foregroundColor(.gray60)
     }
 }
-
-//#Preview {
-//    TodayArtistView(artist: DummyFilterAppData.todayArtist, router: NavigationRouter<MainTabRoute>())
-//        .preferredColorScheme(.dark)
-//}
 

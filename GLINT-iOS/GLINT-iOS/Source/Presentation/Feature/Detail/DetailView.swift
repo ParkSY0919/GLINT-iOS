@@ -11,22 +11,22 @@ import MapKit
 import NukeUI
 import iamport_ios
 
+//TODO: store @Environment 형태로 바꾸기
 struct DetailView: View {
     @Environment(\.openURL)
     private var openURL
     
-    let id: String
+    @State
+    private var store: DetailViewStore
+    
     let router: NavigationRouter<MainTabRoute>
-    
-    @State
-    private var store = DetailViewStore(
-        filterDetailUseCase: .liveValue,
-        orderUseCase: .liveValue,
-        paymentUseCase: .liveValue
-    )
-    
-    @State
-    private var isLiked = false
+    let id: String
+        
+    init(id: String, router: NavigationRouter<MainTabRoute>) {
+        self.id = id
+        self.router = router
+        self._store = State(wrappedValue: DetailViewStore(useCase: .liveValue))
+    }
     
     var body: some View {
         Group {
@@ -40,41 +40,25 @@ struct DetailView: View {
                 contentView
             }
         }
-        .sheet(isPresented: $store.state.showPaymentSheet) {
-            if let orderData = store.state.createOrderResult,
-               let filterData = store.state.filterData {
-                IamportPaymentView(
-                    orderData: orderData,
-                    filterData: filterData,
-                    onComplete: { response in
-                        store.send(.paymentCompleted(response))
-                    }
-                )
-            }
-        }
-        .navigationTitle(store.state.filterData?.title ?? "")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    router.pop()
-                } label: {
-                    Image(systemName: "arrow.left")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.gray75)
+        .sheet(isPresented: Binding(
+                    get: { store.state.showPaymentSheet },
+                    set: { _ in store.send(.dismissPaymentSheet) }
+        )) {
+            IamportPaymentView(
+                paymentData: store.createPaymentData(),
+                onComplete: { response in
+                    store.send(.paymentCompleted(response))
                 }
-            }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                LikeButton(isLiked: $isLiked) {
-                    //                    store.send(.likeButtonTapped)
-                }
-            }
+            )
         }
+        .navigationSetup(
+            title: store.state.navTitle,
+            isLiked: store.state.isLiked,
+            onBackButtonTapped: { router.pop() },
+            onLikeButtonTapped: { store.send(.likeButtonTapped) }
+        )
         .onAppear {
             store.send(.viewAppeared(id: id))
-            setupNavigationAppearance()
         }
         .onOpenURL { openURL in
             Iamport.shared.receivedURL(openURL)
@@ -106,7 +90,7 @@ private extension DetailView {
                     camera: store.state.photoMetaData?.camera,
                     
                     photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? "정보 없음",
-                    megapixelInfo: store.state.photoMetaData?.megapixelInfo ?? "정보 없음",
+                    megapixelInfo: store.state.photoMetaData?.megapixelInfoString ?? "정보 없음",
                     address: store.state.address,
                     latitude: store.state.photoMetaData?.latitude,
                     longitude: store.state.photoMetaData?.longitude
@@ -126,27 +110,13 @@ private extension DetailView {
                 
                 AuthorSectionView(
                     userInfo: store.state.userInfoData,
-                    onSendMessageTapped: {
+                    onTapMessageBtn: {
                         store.send(.sendMessageTapped)
                     }
                 )
+                
             }
         }
         .background(.gray100)
-    }
-    
-    func setupNavigationAppearance() {
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.gray100)
-        if let pointFont = UIFont(name: "TTHakgyoansimMulgyeolB", size: 16) {
-            appearance.titleTextAttributes = [
-                .font: pointFont,
-                .foregroundColor: UIColor(Color.gray0)
-            ]
-        }
-        
-        UINavigationBar.appearance().standardAppearance = appearance
-        UINavigationBar.appearance().scrollEdgeAppearance = appearance
     }
 }

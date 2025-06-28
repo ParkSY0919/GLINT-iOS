@@ -44,6 +44,12 @@ extension ImageLiterals {
             Image(.brightness), Image(.exposure), Image(.contrast), Image(.saturation), Image(.sharpness), Image(.blur),
             Image(.vignette), Image(.noise), Image(.highlights), Image(.shadows), Image(.temperature), Image(.blackPoint)
         ]
+        static let like = Image(.like)
+        static let likeFill = Image(.likeFill)
+    }
+    
+    struct Make {
+        static let upload = Image(.upload)
     }
     
 }

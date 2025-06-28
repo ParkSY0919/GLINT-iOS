@@ -106,29 +106,9 @@ struct RouterNavigationStack<Route: Hashable, RootContent: View, Destination: Vi
 enum MainTabRoute: Hashable {
     case home
     case detail(id: String)
-    case settings
-}
-
-enum FeedTabRoute: Hashable {
-    case categoryList
-    case categoryDetail(categoryId: String)
-    case subCategory(id: String)
 }
 
 enum MakeTabRoute: Hashable {
     case make
-    case filterEditor
-}
-
-enum SearchTabRoute: Hashable {
-    case searchHome
-    case searchResults(query: String)
-    case searchDetail(id: String)
-}
-
-enum ProfileTabRoute: Hashable {
-    case profile
-    case editProfile
-    case settings
-    case orderHistory
+//    case applyFilter
 }

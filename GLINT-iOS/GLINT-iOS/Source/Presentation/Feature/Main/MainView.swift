@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainView: View {
     let router: NavigationRouter<MainTabRoute>
-    let store: MainViewStore  // @State 제거! 외부에서 주입받음
+    @Environment(MainViewStore.self) private var store
     
     var body: some View {
         Group {
@@ -39,49 +39,71 @@ struct MainView: View {
 private extension MainView {
     var contentView: some View {
         ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
-                TodayFilterView(
-                    todayFilter: .constant(store.state.todayFilter),
-                    router: router,
-                    onTryFilterTapped: { store.send(.tryFilterTapped) }
-                )
-                
-                BannerView(
-                    items: DummyFilterAppData.bannerItems,
-                    router: router
-                )
-                .padding(.top, 20)
-                
-                HotTrendView(
-                    hotTrends: .constant(store.state.hotTrends),
-                    router: router,
-                    onHotTrendTapped: { id in
-                        store.send(.hotTrendTapped(id: id))
-                    }
-                )
-                .padding(.top, 30)
-                
-                TodayArtistView(
-                    todayArtist: .constant(store.state.todayArtist),
-                    router: router
-                )
-                .padding(.top, 30)
-            }
-            .padding(.bottom, 20)
-            
-            // 백그라운드에서 로딩 중일 때 표시할 인디케이터
-            if store.state.isLoading && store.state.hasLoadedOnce {
-                HStack {
-                    Spacer()
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .padding()
-                    Spacer()
-                }
-            }
+            scrollContent
         }
         .detectScroll()
         .scrollContentBackground(.hidden)
-        .contentMargins(.top, 0, for: .scrollContent)
+    }
+    
+    var scrollContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            todayFilterSection
+            bannerSection
+            hotTrendSection
+            todayArtistSection
+        }
+        .padding(.bottom, 20)
+        .overlay(alignment: .bottom) {
+            loadingIndicator
+        }
+    }
+    
+    var todayFilterSection: some View {
+        TodayFilterView(
+            todayFilter: .constant(store.state.todayFilter),
+            router: router,
+            onTryFilterTapped: { id in
+                store.send(.tryFilterTapped(id: id))
+            }
+        )
+    }
+    
+    var bannerSection: some View {
+        let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
+        return BannerView(items: bannerItems, router: router)
+            .padding(.top, 20)
+    }
+    
+    var hotTrendSection: some View {
+        HotTrendView(
+            hotTrends: .constant(store.state.hotTrends),
+            router: router,
+            onHotTrendTapped: { id in
+                store.send(.hotTrendTapped(id: id))
+            }
+        )
+        .padding(.top, 30)
+    }
+    
+    var todayArtistSection: some View {
+        TodayArtistView(
+            author: .constant(store.state.todayArtist?.author),
+            filter: .constant(store.state.todayArtist?.filters),
+            router: router
+        )
+        .padding(.top, 30)
+    }
+    
+    @ViewBuilder
+    var loadingIndicator: some View {
+        if store.state.isLoading && store.state.hasLoadedOnce {
+            HStack {
+                Spacer()
+                ProgressView()
+                    .scaleEffect(0.8)
+                    .padding()
+                Spacer()
+            }
+        }
     }
 }

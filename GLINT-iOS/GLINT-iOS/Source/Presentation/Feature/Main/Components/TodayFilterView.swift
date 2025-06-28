@@ -9,9 +9,9 @@ import SwiftUI
 import NukeUI
 
 struct TodayFilterView: View {
-    @Binding var todayFilter: ResponseEntity.TodayFilter?
+    @Binding var todayFilter: TodayFilterResponse?
     let router: NavigationRouter<MainTabRoute>
-    let onTryFilterTapped: () -> Void
+    let onTryFilterTapped: (String) -> Void
     
     @State private var scrollOffset: CGFloat = 0
     
@@ -41,7 +41,8 @@ struct TodayFilterView: View {
 private extension TodayFilterView {
     @ViewBuilder
     var backgroundImageView: some View {
-        LazyImage(url: URL(string: todayFilter?.filtered ?? "")) { state in
+        let entity = todayFilter?.toFilterEntity()
+        LazyImage(url: URL(string: entity?.filtered ?? "")) { state in
             lazyImageTransform(state) { image in
                 GeometryReader { proxy in
                     let global = proxy.frame(in: .global)
@@ -106,7 +107,8 @@ private extension TodayFilterView {
             Spacer()
             
             Button {
-                onTryFilterTapped()
+                guard let id = todayFilter?.filterID else { return }
+                onTryFilterTapped(id)
             } label: {
                 Text("사용해보기")
                     .font(.pretendardFont(.caption_medium, size: 12))
@@ -128,7 +130,7 @@ private extension TodayFilterView {
     TodayFilterView(
         todayFilter: .constant(nil),
         router: NavigationRouter<MainTabRoute>(),
-        onTryFilterTapped: {
+        onTryFilterTapped: { id in
             print("필터 사용 버튼 탭됨")
         }
     )

@@ -16,7 +16,7 @@ struct MetaDataSectionView: View {
     let longitude: Double?
     
     var body: some View {
-        GLMetaDataView(
+        GTMetaDataView(
             camera: camera,
             photoMetadataString: photoMetadataString,
             megapixelInfo: megapixelInfo,

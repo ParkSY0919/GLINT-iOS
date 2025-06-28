@@ -7,23 +7,26 @@
 
 import SwiftUI
 
+@MainActor
 @Observable
 final class TabBarViewModel {
     var selectedTab: Int = 0
     
     // 각 탭 NavigationRouter
     var mainRouter = NavigationRouter<MainTabRoute>()
-    var categoryRouter = NavigationRouter<FeedTabRoute>()
-    var recommendationsRouter = NavigationRouter<MakeTabRoute>()
-    var searchRouter = NavigationRouter<SearchTabRoute>()
-    var profileRouter = NavigationRouter<ProfileTabRoute>()
+    var makeRouter = NavigationRouter<MakeTabRoute>()
     
     // 각 탭의 Store 관리
     let mainViewStore: MainViewStore
+    let makeViewStore: MakeViewStore
     
     /// 의존성 주입을 통한 초기화
-    init(mainViewUseCase: MainViewUseCase) {
-        self.mainViewStore = MainViewStore(todayPickUseCase: mainViewUseCase)
+    init(
+        mainViewUseCase: MainViewUseCase,
+        makeViewUseCase: MakeViewUseCase
+    ) {
+        self.mainViewStore = MainViewStore(useCase: mainViewUseCase)
+        self.makeViewStore = MakeViewStore(useCase: makeViewUseCase)
     }
     
     func selectTab(_ index: Int) {
@@ -34,10 +37,7 @@ final class TabBarViewModel {
     func resetTabToRoot(_ index: Int) {
         switch index {
         case 0: mainRouter.popToRoot()
-        case 1: categoryRouter.popToRoot()
-        case 2: recommendationsRouter.popToRoot()
-        case 3: searchRouter.popToRoot()
-        case 4: profileRouter.popToRoot()
+        case 2: makeRouter.popToRoot()
         default: break
         }
     }

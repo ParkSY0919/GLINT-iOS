@@ -7,29 +7,70 @@
 
 import SwiftUI
 
-//TODO: Appear, titleStr, Font, backbtnhidden 등등 한번에 적용되도록 수정하기
-struct NavigationTitleFontModifier: ViewModifier {
-    let fontName: PointFontName
-    let fontSize: CGFloat
-    
-    init(fontName: PointFontName, fontSize: CGFloat) {
-        self.fontName = fontName
-        self.fontSize = fontSize
-    }
+struct GTNavigationSetupModifier: ViewModifier {
+    let title: String
+    let isLiked: Bool?
+    let onBackButtonTapped: (() -> Void)?
+    let onLikeButtonTapped: (() -> Void)?
+    let onUplodButtonTapped: (() -> Void)?
     
     func body(content: Content) -> some View {
         content
-            .onAppear {
-                let appearance = UINavigationBarAppearance()
-                appearance.configureWithOpaqueBackground()
-                appearance.backgroundColor = UIColor(Color.gray100)
-                appearance.titleTextAttributes = [
-                    .font: UIFont(name: fontName.rawValue, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize, weight: .medium),
-                    .foregroundColor: UIColor(Color.gray0)
-                ]
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                if let backAction = onBackButtonTapped {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button(action: backAction) {
+                            Image(systemName: "arrow.left")
+                                .frame(width: 32, height: 32)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.gray75)
+                        }
+                    }
+                }
                 
-                UINavigationBar.appearance().standardAppearance = appearance
-                UINavigationBar.appearance().scrollEdgeAppearance = appearance
+                if let likeAction = onLikeButtonTapped,
+                   let likedState = isLiked {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        GTLikeButton(
+                            likedState: likedState,
+                            action: likeAction
+                        )
+                    }
+                }
+                
+                if let uploadAction = onUplodButtonTapped {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: uploadAction) {
+                            ImageLiterals.Make.upload
+                                .frame(width: 32, height: 32)
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.gray75)
+                        }
+                    }
+                }
             }
+    }
+}
+
+extension View {
+    func navigationSetup(
+        title: String,
+        isLiked: Bool,
+        onBackButtonTapped: (() -> Void)? = nil,
+        onLikeButtonTapped: (() -> Void)? = nil,
+        onUplodButtonTapped: (() -> Void)? = nil
+    ) -> some View {
+        self.modifier(
+            GTNavigationSetupModifier(
+                title: title,
+                isLiked: isLiked,
+                onBackButtonTapped: onBackButtonTapped,
+                onLikeButtonTapped: onLikeButtonTapped,
+                onUplodButtonTapped: onUplodButtonTapped
+            )
+        )
     }
 }

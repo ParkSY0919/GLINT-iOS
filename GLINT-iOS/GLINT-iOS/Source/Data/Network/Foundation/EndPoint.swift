@@ -11,7 +11,6 @@ import Alamofire
 
 protocol EndPoint: URLRequestConvertible {
     var baseURL: String { get }
-    var headers: HTTPHeaders { get }
     var utilPath: String { get }
     var path: String { get }
     var method: HTTPMethod { get }
@@ -27,10 +26,6 @@ extension EndPoint {
         return Config.baseURL
     }
     
-    var headers: HTTPHeaders {
-        return HeaderType.basic
-    }
-    
     var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         // 필요한 디코딩 전략 설정
@@ -38,22 +33,25 @@ extension EndPoint {
     }
 
     func asURLRequest() throws -> URLRequest {
-        let request = try URLRequest(
-            url: baseURL + path,
-            method: method,
-            headers: headers
-        )
+        var request = URLRequest(url: URL(string: baseURL + path)!)
+        request.method = method
         
         switch requestType {
-        case .queryEncodable(let encodableParams):
-            return try URLEncoding.queryString.encode(request, with: encodableParams?.toDictionary())
-        case .bodyEncodable(let encodableParams):
-            return try JSONEncoding.default.encode(request, with: encodableParams?.toDictionary())
-        case .none:
-            return request
-        case .multipartData(_):
-            return request
+        case .queryEncodable(let parameters):
+            if let parameters = parameters {
+                request = try URLEncodedFormParameterEncoder.default.encode(parameters, into: request)
+            }
+            
+        case .bodyEncodable(let parameters):
+            if let parameters = parameters {
+                request = try JSONParameterEncoder.default.encode(parameters, into: request)
+            }
+            
+        case .none, .multipartData:
+            break
         }
+        
+        return request
     }
     
     func throwError(_ error: Alamofire.AFError) -> GLError {

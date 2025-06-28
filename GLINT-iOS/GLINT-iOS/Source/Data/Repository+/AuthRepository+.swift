@@ -12,26 +12,24 @@ extension AuthRepository {
         let provider = NetworkService<AuthEndPoint>()
         
         return AuthRepository(
-            checkEmailValidation: { request in
-                let request = request.toDTO()
-                try await provider.requestAsyncVoid(.checkEmailValidation(email: request.email))
+            checkEmailValidation: { email in
+                try await provider.requestVoid(.checkEmailValidation(email: email))
             },
             signUp: { request in
-                let request = request.toDTO()
-                return try await provider.requestAsync(.signUp(request))
+                return try await provider.request(.signUp(request))
             },
             signIn: { request in
-                let request = request.toDTO()
-                return try await provider.requestAsync(.signIn(request))
+                return try await provider.request(.signIn(request))
             },
             signInApple: { request in
-                let request = request.toDTO()
-                let response: SignInDTO.Response = try await provider.requestAsync(.signInForApple(request))
-                return response.toEntity()
+                let request = request.toAppleRequest()
+                let response: SignInResponse = try await provider.request(.signInForApple(request))
+                return response
             },
             signInKakao: { request in
-                let request = request.toDTO()
-                return try await provider.requestAsync(.signInForKakao(request))
+                let request = request.toKakaoRequest()
+                let response: SignInResponse = try await provider.request(.signInForKakao(request))
+                return response
             }
         )
     }()
