@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  RootView.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/9/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct RootView: View {
     @State
     private var rootRouter = RootRouter()
     
@@ -29,5 +29,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    RootView()
 }
