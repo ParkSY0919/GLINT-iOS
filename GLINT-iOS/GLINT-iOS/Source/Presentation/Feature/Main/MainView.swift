@@ -10,8 +10,6 @@ import SwiftUI
 struct MainView: View {
     @Environment(MainViewStore.self)
     private var store
-    @Environment(NavigationRouter<MainTabRoute>.self)
-    private var router
     
     var body: some View {
         Group {
@@ -30,7 +28,6 @@ struct MainView: View {
         .ignoresSafeArea(.all, edges: .top)
         .background(.gray100)
         .onAppear {
-            store.router = router
             store.send(.viewAppeared)
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)
@@ -63,8 +60,7 @@ private extension MainView {
     
     var todayFilterSection: some View {
         TodayFilterView(
-            todayFilter: .constant(store.state.todayFilter),
-            router: router,
+            todayFilter: store.state.todayFilter,
             onTryFilterTapped: { id in
                 store.send(.tryFilterTapped(id: id))
             }
@@ -73,14 +69,13 @@ private extension MainView {
     
     var bannerSection: some View {
         let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
-        return BannerView(items: bannerItems, router: router)
+        return BannerView(items: bannerItems)
             .padding(.top, 20)
     }
     
     var hotTrendSection: some View {
         HotTrendView(
-            hotTrends: .constant(store.state.hotTrends),
-            router: router,
+            hotTrends: store.state.hotTrends,
             onHotTrendTapped: { id in
                 store.send(.hotTrendTapped(id: id))
             }
@@ -90,9 +85,8 @@ private extension MainView {
     
     var todayArtistSection: some View {
         TodayArtistView(
-            author: .constant(store.state.todayArtist?.author),
-            filter: .constant(store.state.todayArtist?.filters),
-            router: router
+            author: store.state.todayArtist?.author,
+            filter: store.state.todayArtist?.filters
         )
         .padding(.top, 30)
     }

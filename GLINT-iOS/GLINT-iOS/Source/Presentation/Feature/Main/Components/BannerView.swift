@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct BannerView: View {
-    let items: [BannerItem]
-    let router: NavigationRouter<MainTabRoute>
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
+    @State
+    private var currentIndex = 0
     
-    @State private var currentIndex = 0
+    let items: [BannerItem]
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {

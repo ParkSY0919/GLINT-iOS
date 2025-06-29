@@ -12,12 +12,13 @@ import Nuke
 
 // MARK: - HotTrendView
 struct HotTrendView: View {
-    @Binding var hotTrends: HotTrendResponse?
-    let router: NavigationRouter<MainTabRoute>
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
+    let hotTrends: HotTrendResponse?
+    @State
+    private var centralTrendID: String?
     let onHotTrendTapped: (String) -> Void
     private let imagePrefetcher = ImagePrefetcher()
-    
-    @State private var centralTrendID: String?
     
     var body: some View {
         hotTrendContainer()

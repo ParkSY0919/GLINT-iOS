@@ -10,9 +10,11 @@ import SwiftUI
 import NukeUI
 
 struct TodayArtistView: View {
-    @Binding var author: TodayAuthInfo?
-    @Binding var filter: [FilterSummary]?
-    let router: NavigationRouter<MainTabRoute>
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
+    
+    let author: TodayAuthInfo?
+    let filter: [FilterSummary]?
     
     var body: some View {
         artistContainer()

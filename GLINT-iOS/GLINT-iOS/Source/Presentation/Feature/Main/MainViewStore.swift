@@ -30,10 +30,11 @@ enum MainViewAction {
 final class MainViewStore {
     private(set) var state = MainViewState()
     private let useCase: MainViewUseCase
-    weak var router: NavigationRouter<MainTabRoute>?
+    private let router: NavigationRouter<MainTabRoute>
     
-    init(useCase: MainViewUseCase) {
+    init(useCase: MainViewUseCase, router: NavigationRouter<MainTabRoute>) {
         self.useCase = useCase
+        self.router = router
     }
     
     func send(_ action: MainViewAction) {
@@ -70,14 +71,14 @@ private extension MainViewStore {
     func handleTryFilterTapped(_ filterID: String) {
         print("오늘의 필터 사용해보기 버튼 탭됨")
         // DetailView로 네비게이션
-        router?.push(.detail(id: filterID))
+        router.push(.detail(id: filterID))
     }
     
     /// 핫 트렌드 아이템 탭 처리
     func handleHotTrendTapped(_ filterID: String) {
         print("핫 트렌드 아이템 탭됨")
         // DetailView로 네비게이션
-        router?.push(.detail(id: filterID))
+        router.push(.detail(id: filterID))
     }
     
     /// 재시도 버튼 탭 처리

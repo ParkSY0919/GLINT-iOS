@@ -9,8 +9,10 @@ import SwiftUI
 import NukeUI
 
 struct TodayFilterView: View {
-    @Binding var todayFilter: TodayFilterResponse?
-    let router: NavigationRouter<MainTabRoute>
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
+    let todayFilter: TodayFilterResponse?
+    
     let onTryFilterTapped: (String) -> Void
     
     @State private var scrollOffset: CGFloat = 0
@@ -128,8 +130,7 @@ private extension TodayFilterView {
 // MARK: - Preview
 #Preview {
     TodayFilterView(
-        todayFilter: .constant(nil),
-        router: NavigationRouter<MainTabRoute>(),
+        todayFilter: nil,
         onTryFilterTapped: { id in
             print("필터 사용 버튼 탭됨")
         }
