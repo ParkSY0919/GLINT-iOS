@@ -11,21 +11,21 @@ import Nuke
 import NukeUI
 
 struct HotTrendView: View {
-    @Environment(NavigationRouter<MainTabRoute>.self)
-    private var router
     let hotTrends: HotTrendResponse?
-    @State
-    private var centralTrendID: String?
     let onHotTrendTapped: (String) -> Void
     private let imagePrefetcher = ImagePrefetcher()
+    
+    @State
+    private var centralTrendID: String?
     
     var body: some View {
         if let hotTrends {
             contentView
                 .onAppear {
-                    let firstTrend = hotTrends.data.first
-                    centralTrendID = firstTrend?.filterID
+                    centralTrendID = hotTrends.data.first?.filterID
                 }
+        } else {
+            StateViewBuilder.emptyStateView(message: "핫 트렌드를 불러올 수 없습니다.")
         }
     }
 }

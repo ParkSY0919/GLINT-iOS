@@ -66,6 +66,9 @@ private extension MainView {
             filterEntity: store.state.todayFilter?.toFilterEntity(),
             onTryFilterTapped: { id in
                 store.send(.tryFilterTapped(id: id))
+            },
+            onTapCategory: { category in
+                store.send(.categoryTapped(category: category))
             }
         )
     }

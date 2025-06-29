@@ -20,7 +20,7 @@ struct TodayArtistView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             titleSection
-            authorContent
+            contentView
         }
     }
 }
@@ -34,14 +34,14 @@ private extension TodayArtistView {
     }
     
     @ViewBuilder
-    var authorContent: some View {
+    var contentView: some View {
         if let author = author {
             profileSection(author)
             worksSection
             tagsSection(author)
             introductionSection(author)
         } else {
-            emptyStateView
+            StateViewBuilder.emptyStateView(message: "작가 정보를 불러올 수 없습니다")
         }
     }
     
@@ -97,7 +97,7 @@ private extension TodayArtistView {
             .frame(height: 80)
             .padding(.top, 10)
         } else {
-            emptyWorksView
+            StateViewBuilder.emptyStateView(message: "대표 작품을 불러올 수 없습니다")
         }
     }
     
@@ -178,33 +178,5 @@ private extension TodayArtistView {
         let hasIntroduction = author.introduction.isEmpty == false
         let hasDescription = author.description.isEmpty == false
         return hasIntroduction || hasDescription
-    }
-    
-    var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "person.circle")
-                .font(.system(size: 48))
-                .foregroundColor(.gray45)
-            
-            Text("작가 정보를 불러올 수 없습니다")
-                .font(.pretendardFont(.body_medium, size: 14))
-                .foregroundColor(.gray60)
-        }
-        .frame(maxWidth: .infinity, minHeight: 200)
-        .padding(.top, 20)
-    }
-    
-    var emptyWorksView: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo")
-                .font(.system(size: 24))
-                .foregroundColor(.gray45)
-            
-            Text("작품이 없습니다")
-                .font(.pretendardFont(.caption, size: 12))
-                .foregroundColor(.gray60)
-        }
-        .frame(maxWidth: .infinity, minHeight: 80)
-        .padding(.top, 10)
     }
 }

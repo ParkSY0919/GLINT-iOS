@@ -12,9 +12,7 @@ import NukeUI
 struct TodayFilterView: View {
     let filterEntity: FilterEntity?
     let onTryFilterTapped: (String) -> Void
-    
-    @State private var scrollOffset: CGFloat = 0
-    
+    let onTapCategory: (FilterCategoryModel) -> Void
     private let backgroundGradient = Gradient(colors: [
         .clear,
         .black.opacity(0.2),
@@ -27,35 +25,20 @@ struct TodayFilterView: View {
         .black.opacity(1.0)
     ])
     
-    var body: some View {
-        content
-            .frame(height: 555)
-    }
+    @State
+    private var scrollOffset: CGFloat = 0
     
-    private var content: some View {
+    var body: some View {
         ZStack(alignment: .top) {
             if let filterEntity {
                 backgroundSection(filterEntity.filtered ?? "")
                 contentStackSection(filterEntity)
                 tryButtonSection(filterEntity.id)
             } else {
-                emptyTodayFilterView
+                StateViewBuilder.emptyStateView(message: "오늘의 필터를 불러올 수 없습니다")
             }
         }
-    }
-    
-    private var emptyTodayFilterView: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "photo")
-                .font(.system(size: 24))
-                .foregroundColor(.gray45)
-            
-            Text("오늘의 필터가 없습니다")
-                .font(.pretendardFont(.caption, size: 12))
-                .foregroundColor(.gray60)
-        }
-        .frame(maxWidth: .infinity, minHeight: 80)
-        .padding(.top, 10)
+        .frame(height: 555)
     }
 }
 
@@ -118,7 +101,9 @@ private extension TodayFilterView {
     }
     
     var categorySection: some View {
-        CategoryButtonsView(categories: StringLiterals.categories)
+        CategoryButtonsView(onTapCategory: { category in
+            self.onTapCategory(category)
+        })
             .padding(.top, 30)
             .frame(maxWidth: .infinity)
     }
