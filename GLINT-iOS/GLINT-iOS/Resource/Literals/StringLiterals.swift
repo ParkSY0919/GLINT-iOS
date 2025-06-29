@@ -11,12 +11,12 @@ enum StringLiterals {}
 
 extension StringLiterals {
     
-    static let categories: [FilterCategoryModel] = [
-        FilterCategoryModel(icon: ImageLiterals.Main.food, name: "푸드"),
-        FilterCategoryModel(icon: ImageLiterals.Main.person, name: "인물"),
-        FilterCategoryModel(icon: ImageLiterals.Main.landscape, name: "풍경"),
-        FilterCategoryModel(icon: ImageLiterals.Main.nightscape, name: "야경"),
-        FilterCategoryModel(icon: ImageLiterals.Main.star, name: "별")
+    static let categories: [FilterCategoryItem] = [
+        FilterCategoryItem(icon: ImageLiterals.Main.food, name: "푸드"),
+        FilterCategoryItem(icon: ImageLiterals.Main.person, name: "인물"),
+        FilterCategoryItem(icon: ImageLiterals.Main.landscape, name: "풍경"),
+        FilterCategoryItem(icon: ImageLiterals.Main.nightscape, name: "야경"),
+        FilterCategoryItem(icon: ImageLiterals.Main.star, name: "별")
     ]
     
 }

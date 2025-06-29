@@ -12,7 +12,7 @@ import NukeUI
 struct TodayFilterView: View {
     let filterEntity: FilterEntity?
     let onTryFilterTapped: (String) -> Void
-    let onTapCategory: (FilterCategoryModel) -> Void
+    let onTapCategory: (FilterCategoryItem) -> Void
     private let backgroundGradient = Gradient(colors: [
         .clear,
         .black.opacity(0.2),

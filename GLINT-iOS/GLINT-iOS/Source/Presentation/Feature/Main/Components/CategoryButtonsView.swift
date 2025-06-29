@@ -7,16 +7,9 @@
 
 import SwiftUI
 
-// MARK: - 카테고리 모델
-struct FilterCategoryModel: Identifiable, Equatable {
-    let id = UUID()
-    let icon: Image
-    let name: String
-}
-
 struct CategoryButtonsView: View {
-    private let categories: [FilterCategoryModel] = StringLiterals.categories
-    let onTapCategory: (FilterCategoryModel) -> Void
+    private let categories: [FilterCategoryItem] = StringLiterals.categories
+    let onTapCategory: (FilterCategoryItem) -> Void
     
     // 버튼 크기 및 내부 요소 스타일 상수 정의
     private let buttonSize: CGFloat = 56
@@ -42,7 +35,7 @@ private extension CategoryButtonsView {
         }
     }
     
-    func categoryButton(for category: FilterCategoryModel) -> some View {
+    func categoryButton(for category: FilterCategoryItem) -> some View {
         Button {
             handleCategorySelection(category)
         } label: {
@@ -51,7 +44,7 @@ private extension CategoryButtonsView {
         .buttonStyle(.plain)
     }
     
-    func categoryButtonContent(for category: FilterCategoryModel) -> some View {
+    func categoryButtonContent(for category: FilterCategoryItem) -> some View {
         categoryContentStack(for: category)
             .padding(.horizontal, 12)
             .frame(height: buttonSize)
@@ -65,14 +58,14 @@ private extension CategoryButtonsView {
             .fill(Color.gray75.opacity(0.4))
     }
     
-    func categoryContentStack(for category: FilterCategoryModel) -> some View {
+    func categoryContentStack(for category: FilterCategoryItem) -> some View {
         VStack(spacing: spacingBetweenIconAndText) {
             categoryIcon(for: category)
             categoryLabel(for: category)
         }
     }
     
-    func categoryIcon(for category: FilterCategoryModel) -> some View {
+    func categoryIcon(for category: FilterCategoryItem) -> some View {
         category.icon
             .resizable()
             .scaledToFit()
@@ -80,13 +73,13 @@ private extension CategoryButtonsView {
             .foregroundColor(.gray60)
     }
     
-    func categoryLabel(for category: FilterCategoryModel) -> some View {
+    func categoryLabel(for category: FilterCategoryItem) -> some View {
         Text(category.name)
             .font(.pretendardFont(.caption_semi, size: 10))
             .foregroundColor(.gray60)
     }
     
-    func handleCategorySelection(_ category: FilterCategoryModel) {
+    func handleCategorySelection(_ category: FilterCategoryItem) {
         print("\(category.name) 카테고리 버튼 탭됨")
         self.onTapCategory(category)
     }

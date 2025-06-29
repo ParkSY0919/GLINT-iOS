@@ -23,7 +23,7 @@ enum MainViewAction {
     case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
     case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
     case todayArtistTapped(id: String) // 오늘의 작가 작업물 탭
-    case categoryTapped(category: FilterCategoryModel)
+    case categoryTapped(category: FilterCategoryItem)
     case retryButtonTapped          // 재시도 버튼 탭
 }
 
@@ -80,7 +80,7 @@ private extension MainViewStore {
         router.push(.detail(id: filterID))
     }
     
-    func handleToCategory(_ selectedCategory: FilterCategoryModel) {
+    func handleToCategory(_ selectedCategory: FilterCategoryItem) {
         print("selectedCategory: \(selectedCategory)")
     }
     
