@@ -12,32 +12,33 @@ struct MainView: View {
     private var store
     
     var body: some View {
-        Group {
-            if store.state.isLoading && !store.state.hasLoadedOnce {
-                StateViewBuilder.loadingView()
-            } else if let errorMessage = store.state.errorMessage, !store.state.hasLoadedOnce {
-                StateViewBuilder.errorView(
-                    errorMessage: errorMessage
-                ) {
-                    store.send(.retryButtonTapped)
-                }
-            } else {
-                contentView
+        content
+            .ignoresSafeArea(.all, edges: .top)
+            .background(.gray100)
+            .onAppear {
+                store.send(.viewAppeared)
             }
+            .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)
+            .sensoryFeedback(.impact(weight: .light), trigger: store.state.errorMessage)
+    }
+    
+    @ViewBuilder
+    private var content: some View {
+        switch (store.state.isLoading, store.state.hasLoadedOnce, store.state.errorMessage) {
+        case (true, false, _):
+            StateViewBuilder.loadingView()
+        case (_, false, let error?) where !error.isEmpty:
+            StateViewBuilder.errorView(errorMessage: error) {
+                store.send(.retryButtonTapped)
+            }
+        default:
+            mainContentView
         }
-        .ignoresSafeArea(.all, edges: .top)
-        .background(.gray100)
-        .onAppear {
-            store.send(.viewAppeared)
-        }
-        .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)
-        .sensoryFeedback(.impact(weight: .light), trigger: store.state.errorMessage)
     }
 }
 
-// MARK: - Views
 private extension MainView {
-    var contentView: some View {
+    var mainContentView: some View {
         ScrollView(showsIndicators: false) {
             scrollContent
         }
@@ -54,7 +55,9 @@ private extension MainView {
         }
         .padding(.bottom, 20)
         .overlay(alignment: .bottom) {
-            loadingIndicator
+            if store.state.isLoading && store.state.hasLoadedOnce {
+                StateViewBuilder.loadingIndicator()
+            }
         }
     }
     
@@ -92,18 +95,5 @@ private extension MainView {
             }
         )
         .padding(.top, 30)
-    }
-    
-    @ViewBuilder
-    var loadingIndicator: some View {
-        if store.state.isLoading && store.state.hasLoadedOnce {
-            HStack {
-                Spacer()
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .padding()
-                Spacer()
-            }
-        }
     }
 }

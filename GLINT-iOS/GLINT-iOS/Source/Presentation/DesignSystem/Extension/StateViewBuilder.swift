@@ -154,6 +154,18 @@ struct StateViewBuilder {
         .background(backgroundColor)
         .transition(.opacity.combined(with: .scale(scale: 0.9)))
     }
+    
+    
+    @ViewBuilder
+    static func loadingIndicator() -> some View {
+        HStack {
+            Spacer()
+            ProgressView()
+                .scaleEffect(0.8)
+                .padding()
+            Spacer()
+        }
+    }
 }
 
 // MARK: - View Extension for Convenience
