@@ -74,8 +74,7 @@ private extension MainView {
     }
     
     var bannerSection: some View {
-        let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
-        return BannerView(items: bannerItems)
+        return BannerView()
             .padding(.top, 20)
     }
     

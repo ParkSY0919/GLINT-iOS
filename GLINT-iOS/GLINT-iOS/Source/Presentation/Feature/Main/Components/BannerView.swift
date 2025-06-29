@@ -8,10 +8,14 @@
 import SwiftUI
 
 struct BannerView: View {
+    struct BannerItem: Identifiable {
+        let id = UUID()
+        let imageName: String
+    }
     @State
     private var currentIndex = 0
     
-    let items: [BannerItem]
+    let items: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {
