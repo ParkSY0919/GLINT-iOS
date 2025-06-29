@@ -6,8 +6,29 @@
 //
 
 import SwiftUI
-import Combine
 
+// MARK: - State
+struct LoginViewState {
+    var email: String = ""
+    var password: String = ""
+    var loginState: LoginState = .idle
+    var isEmailValid: Bool = true
+    var isPasswordValid: Bool = true
+}
+
+// MARK: - Action
+enum LoginViewAction {
+    case emailChanged(String)
+    case passwordChanged(String)
+    case emailSubmitted
+    case signInButtonTapped
+    case signUpButtonTapped
+    case appleLoginButtonTapped
+    case kakaoLoginButtonTapped
+    case createAccountButtonTapped
+}
+
+// MARK: - LoginState
 enum LoginState: Equatable {
     case idle
     case loading
@@ -15,117 +36,173 @@ enum LoginState: Equatable {
     case failure(String)
 }
 
+// MARK: - Store
+@MainActor
 @Observable
 final class LoginViewStore {
-    var email: String = ""
-    var password: String = ""
-    var loginState: LoginState = .idle
-    var isEmailValid: Bool = true
-    var isPasswordValid: Bool = true
-    
-    
+    private(set) var state = LoginViewState()
     private let useCase: LoginViewUseCase
+    weak var rootRouter: RootRouter?
     
     init(useCase: LoginViewUseCase) {
         self.useCase = useCase
     }
     
-    // MARK: - 서버 이메일 중복/유효성 검사
-    @MainActor
-    func checkEmailAvailability() async {
-        guard Validator.isValidEmailFormat(email) else {
-            isEmailValid = false
-            return
+    func send(_ action: LoginViewAction) {
+        switch action {
+        case .emailChanged(let email):
+            handleEmailChanged(email)
+            
+        case .passwordChanged(let password):
+            handlePasswordChanged(password)
+            
+        case .emailSubmitted:
+            handleEmailSubmitted()
+            
+        case .signInButtonTapped:
+            handleSignInButtonTapped()
+            
+        case .signUpButtonTapped:
+            handleSignUpButtonTapped()
+            
+        case .appleLoginButtonTapped:
+            handleAppleLoginButtonTapped()
+            
+        case .kakaoLoginButtonTapped:
+            handleKakaoLoginButtonTapped()
+            
+        case .createAccountButtonTapped:
+            handleCreateAccountButtonTapped()
         }
-        isEmailValid = true
-        
-        loginState = .loading
-        
-        do {
-            try await useCase.checkEmailValidation(email)
-            isEmailValid = true
-            loginState = .idle
-            print("서버 이메일 유효성 검사 성공 (ViewModel)")
-        } catch {
-            loginState = .failure("이메일 검사 실패: \(error.localizedDescription)")
-            print("서버 이메일 유효성 검사 실패 (ViewModel): \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - 회원가입 메서드
-    @MainActor
-    func signUp() async {
-        validateInputs()
-        
-        guard isEmailValid, isPasswordValid else {
-            loginState = .failure("입력 정보를 확인해주세요.")
-            return
-        }
-        
-        guard !email.isEmpty, !password.isEmpty else {
-            loginState = .failure("이메일과 비밀번호를 모두 입력해주세요.")
-            return
-        }
-        
-        loginState = .loading
-        
-        do {
-            let response = try await useCase.signUp(email, password, "anonymous")
-            loginState = .success
-        } catch {
-            loginState = .failure("회원가입 실패: \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - 로그인 메서드
-    @MainActor
-    func loginWithEmail() async {
-        validateInputs()
-        
-        guard isEmailValid, isPasswordValid else {
-            loginState = .failure("입력 정보를 확인해주세요.")
-            return
-        }
-        
-        guard !email.isEmpty, !password.isEmpty else {
-            loginState = .failure("이메일과 비밀번호를 입력해주세요.")
-            return
-        }
-        
-        loginState = .loading
-        
-        do {
-            let response = try await useCase.signIn(email, password)
-            loginState = .success
-        } catch {
-            loginState = .failure("로그인 실패: \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - Apple 로그인 메서드
-    @MainActor
-    func appleLogin() async {
-        loginState = .loading
-        
-        do {
-            let response = try await useCase.signInApple()
-            loginState = .success
-        } catch {
-            loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
-        }
-    }
-    
-    // MARK: - 계정 생성 화면 이동 요청
-    func navigateToCreateAccount() {
-        print("회원가입 화면으로 이동 요청 (ViewModel)")
     }
 }
 
-extension LoginViewStore {
-    // email, password 유효 여부 UI 반영
-    @MainActor
+// MARK: - Private Action Handlers
+private extension LoginViewStore {
+    func handleEmailChanged(_ email: String) {
+        state.email = email
+        validateInputs()
+    }
+    
+    func handlePasswordChanged(_ password: String) {
+        state.password = password
+        validateInputs()
+    }
+    
+    func handleEmailSubmitted() {
+        Task {
+            await checkEmailAvailability()
+        }
+    }
+    
+    func handleSignInButtonTapped() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        Task {
+            await loginWithEmail()
+        }
+    }
+    
+    func handleSignUpButtonTapped() {
+        Task {
+            await signUp()
+        }
+    }
+    
+    func handleAppleLoginButtonTapped() {
+        Task {
+            await appleLogin()
+        }
+    }
+    
+    func handleKakaoLoginButtonTapped() {
+        // TODO: Kakao 로그인 구현
+        print("Kakao 로그인 버튼 탭됨")
+    }
+    
+    func handleCreateAccountButtonTapped() {
+        print("회원가입 화면으로 이동 요청")
+        // 필요시 rootRouter?.navigate(to: .signUp) 등으로 구현
+    }
+    
+    // MARK: - Business Logic
+    func checkEmailAvailability() async {
+        guard Validator.isValidEmailFormat(state.email) else {
+            state.isEmailValid = false
+            return
+        }
+        state.isEmailValid = true
+        state.loginState = .loading
+        
+        do {
+            try await useCase.checkEmailValidation(state.email)
+            state.isEmailValid = true
+            state.loginState = .idle
+            print("서버 이메일 유효성 검사 성공")
+        } catch {
+            state.loginState = .failure("이메일 검사 실패: \(error.localizedDescription)")
+            print("서버 이메일 유효성 검사 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    func signUp() async {
+        validateInputs()
+        
+        guard state.isEmailValid, state.isPasswordValid else {
+            state.loginState = .failure("입력 정보를 확인해주세요.")
+            return
+        }
+        
+        guard !state.email.isEmpty, !state.password.isEmpty else {
+            state.loginState = .failure("이메일과 비밀번호를 모두 입력해주세요.")
+            return
+        }
+        
+        state.loginState = .loading
+        
+        do {
+            let response = try await useCase.signUp(state.email, state.password, "anonymous")
+            state.loginState = .success
+        } catch {
+            state.loginState = .failure("회원가입 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    func loginWithEmail() async {
+        validateInputs()
+        
+        guard state.isEmailValid, state.isPasswordValid else {
+            state.loginState = .failure("입력 정보를 확인해주세요.")
+            return
+        }
+        
+        guard !state.email.isEmpty, !state.password.isEmpty else {
+            state.loginState = .failure("이메일과 비밀번호를 입력해주세요.")
+            return
+        }
+        
+        state.loginState = .loading
+        
+        do {
+            let response = try await useCase.signIn(state.email, state.password)
+            state.loginState = .success
+        } catch {
+            state.loginState = .failure("로그인 실패: \(error.localizedDescription)")
+        }
+    }
+    
+    func appleLogin() async {
+        state.loginState = .loading
+        
+        do {
+            let response = try await useCase.signInApple()
+            state.loginState = .success
+        } catch {
+            state.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
+        }
+    }
+    
     func validateInputs() {
-        isEmailValid = email.isEmpty ? true : Validator.isValidEmailFormat(email)
-        isPasswordValid = password.isEmpty ? true : Validator.isValidPasswordFormat(password)
+        state.isEmailValid = state.email.isEmpty ? true : Validator.isValidEmailFormat(state.email)
+        state.isPasswordValid = state.password.isEmpty ? true : Validator.isValidPasswordFormat(state.password)
     }
 }
