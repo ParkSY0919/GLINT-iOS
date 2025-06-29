@@ -60,7 +60,7 @@ private extension MainView {
     
     var todayFilterSection: some View {
         TodayFilterView(
-            todayFilter: store.state.todayFilter,
+            filterEntity: store.state.todayFilter?.toFilterEntity(),
             onTryFilterTapped: { id in
                 store.send(.tryFilterTapped(id: id))
             }
@@ -86,7 +86,10 @@ private extension MainView {
     var todayArtistSection: some View {
         TodayArtistView(
             author: store.state.todayArtist?.author,
-            filter: store.state.todayArtist?.filters
+            filter: store.state.todayArtist?.filters,
+            onTapWorksItem: { id in
+                store.send(.todayArtistTapped(id: id))
+            }
         )
         .padding(.top, 30)
     }

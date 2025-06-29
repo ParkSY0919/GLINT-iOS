@@ -6,13 +6,11 @@
 //
 
 import SwiftUI
+
 import NukeUI
 
 struct TodayFilterView: View {
-    @Environment(NavigationRouter<MainTabRoute>.self)
-    private var router
-    let todayFilter: TodayFilterResponse?
-    
+    let filterEntity: FilterEntity?
     let onTryFilterTapped: (String) -> Void
     
     @State private var scrollOffset: CGFloat = 0
@@ -30,21 +28,40 @@ struct TodayFilterView: View {
     ])
     
     var body: some View {
+        content
+            .frame(height: 555)
+    }
+    
+    private var content: some View {
         ZStack(alignment: .top) {
-            backgroundImageView
-            contentStackView
-            tryButtonView
+            if let filterEntity {
+                backgroundSection(filterEntity.filtered ?? "")
+                contentStackSection(filterEntity)
+                tryButtonSection(filterEntity.id)
+            } else {
+                emptyTodayFilterView
+            }
         }
-        .frame(height: 555)
+    }
+    
+    private var emptyTodayFilterView: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "photo")
+                .font(.system(size: 24))
+                .foregroundColor(.gray45)
+            
+            Text("오늘의 필터가 없습니다")
+                .font(.pretendardFont(.caption, size: 12))
+                .foregroundColor(.gray60)
+        }
+        .frame(maxWidth: .infinity, minHeight: 80)
+        .padding(.top, 10)
     }
 }
 
-// MARK: - Views
 private extension TodayFilterView {
-    @ViewBuilder
-    var backgroundImageView: some View {
-        let entity = todayFilter?.toFilterEntity()
-        LazyImage(url: URL(string: entity?.filtered ?? "")) { state in
+    func backgroundSection(_ filterURL: String) -> some View {
+        LazyImage(url: URL(string: filterURL)) { state in
             lazyImageTransform(state) { image in
                 GeometryReader { proxy in
                     let global = proxy.frame(in: .global)
@@ -66,30 +83,26 @@ private extension TodayFilterView {
         }
     }
     
-    var contentStackView: some View {
+    func contentStackSection(_ entity: FilterEntity) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()
-            
-            smallTitleView
-            largeTitleView
-            descriptionView
-            
-            CategoryButtonsView(categories: StringLiterals.categories)
-                .padding(.top, 30)
-                .frame(maxWidth: .infinity)
+            smallTitleSection
+            largeTitleSection(entity.title ?? "")
+            descriptionSection(entity.description ?? "")
+            categorySection
         }
         .padding(.horizontal, 20)
     }
     
-    var smallTitleView: some View {
+    var smallTitleSection: some View {
         Text("오늘의 필터 소개")
             .font(.pretendardFont(.body_medium, size: 13))
             .foregroundStyle(.gray60)
             .foregroundColor(.white.opacity(0.8))
     }
     
-    var largeTitleView: some View {
-        Text(todayFilter?.title ?? "")
+    func largeTitleSection(_ title: String) -> some View {
+        Text(title)
             .font(.pointFont(.title, size: 32))
             .foregroundColor(.gray30)
             .lineLimit(2, reservesSpace: true)
@@ -97,20 +110,24 @@ private extension TodayFilterView {
             .padding(.bottom, 20)
     }
     
-    var descriptionView: some View {
-        Text(todayFilter?.description ?? "")
+    func descriptionSection(_ description: String) -> some View {
+        Text(description)
             .font(.pretendardFont(.caption, size: 12))
             .foregroundStyle(.gray60)
             .lineLimit(4, reservesSpace: true)
     }
     
-    var tryButtonView: some View {
+    var categorySection: some View {
+        CategoryButtonsView(categories: StringLiterals.categories)
+            .padding(.top, 30)
+            .frame(maxWidth: .infinity)
+    }
+    
+    func tryButtonSection(_ filterID: String) -> some View {
         HStack {
             Spacer()
-            
             Button {
-                guard let id = todayFilter?.filterID else { return }
-                onTryFilterTapped(id)
+                onTryFilterTapped(filterID)
             } label: {
                 Text("사용해보기")
                     .font(.pretendardFont(.caption_medium, size: 12))
@@ -126,14 +143,3 @@ private extension TodayFilterView {
         .padding(.trailing, 20)
     }
 }
-
-// MARK: - Preview
-#Preview {
-    TodayFilterView(
-        todayFilter: nil,
-        onTryFilterTapped: { id in
-            print("필터 사용 버튼 탭됨")
-        }
-    )
-}
-

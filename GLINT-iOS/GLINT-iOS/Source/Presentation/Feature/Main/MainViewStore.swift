@@ -22,6 +22,7 @@ enum MainViewAction {
     case viewAppeared                // 뷰가 나타났을 때
     case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
     case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
+    case todayArtistTapped(id: String) // 오늘의 작가 작업물 탭
     case retryButtonTapped          // 재시도 버튼 탭
 }
 
@@ -43,10 +44,13 @@ final class MainViewStore {
             handleViewAppeared()
             
         case .tryFilterTapped(let id):
-            handleTryFilterTapped(id)
+            handleToDetailView(id)
             
         case .hotTrendTapped(let id):
-            handleHotTrendTapped(id)
+            handleToDetailView(id)
+            
+        case .todayArtistTapped(let id):
+            handleToDetailView(id)
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
@@ -67,17 +71,8 @@ private extension MainViewStore {
         }
     }
     
-    /// 필터 사용 버튼 탭 처리
-    func handleTryFilterTapped(_ filterID: String) {
-        print("오늘의 필터 사용해보기 버튼 탭됨")
-        // DetailView로 네비게이션
-        router.push(.detail(id: filterID))
-    }
-    
-    /// 핫 트렌드 아이템 탭 처리
-    func handleHotTrendTapped(_ filterID: String) {
-        print("핫 트렌드 아이템 탭됨")
-        // DetailView로 네비게이션
+    /// filterID 따른 상세화면 이동
+    func handleToDetailView(_ filterID: String) {
         router.push(.detail(id: filterID))
     }
     
