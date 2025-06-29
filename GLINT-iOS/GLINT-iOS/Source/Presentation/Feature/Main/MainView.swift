@@ -8,8 +8,10 @@
 import SwiftUI
 
 struct MainView: View {
-    let router: NavigationRouter<MainTabRoute>
-    @Environment(MainViewStore.self) private var store
+    @Environment(MainViewStore.self)
+    private var store
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
     
     var body: some View {
         Group {
@@ -28,6 +30,7 @@ struct MainView: View {
         .ignoresSafeArea(.all, edges: .top)
         .background(.gray100)
         .onAppear {
+            store.router = router
             store.send(.viewAppeared)
         }
         .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)

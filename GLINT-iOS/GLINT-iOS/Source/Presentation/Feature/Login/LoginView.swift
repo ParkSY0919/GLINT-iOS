@@ -8,25 +8,13 @@
 import SwiftUI
 
 struct LoginView: View {
-    @Environment(LoginViewStore.self)
-    private var store
-    
-    private let rootRouter: RootRouter
-    
-    init(rootRouter: RootRouter) {
-        self.rootRouter = rootRouter
-    }
+    @Environment(LoginViewStore.self) private var store
     
     var body: some View {
         NavigationStack {
             contentView
-            .onChange(of: store.state.loginState) { _, newState in
-                if newState == .success {
-                    rootRouter.navigate(to: .tabBar)
-                }
-            }
             .onAppear {
-                store.rootRouter = rootRouter
+                store.send(.viewAppeared)
             }
             .navigationSetup(title: "Login")
         }
@@ -144,8 +132,7 @@ private extension LoginView {
         }
     }
 }
-
 #Preview {
-    LoginView(rootRouter: RootRouter())
-        .environment(LoginViewStore(useCase: .liveValue))
+    LoginView()
+        .environment(LoginViewStore(useCase: .liveValue, rootRouter: RootRouter.init()))
 }

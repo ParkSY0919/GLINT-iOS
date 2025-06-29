@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct MakeView: View {
-    @Environment(MakeViewStore.self) private var store
+    @Environment(MakeViewStore.self)
+    private var store
     
     var body: some View {
         Group {

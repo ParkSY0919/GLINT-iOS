@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct MakeTab: View {
-    @Bindable var router: NavigationRouter<MakeTabRoute>
+    @Environment(NavigationRouter<MakeTabRoute>.self)
+    private var router
     
     var body: some View {
         RouterNavigationStack(router: router) {

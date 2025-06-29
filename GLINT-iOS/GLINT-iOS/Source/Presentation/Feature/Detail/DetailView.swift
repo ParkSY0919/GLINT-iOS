@@ -11,21 +11,16 @@ import MapKit
 import NukeUI
 import iamport_ios
 
-//TODO: store @Environment 형태로 바꾸기
 struct DetailView: View {
+    @Environment(DetailViewStore.self)
+    private var store
     @Environment(\.openURL)
     private var openURL
     
-    @State
-    private var store: DetailViewStore
-    
-    let router: NavigationRouter<MainTabRoute>
     let id: String
         
-    init(id: String, router: NavigationRouter<MainTabRoute>) {
+    init(id: String) {
         self.id = id
-        self.router = router
-        self._store = State(wrappedValue: DetailViewStore(useCase: .liveValue))
     }
     
     var body: some View {
@@ -54,7 +49,7 @@ struct DetailView: View {
         .navigationSetup(
             title: store.state.navTitle,
             isLiked: store.state.isLiked,
-            onBackButtonTapped: { router.pop() },
+            onBackButtonTapped: { store.send(.backButtonTapped) },
             onLikeButtonTapped: { store.send(.likeButtonTapped) }
         )
         .onAppear {

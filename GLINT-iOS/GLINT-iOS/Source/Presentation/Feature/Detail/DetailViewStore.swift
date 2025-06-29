@@ -31,6 +31,7 @@ struct DetailViewState {
 enum DetailViewAction {
     case viewAppeared(id: String)
     case sliderPositionChanged(CGFloat)
+    case backButtonTapped
     case sendMessageTapped
     case likeButtonTapped
     case retryButtonTapped
@@ -45,12 +46,14 @@ final class DetailViewStore {
     private(set) var state = DetailViewState()
     
     private let useCase: DetailViewUseCase
+    private let router: NavigationRouter<MainTabRoute>
     
     // 필터 ID
     private var filterId: String = ""
     
-    init(useCase: DetailViewUseCase) {
+    init(useCase: DetailViewUseCase, router: NavigationRouter<MainTabRoute>) {
         self.useCase = useCase
+        self.router = router
     }
     
     func send(_ action: DetailViewAction) {
@@ -60,6 +63,9 @@ final class DetailViewStore {
             
         case .sliderPositionChanged(let position):
             handleSliderPositionChanged(position: position)
+            
+        case .backButtonTapped:
+            router.pop()
             
         case .purchaseButtonTapped:
             handlePurchaseButtonTapped()

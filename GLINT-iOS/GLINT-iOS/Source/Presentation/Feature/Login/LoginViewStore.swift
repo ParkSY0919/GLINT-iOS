@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 // MARK: - State
 struct LoginViewState {
     var email: String = ""
@@ -18,6 +19,7 @@ struct LoginViewState {
 
 // MARK: - Action
 enum LoginViewAction {
+    case viewAppeared
     case emailChanged(String)
     case passwordChanged(String)
     case emailSubmitted
@@ -42,14 +44,18 @@ enum LoginState: Equatable {
 final class LoginViewStore {
     private(set) var state = LoginViewState()
     private let useCase: LoginViewUseCase
-    weak var rootRouter: RootRouter?
+    private weak var rootRouter: RootRouter?
     
-    init(useCase: LoginViewUseCase) {
+    init(useCase: LoginViewUseCase, rootRouter: RootRouter) {
         self.useCase = useCase
+        self.rootRouter = rootRouter
     }
     
     func send(_ action: LoginViewAction) {
         switch action {
+        case .viewAppeared:
+            handleViewAppeared()
+            
         case .emailChanged(let email):
             handleEmailChanged(email)
             
@@ -79,6 +85,10 @@ final class LoginViewStore {
 
 // MARK: - Private Action Handlers
 private extension LoginViewStore {
+    func handleViewAppeared() {
+        // 뷰가 나타났을 때 필요한 초기화 로직
+    }
+    
     func handleEmailChanged(_ email: String) {
         state.email = email
         validateInputs()
@@ -120,11 +130,9 @@ private extension LoginViewStore {
     }
     
     func handleCreateAccountButtonTapped() {
-        print("회원가입 화면으로 이동 요청")
-        // 필요시 rootRouter?.navigate(to: .signUp) 등으로 구현
+//        rootRouter.navigate(to: .signUp)
     }
     
-    // MARK: - Business Logic
     func checkEmailAvailability() async {
         guard Validator.isValidEmailFormat(state.email) else {
             state.isEmailValid = false
@@ -162,6 +170,8 @@ private extension LoginViewStore {
         do {
             let response = try await useCase.signUp(state.email, state.password, "anonymous")
             state.loginState = .success
+            // Store에서 네비게이션 처리
+            handleLoginSuccess()
         } catch {
             state.loginState = .failure("회원가입 실패: \(error.localizedDescription)")
         }
@@ -185,6 +195,8 @@ private extension LoginViewStore {
         do {
             let response = try await useCase.signIn(state.email, state.password)
             state.loginState = .success
+            // Store에서 네비게이션 처리
+            handleLoginSuccess()
         } catch {
             state.loginState = .failure("로그인 실패: \(error.localizedDescription)")
         }
@@ -196,9 +208,16 @@ private extension LoginViewStore {
         do {
             let response = try await useCase.signInApple()
             state.loginState = .success
+            // Store에서 네비게이션 처리
+            handleLoginSuccess()
         } catch {
             state.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
         }
+    }
+    
+    func handleLoginSuccess() {
+        // 로그인 성공 시 메인 화면으로 이동
+        rootRouter?.navigate(to: .tabBar)
     }
     
     func validateInputs() {

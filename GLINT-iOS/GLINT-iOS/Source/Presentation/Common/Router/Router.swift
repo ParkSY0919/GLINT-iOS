@@ -17,11 +17,11 @@ protocol Router {
 @Observable
 final class RootRouter {
     enum Route: Hashable {
-        case login
+        case signIn
         case tabBar
     }
     
-    var currentRoute: Route = .login
+    var currentRoute: Route = .signIn
     
     // 화면 전환 메서드
     func navigate(to route: Route) {
