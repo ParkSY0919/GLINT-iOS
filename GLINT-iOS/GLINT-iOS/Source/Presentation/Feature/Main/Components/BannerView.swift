@@ -15,7 +15,7 @@ struct BannerView: View {
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        content
+        contentView
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: 100)
             .clipShape(RoundedRectangle(cornerRadius: 15))
@@ -29,14 +29,10 @@ struct BannerView: View {
             }
             .padding(.horizontal, 20)
     }
-    
-    private var content: some View {
-        bannerContentView
-    }
 }
 
 private extension BannerView {
-    var bannerContentView: some View {
+    var contentView: some View {
         TabView(selection: $currentIndex) {
             ForEach(items.indices, id: \.self) { index in
                 bannerItem(at: index)

@@ -28,7 +28,6 @@ struct CategoryButtonsView: View {
         contentView
             .frame(height: buttonSize)
     }
-    
 }
 
 private extension CategoryButtonsView {
