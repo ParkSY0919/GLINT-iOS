@@ -26,7 +26,7 @@ final class TabBarViewModel {
         makeViewUseCase: MakeViewUseCase
     ) {
         self.mainViewStore = MainViewStore(useCase: mainViewUseCase, router: mainRouter)
-        self.makeViewStore = MakeViewStore(useCase: makeViewUseCase) //make는 화면이 하나이기에 router 미사용.
+        self.makeViewStore = MakeViewStore(useCase: makeViewUseCase, router: makeRouter)
     }
     
     func selectTab(_ index: Int) {

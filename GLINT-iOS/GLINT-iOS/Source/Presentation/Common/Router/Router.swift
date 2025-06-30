@@ -37,6 +37,9 @@ final class NavigationRouter<Route: Hashable>: Router {
     // 현재 네비게이션 스택의 경로
     var path: [Route] = []
     
+    // 데이터 전달용 저장소 - 타겟 경로 길이를 키로 사용
+    private var popCallbacks: [Int: (Any) -> Void] = [:]
+    
     // 현재 보여지는 뷰 (Router 프로토콜 준수용)
     var currentView: some View {
         EmptyView()
@@ -53,6 +56,39 @@ final class NavigationRouter<Route: Hashable>: Router {
     func pop() {
         guard !path.isEmpty else { return }
         path.removeLast()
+    }
+    
+    // 데이터와 함께 이전 화면으로 돌아가기
+    func pop<T>(withData data: T) {
+        let targetRouteIndex = path.count - 1 // pop 후 남을 경로의 길이
+        print("🔄 Attempting to pop with data. Target route index: \(targetRouteIndex)")
+        print("🔄 Available callbacks: \(Array(popCallbacks.keys))")
+        
+        // 저장된 콜백이 있으면 실행
+        if let callback = popCallbacks[targetRouteIndex] {
+            print("✅ Found callback for target route index: \(targetRouteIndex)")
+            callback(data)
+            popCallbacks.removeValue(forKey: targetRouteIndex)
+        } else {
+            print("❌ No callback found for target route index: \(targetRouteIndex)")
+        }
+        
+        pop()
+    }
+    
+    // 데이터 수신 콜백 등록
+    func onPopData<T>(_ type: T.Type, callback: @escaping (T) -> Void) {
+        let currentRouteIndex = path.count
+        print("📝 Registering callback for route index: \(currentRouteIndex), type: \(type)")
+        popCallbacks[currentRouteIndex] = { data in
+            print("🎯 Callback executed for route index: \(currentRouteIndex)")
+            if let typedData = data as? T {
+                print("✅ Data type matches: \(type)")
+                callback(typedData)
+            } else {
+                print("❌ Data type mismatch. Expected: \(type), Got: \(type.self)")
+            }
+        }
     }
     
     // 루트 화면으로 돌아가기
@@ -110,5 +146,5 @@ enum MainTabRoute: Hashable {
 
 enum MakeTabRoute: Hashable {
     case make
-//    case applyFilter
+    case edit(originImage: UIImage)
 }

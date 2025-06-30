@@ -10,7 +10,7 @@ import PhotosUI
 
 struct MakeViewState {
     var filterName: String = ""
-    var selectedCategory: CategoryType? = nil
+    var selectedCategory: FilterCategoryItem.CategoryType? = nil
     var selectedImage: UIImage?
     var filteredImage: UIImage?
     var imageMetaData: PhotoMetadata?
@@ -27,16 +27,16 @@ struct MakeViewState {
 
 enum MakeViewAction {
     case filterNameChanged(String)
-    case categorySelected(CategoryType)
+    case categorySelected(FilterCategoryItem.CategoryType)
     case imageSelected(UIImage, PhotoMetadata?)
     case imageChangeRequested
-    case editButtonTapped
-    case editViewDismissed
+    case editButtonTapped(UIImage)
     case filteredImageReceived(UIImage)
     case introduceChanged(String)
     case priceChanged(String)
     case saveButtonTapped
     case retryButtonTapped
+    case editCompleted(UIImage)
 }
 
 @MainActor
@@ -44,9 +44,13 @@ enum MakeViewAction {
 final class MakeViewStore {
     private(set) var state = MakeViewState()
     private let useCase: MakeViewUseCase
+    private let router: NavigationRouter<MakeTabRoute>
     
-    init(useCase: MakeViewUseCase) {
+    init(useCase: MakeViewUseCase, router: NavigationRouter<MakeTabRoute>) {
         self.useCase = useCase
+        self.router = router
+        
+        setupEditCallback()
     }
     
     func send(_ action: MakeViewAction) {
@@ -65,11 +69,8 @@ final class MakeViewStore {
             // 이미지 변경 요청 처리
             GTLogger.shared.i("Image change requested")
             
-        case .editButtonTapped:
-            state.showingEditView = true
-            
-        case .editViewDismissed:
-            state.showingEditView = false
+        case .editButtonTapped(let image):
+            router.push(.edit(originImage: image))
             
         case .filteredImageReceived(let image):
             state.selectedImage = image
@@ -85,6 +86,10 @@ final class MakeViewStore {
             
         case .retryButtonTapped:
             state.errorMessage = nil
+            
+        case .editCompleted(let filteredImage):
+            state.selectedImage = filteredImage
+            state.filteredImage = filteredImage
         }
     }
 }
@@ -123,16 +128,10 @@ private extension MakeViewStore {
             }
         }
     }
-}
-
-enum CategoryType: String, CaseIterable {
-    case 푸드 = "푸드"
-    case 인물 = "인물"
-    case 풍경 = "풍경"
-    case 야경 = "야경"
-    case 별 = "별"
     
-    var displayName: String {
-        return self.rawValue
+    func setupEditCallback() {
+        router.onPopData(UIImage.self) { [weak self] filteredImage in
+            self?.send(.editCompleted(filteredImage))
+        }
     }
 }

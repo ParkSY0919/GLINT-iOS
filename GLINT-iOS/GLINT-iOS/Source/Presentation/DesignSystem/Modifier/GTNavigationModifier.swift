@@ -12,7 +12,7 @@ struct GTNavigationSetupModifier: ViewModifier {
     let isLiked: Bool?
     let onBackButtonTapped: (() -> Void)?
     let onLikeButtonTapped: (() -> Void)?
-    let onUplodButtonTapped: (() -> Void)?
+    let onRightButtonTapped: (() -> Void)?
     
     func body(content: Content) -> some View {
         content
@@ -41,7 +41,7 @@ struct GTNavigationSetupModifier: ViewModifier {
                     }
                 }
                 
-                if let uploadAction = onUplodButtonTapped {
+                if let uploadAction = onRightButtonTapped {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: uploadAction) {
                             ImageLiterals.Make.upload
@@ -61,7 +61,7 @@ extension View {
         isLiked: Bool? = false,
         onBackButtonTapped: (() -> Void)? = nil,
         onLikeButtonTapped: (() -> Void)? = nil,
-        onUplodButtonTapped: (() -> Void)? = nil
+        onRightButtonTapped: (() -> Void)? = nil
     ) -> some View {
         self.modifier(
             GTNavigationSetupModifier(
@@ -69,7 +69,7 @@ extension View {
                 isLiked: isLiked,
                 onBackButtonTapped: onBackButtonTapped,
                 onLikeButtonTapped: onLikeButtonTapped,
-                onUplodButtonTapped: onUplodButtonTapped
+                onRightButtonTapped: onRightButtonTapped
             )
         )
     }

@@ -24,6 +24,9 @@ struct MakeTab: View {
         switch route {
         case .make:
             MakeView()
+        case .edit(let image):
+            EditView(image: image)
+                .environment(EditViewStore(router: router))
         }
     }
 }

@@ -8,39 +8,44 @@
 import SwiftUI
 
 struct CategorySectionView: View {
-    @Binding var selectedCategory: CategoryType?
-    let onCategorySelected: (CategoryType) -> Void
+    let selectedCategory: FilterCategoryItem.CategoryType?
+    let onCategorySelected: (FilterCategoryItem.CategoryType) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("카테고리")
-                .font(.pretendardFont(.body_bold, size: 16))
-                .foregroundColor(.gray60)
-            
-            HStack(spacing: 8) {
-                ForEach(CategoryType.allCases, id: \.self) { category in
-                    CategoryButton(
-                        title: category.displayName,
-                        isSelected: selectedCategory == category
-                    ) {
-                        onCategorySelected(category)
-                    }
-                }
-                
-                Spacer()
-            }
+            titleSection
+            categorySection
         }
         .padding(.top, 26)
     }
-}
-
-private struct CategoryButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
     
-    var body: some View {
-        Button(action: action) {
+    private var titleSection: some View {
+        Text("카테고리")
+            .font(.pretendardFont(.body_bold, size: 16))
+            .foregroundColor(.gray60)
+    }
+    
+    private var categorySection: some View {
+        HStack(spacing: 8) {
+            ForEach(FilterCategoryItem.CategoryType.allCases, id: \.self) { category in
+                categoryButton(
+                    title: category.displayName,
+                    isSelected: selectedCategory == category
+                ) {
+                    onCategorySelected(category)
+                }
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private func categoryButton(
+        title: String,
+        isSelected: Bool,
+        onTap: @escaping () -> Void
+    ) -> some View {
+        Button(action: onTap) {
             Text(title)
                 .font(.pretendardFont(.caption_semi, size: 14))
                 .foregroundColor(isSelected ? .gray0 : .gray60)
@@ -53,4 +58,4 @@ private struct CategoryButton: View {
         }
         .buttonStyle(.plain)
     }
-} 
+}

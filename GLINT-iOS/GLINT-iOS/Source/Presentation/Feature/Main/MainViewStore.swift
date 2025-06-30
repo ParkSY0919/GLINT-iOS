@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// MARK: - State
 struct MainViewState {
     var todayFilter: TodayFilterResponse?
     var todayArtist: TodayAuthorResponse?

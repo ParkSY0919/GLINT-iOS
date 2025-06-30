@@ -13,43 +13,49 @@ struct FilterPresetsView: View {
     
     var body: some View {
         ScrollViewReader { proxy in
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(FilterPropertyType.allCases, id: \.self) { property in
-                        FilterPresetButton(
-                            property: property,
-                            isSelected: selectedProperty == property,
-                            onTap: {
-                                onPropertySelected(property)
-                            }
-                        )
-                        .id(property)
+            contentView
+                .frame(height: 80)
+                .background(.gray100)
+                .onChange(of: selectedProperty) { _, newProperty in
+                    if let index = FilterPropertyType.allCases.firstIndex(of: newProperty), index >= 2 {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            proxy.scrollTo(newProperty, anchor: .center)
+                        }
                     }
                 }
-                .padding(.horizontal, 20)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            }
-            .frame(height: 80)
-            .background(.gray100)
-            .onChange(of: selectedProperty) { _, newProperty in
-                // 첫 2개 프리셋 제외하고 가운데로 스크롤
-                let allCases = FilterPropertyType.allCases
-                if let index = allCases.firstIndex(of: newProperty), index >= 2 {
-                    withAnimation(.easeInOut(duration: 0.5)) {
-                        proxy.scrollTo(newProperty, anchor: .center)
-                    }
-                }
-            }
         }
     }
 }
 
-private struct FilterPresetButton: View {
-    let property: FilterPropertyType
-    let isSelected: Bool
-    let onTap: () -> Void
+private extension FilterPresetsView {
+    var contentView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            scrollViewContent
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        }
+    }
     
-    var body: some View {
+    var scrollViewContent: some View {
+        HStack(spacing: 12) {
+            ForEach(FilterPropertyType.allCases, id: \.self) { property in
+                filterPresetButton(
+                    property: property,
+                    isSelected: selectedProperty == property,
+                    onTap: {
+                        onPropertySelected(property)
+                    }
+                )
+                .id(property)
+            }
+        }
+    }
+    
+    func filterPresetButton(
+        property: FilterPropertyType,
+        isSelected: Bool,
+        onTap: @escaping () -> Void
+    ) -> some View {
         Button(action: onTap) {
             VStack(spacing: 10) {
                 // 아이콘
@@ -68,4 +74,4 @@ private struct FilterPresetButton: View {
         .buttonStyle(.plain)
         .frame(width: 62)
     }
-} 
+}
