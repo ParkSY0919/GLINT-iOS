@@ -12,7 +12,7 @@ import iamport_ios
 struct DetailViewState {
     var filterData: FilterEntity?
     var userInfoData: ProfileEntity?
-    var photoMetaData: PhotoMetadata?
+    var photoMetaData: PhotoMetadataEntity?
     var filterPresetsData: FilterPresetsEntity?
     
     var address: String?
@@ -182,12 +182,12 @@ private extension DetailViewStore {
     /// 찜 버튼 탭 처리
     func handleLikeTapped() {
         print("찜 버튼 탭됨")
-        state.isLoading = true
-        state.errorMessage = nil
         
         Task {
             do {
                 state.isLoading = true
+                state.errorMessage = nil
+                
                 guard let filterID = state.filterData?.id, let isLiked = state.isLiked else {
                     state.isLoading = false
                     state.errorMessage = "필터 정보를 가져오지 못했습니다."
@@ -201,7 +201,6 @@ private extension DetailViewStore {
                 state.errorMessage = error.localizedDescription
             }
         }
-        state.isLoading = false
     }
     
     /// 메시지 보내기 버튼 탭 처리
@@ -222,14 +221,18 @@ private extension DetailViewStore {
         state.isLoading = true
         state.errorMessage = nil
         
+        print("🔍 DetailViewStore: loadFilterDetail 시작, filterId: \(filterId)")
+        
         Task {
             do {
+                print("🔍 DetailViewStore: useCase.filterDetail 호출 전")
                 let (filter, profile, metadata, presets) = try await useCase.filterDetail(filterId)
+                print("🔍 DetailViewStore: useCase.filterDetail 호출 후, 데이터 수신 완료")
                 
                 state = await DetailViewState(
                     filterData: filter,
                     userInfoData: profile,
-                    photoMetaData: metadata,
+                    photoMetaData: metadata?.toEntity(),
                     filterPresetsData: presets,
                     address: metadata?.getKoreanAddress(),
                     navTitle: filter.title ?? "",
@@ -238,7 +241,9 @@ private extension DetailViewStore {
                     hasLoadedOnce: true,
                     isPurchased: filter.isDownloaded ?? false
                 )
+                print("🔍 DetailViewStore: state 업데이트 완료")
             } catch {
+                print("❌ DetailViewStore: 에러 발생 - \(error)")
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
                 if !state.hasLoadedOnce {

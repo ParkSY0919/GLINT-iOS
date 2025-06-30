@@ -67,6 +67,10 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             interceptor: Interceptor(interceptors: [GTInterceptor(type: type)])
         )
         
+        request.cURLDescription { description in
+            print("🌐 CURL:", description)
+        }
+        
         print("📝 Step 1: Request created")
         
         do {

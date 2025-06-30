@@ -24,13 +24,16 @@ struct FilterValueFormatter {
     }
     
     static func photoMetaDataFormat(
-        lensInfo: String,
-        focalLength: Double,
-        aperture: Double,
-        iso: Int
-    ) -> String {
-        let focalLength =  formatSmart(focalLength)
-        let aperture = formatSmart(aperture)
-        return "\(lensInfo) - \(focalLength)mm 𝒇\(aperture) ISO \(iso)"
+        lensInfo: String?,
+        focalLength: Double?,
+        aperture: Double?,
+        iso: Int?
+    ) -> String? {
+        guard let lensInfo, let focalLength, let aperture, let iso else {
+            return nil
+        }
+        let focalLengthStr =  formatSmart(focalLength)
+        let apertureStr = formatSmart(aperture)
+        return "\(lensInfo) - \(focalLengthStr)mm 𝒇\(apertureStr) ISO \(iso)"
     }
 }

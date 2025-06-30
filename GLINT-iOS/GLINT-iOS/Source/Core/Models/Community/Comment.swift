@@ -7,7 +7,6 @@
 
 import Foundation
 
-// MARK: - Comment
 struct Comment: ResponseData {
     let commentID: String
     let content: String

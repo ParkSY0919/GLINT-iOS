@@ -13,7 +13,7 @@ struct MakeViewState {
     var selectedCategory: FilterCategoryItem.CategoryType? = nil
     var selectedImage: UIImage?
     var filteredImage: UIImage?
-    var imageMetaData: PhotoMetadata?
+    var imageMetaData: PhotoMetadataEntity?
     var address: String?
     var introduce: String = ""
     var price: String = ""
@@ -28,7 +28,7 @@ struct MakeViewState {
 enum MakeViewAction {
     case filterNameChanged(String)
     case categorySelected(FilterCategoryItem.CategoryType)
-    case imageSelected(UIImage, PhotoMetadata?)
+    case imageSelected(UIImage, PhotoMetadataEntity?)
     case imageChangeRequested
     case editButtonTapped(UIImage)
     case filteredImageReceived(UIImage)
@@ -95,7 +95,7 @@ final class MakeViewStore {
 }
 
 private extension MakeViewStore {
-    func extractImageMetaData(image: UIImage, meta: PhotoMetadata?) {
+    func extractImageMetaData(image: UIImage, meta: PhotoMetadataEntity?) {
         Task {
             let address = await meta?.getKoreanAddress()
             state.imageMetaData = meta

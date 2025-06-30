@@ -10,9 +10,9 @@ import PhotosUI
 
 struct TitlePictureSectionView: View {
     let selectedImage: UIImage?
-    let imageMetaData: PhotoMetadata?
+    let imageMetaData: PhotoMetadataEntity?
     let address: String?
-    let onImageSelected: (UIImage, PhotoMetadata?) -> Void // 메타데이터도 함께 전달
+    let onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void // 메타데이터도 함께 전달
     let onImageChangeRequested: () -> Void
     let onEditButtonTapped: () -> Void
     

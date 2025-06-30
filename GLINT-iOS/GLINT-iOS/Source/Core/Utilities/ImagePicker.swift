@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct ImagePicker: UIViewControllerRepresentable {
-    let onImageSelected: (UIImage, PhotoMetadata?) -> Void
+    let onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void
     @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -86,7 +86,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 메타데이터 추출
-        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadata? {
+        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadataEntity? {
             // PHAsset
             if let assetIdentifier = result.assetIdentifier {
                 if let metadata = await extractFromPHAsset(identifier: assetIdentifier) {
@@ -99,7 +99,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - PHAsset을 통한 메타데이터 추출
-        private func extractFromPHAsset(identifier: String) async -> PhotoMetadata? {
+        private func extractFromPHAsset(identifier: String) async -> PhotoMetadataEntity? {
             let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
             guard let asset = fetchResult.firstObject else {
                 return nil
@@ -124,7 +124,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 파일에서 직접 메타데이터 추출
-        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadata? {
+        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadataEntity? {
             return await withCheckedContinuation { continuation in
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
                     guard let url = url, error == nil else {
@@ -144,7 +144,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - EXIF 데이터 추출 및 변환 (동기 함수 - 변경 없음)
-        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadata? {
+        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadataEntity? {
             guard let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
                   let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [String: Any] else {
                 return nil
@@ -170,7 +170,7 @@ struct ImagePicker: UIViewControllerRepresentable {
             let pixelWidth = properties[kCGImagePropertyPixelWidth as String] as? Int ?? 0
             let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int ?? 0
             
-            return PhotoMetadata(
+            return PhotoMetadataEntity(
                 camera: phoneInfo,
                 lensInfo: lensType,
                 focalLength: Int(focalLength),
@@ -183,8 +183,19 @@ struct ImagePicker: UIViewControllerRepresentable {
                 format: format,
                 dateTimeOriginal: dateTime,
                 latitude: latitude,
-                longitude: longitude
+                longitude: longitude,
+                photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
+                    lensInfo: lensType,
+                    focalLength: Double(Int(focalLength)),
+                    aperture: aperture,
+                    iso: iso),
+                megapixelInfoString: MegapixelCalculator.calculateMPString(
+                    width: pixelWidth,
+                    height: pixelHeight,
+                    fileSize: fileSize
+                )
             )
+            
         }
         
         private func extractPhoneInfo(from tiffData: [String: Any]) -> String {
@@ -232,7 +243,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                   let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int else {
                 return "정보 없음"
             }
-            let mp = MegapixelCalculator.calculateMPString(width: pixelWidth, height: pixelHeight, fileSize: 0)
+            guard let mp = MegapixelCalculator.calculateMPString(width: pixelWidth, height: pixelHeight, fileSize: 0) else { return "정보 없음" }
             return mp
         }
         

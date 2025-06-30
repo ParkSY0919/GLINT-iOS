@@ -11,7 +11,7 @@ struct UserInfo: ResponseData {
     let userID, nick: String
     let name, introduction, description: String?
     let profileImage: String?
-    let hashTags: [String]
+    let hashTags: [String]?
     
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
