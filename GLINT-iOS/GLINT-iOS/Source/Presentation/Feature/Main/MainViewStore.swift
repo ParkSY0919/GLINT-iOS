@@ -17,12 +17,12 @@ struct MainViewState {
 }
 
 enum MainViewAction {
-    case viewAppeared                // 뷰가 나타났을 때
-    case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
-    case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
-    case todayArtistTapped(id: String) // 오늘의 작가 작업물 탭
+    case viewAppeared
+    case tryFilterTapped(id: String)
+    case hotTrendTapped(id: String)
+    case todayArtistTapped(id: String)
     case categoryTapped(category: FilterCategoryItem)
-    case retryButtonTapped          // 재시도 버튼 탭
+    case retryButtonTapped
 }
 
 @MainActor
