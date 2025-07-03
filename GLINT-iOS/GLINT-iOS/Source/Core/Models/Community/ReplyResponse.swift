@@ -1,5 +1,5 @@
 //
-//  Reply.swift
+//  ReplyResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/23/25.
@@ -7,12 +7,11 @@
 
 import Foundation
 
-// MARK: - Reply
-struct Reply: ResponseData {
+struct ReplyResponse: ResponseData {
     let commentID: String
     let content: String
     let createdAt: String
-    let creator: UserInfo
+    let creator: UserInfoResponse
 
     enum CodingKeys: String, CodingKey {
         case commentID = "comment_id"

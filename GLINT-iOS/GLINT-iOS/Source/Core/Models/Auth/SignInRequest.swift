@@ -8,5 +8,7 @@
 import Foundation
 
 struct SignInRequest: RequestData {
-    let email, password, deviceToken: String
+    let email: String
+    let password: String
+    let deviceToken: String
 }

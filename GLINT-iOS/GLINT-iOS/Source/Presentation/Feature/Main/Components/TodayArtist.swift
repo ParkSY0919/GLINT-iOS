@@ -14,7 +14,7 @@ import NukeUI
 
 struct TodayArtistView: View {
     let author: TodayAuthInfo?
-    let filter: [FilterSummary]?
+    let filter: [FilterSummaryResponse]?
     let onTapWorksItem: (String) -> Void
     
     var body: some View {
@@ -101,7 +101,7 @@ private extension TodayArtistView {
         }
     }
     
-    func artistWorkItem(_ filterItem: FilterSummary) -> some View {
+    func artistWorkItem(_ filterItem: FilterSummaryResponse) -> some View {
         let entity = filterItem.toEntity()
         
         return LazyImage(url: URL(string: entity.filtered ?? "")) { state in

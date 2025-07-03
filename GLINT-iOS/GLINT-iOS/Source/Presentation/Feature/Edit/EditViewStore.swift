@@ -274,7 +274,7 @@ private extension EditViewStore {
 }
 
 extension PhotoEditState {
-    func toFilterPresetsEntity() -> FilterPresetsEntity {
+    func toFilterPresetsEntity() -> FilterValuesEntity {
         // 각 값을 개별 변수로 추출
         let brightness = parameters[.brightness]?.currentValue ?? 0
         let exposure = parameters[.exposure]?.currentValue ?? 0
@@ -289,7 +289,7 @@ extension PhotoEditState {
         let temperature = parameters[.temperature]?.currentValue ?? 0
         let blackPoint = parameters[.blackPoint]?.currentValue ?? 0
         
-        return FilterPresetsEntity(
+        return FilterValuesEntity(
             brightness: brightness,
             exposure: exposure,
             contrast: contrast,

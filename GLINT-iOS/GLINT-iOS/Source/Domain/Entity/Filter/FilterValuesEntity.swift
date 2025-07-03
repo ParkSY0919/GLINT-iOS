@@ -1,5 +1,5 @@
 //
-//  FilterPresetsEntity.swift
+//  FilterValuesEntity.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/23/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FilterPresetsEntity: RequestData {
+struct FilterValuesEntity: RequestData {
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?
@@ -29,6 +29,23 @@ struct FilterPresetsEntity: RequestData {
         case noiseReduction = "noise_reduction"
         case highlights, shadows, temperature
         case blackPoint = "black_point"
+    }
+    
+    func setDefaultValues() -> FilterValuesEntity {
+        return .init(
+            brightness: 0,
+            exposure: 0,
+            contrast: 0,
+            saturation: 0,
+            sharpness: 0,
+            blur: 0,
+            vignette: 0,
+            noiseReduction: 0,
+            highlights: 0,
+            shadows: 0,
+            temperature: 6500,
+            blackPoint: 0
+        )
     }
 
     func toStringArray() -> [String] {

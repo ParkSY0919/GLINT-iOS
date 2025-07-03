@@ -11,8 +11,8 @@ struct DetailViewUseCase {
     var filterDetail: @Sendable (_ filterID: String) async throws -> (
         FilterEntity,
         ProfileEntity,
-        PhotoMetadata?,
-        FilterPresetsEntity
+        PhotoMetadataResponse?,
+        FilterValuesEntity
     )
     var likeFilter: @Sendable (_ filterID: String, _ likeStatus: Bool) async throws -> LikeFilterResponse
     var createOrder: @Sendable (_ filterID: String, _ filterPrice: Int) async throws -> CreateOrderResponse

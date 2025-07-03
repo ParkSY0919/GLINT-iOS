@@ -57,7 +57,7 @@ private extension HotTrendView {
         .clipped()
     }
     
-    func trendsHorizontalStack(data: [FilterSummary]) -> some View {
+    func trendsHorizontalStack(data: [FilterSummaryResponse]) -> some View {
         LazyHStack(spacing: 8) {
             ForEach(data) { trend in
                 let entity = trend.toEntity()

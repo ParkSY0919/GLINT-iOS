@@ -14,7 +14,7 @@ struct CreateFilterRequest: RequestData {
     let description: String
     let files: [String]
     let photoMetadata: PhotoMetadataEntity?
-    let filterValues: FilterValuesResponse
+    let filterValues: FilterValuesEntity
 
     enum CodingKeys: String, CodingKey {
         case category, title, price, description, files

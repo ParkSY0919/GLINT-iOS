@@ -8,5 +8,5 @@
 import Foundation
 
 struct HotTrendResponse: ResponseData {
-    let data: [FilterSummary]
+    let data: [FilterSummaryResponse]
 }

@@ -1,28 +1,30 @@
 //
-//  FilterSummary.swift
+//  FilterResponse.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 6/20/25.
+//  Created by 박신영 on 6/19/25.
 //
 
 import Foundation
 
-struct FilterSummary: ResponseData, Identifiable {
-    let id = UUID()
+struct FilterResponse: ResponseData {
     let filterID, title, description: String
     let category: String?
     let files: [String]
-    let creator: UserInfo
+    let creator: ProfileEntity
     let isLiked: Bool
     let likeCount, buyerCount: Int
     let createdAt, updatedAt: String
+    let isDownloaded: Bool?
+    let price: Int?
 
     enum CodingKeys: String, CodingKey {
         case filterID = "filter_id"
-        case category, title, description, files, creator
+        case category, title, description, files, creator, price
         case isLiked = "is_liked"
         case likeCount = "like_count"
         case buyerCount = "buyer_count"
+        case isDownloaded = "is_downloaded"
         case createdAt, updatedAt
     }
     
@@ -40,15 +42,15 @@ struct FilterSummary: ResponseData, Identifiable {
         
         return FilterEntity(
             id: self.filterID,
-            category: self.category,
+            category: self.category ?? "풍경",
             title: self.title,
             introduction: nil,
             description: self.description,
             original: original?.imageURL,
             filtered: filtered?.imageURL,
-            isDownloaded: nil,
+            isDownloaded: self.isDownloaded ?? false,
             isLiked: self.isLiked,
-            price: nil,
+            price: self.price ?? 0,
             likeCount: self.likeCount,
             buyerCount: self.buyerCount,
             createdAt: self.createdAt,

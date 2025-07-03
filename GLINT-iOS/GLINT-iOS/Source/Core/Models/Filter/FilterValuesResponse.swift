@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct FilterValuesResponse: ResponseData, Encodable {
+struct FilterValuesResponse: ResponseData {
     let brightness: Float?
     let exposure: Float?
     let contrast: Float?
@@ -28,7 +28,7 @@ struct FilterValuesResponse: ResponseData, Encodable {
         case blackPoint = "black_point"
     }
     
-    func toEntity() -> FilterPresetsEntity {
+    func toEntity() -> FilterValuesEntity {
         return .init(
             brightness: self.brightness ?? 0,
             exposure: self.exposure ?? 0,
@@ -46,7 +46,7 @@ struct FilterValuesResponse: ResponseData, Encodable {
     }
 }
 
-extension FilterPresetsEntity {
+extension FilterValuesEntity {
     func toRequest() -> FilterValuesResponse {
         return .init(
             brightness: self.brightness,

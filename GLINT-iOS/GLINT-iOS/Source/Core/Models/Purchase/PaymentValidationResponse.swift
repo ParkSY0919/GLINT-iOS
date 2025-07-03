@@ -9,7 +9,7 @@ import Foundation
 
 struct PaymentValidationResponse: ResponseData {
     let paymentID: String
-    let orderItem: OrderItem
+    let orderItem: OrderItemResponse
     let createdAt, updatedAt: String
 
     enum CodingKeys: String, CodingKey {

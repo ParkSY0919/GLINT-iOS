@@ -14,14 +14,14 @@ struct FilterDetailResponse: ResponseData {
     let description: String
     let files: [String]
     let price: Int
-    let creator: UserInfo
-    let photoMetadata: PhotoMetadata?
+    let creator: UserInfoResponse
+    let photoMetadata: PhotoMetadataResponse?
     let filterValues: FilterValuesResponse
     let isLiked: Bool
     let isDownloaded: Bool
     let likeCount: Int
     let buyerCount: Int
-    let comments: [Comment]
+    let comments: [CommentResponse]
     var createdAt: String = "9999-10-19T03:05:03.422Z"
     var updatedAt: String = "9999-10-19T03:05:03.422Z"
 

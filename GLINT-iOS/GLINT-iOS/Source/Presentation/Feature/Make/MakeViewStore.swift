@@ -15,7 +15,7 @@ struct CreateFilterParams {
     let description: String
     let files: [String]
     let photoMetadata: PhotoMetadataEntity?
-    let filterValues: FilterPresetsEntity
+    let filterValues: FilterValuesEntity
 }
 
 struct MakeViewState {
@@ -25,7 +25,7 @@ struct MakeViewState {
     var selectedImage: UIImage?
     var filteredImage: UIImage?
     var imageMetaData: PhotoMetadataEntity?
-    var filterValues: FilterPresetsEntity?
+    var filterValues: FilterValuesEntity?
     var address: String?
     var introduce: String = ""
     var price: String = ""
@@ -46,7 +46,7 @@ enum MakeViewAction {
     case priceChanged(String)
     case saveButtonTapped
     case retryButtonTapped
-    case editCompleted(UIImage, FilterPresetsEntity)
+    case editCompleted(UIImage, FilterValuesEntity)
 }
 
 @MainActor
@@ -170,7 +170,7 @@ private extension MakeViewStore {
     }
     
     func setupEditCallback() {
-        router.onPopData(UIImage.self, FilterPresetsEntity.self) { [weak self] filteredImage, filterValues in
+        router.onPopData(UIImage.self, FilterValuesEntity.self) { [weak self] filteredImage, filterValues in
             self?.send(.editCompleted(filteredImage, filterValues))
         }
     }

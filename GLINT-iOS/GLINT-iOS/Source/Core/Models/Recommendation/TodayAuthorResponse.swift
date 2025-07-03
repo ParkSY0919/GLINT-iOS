@@ -9,7 +9,7 @@ import Foundation
 
 struct TodayAuthorResponse: ResponseData {
     let author: TodayAuthInfo
-    let filters: [FilterSummary]
+    let filters: [FilterSummaryResponse]
 }
 
 struct TodayAuthInfo: ResponseData {

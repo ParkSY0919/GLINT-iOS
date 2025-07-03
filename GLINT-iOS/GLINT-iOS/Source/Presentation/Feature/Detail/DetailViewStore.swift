@@ -13,7 +13,7 @@ struct DetailViewState {
     var filterData: FilterEntity?
     var userInfoData: ProfileEntity?
     var photoMetaData: PhotoMetadataEntity?
-    var filterPresetsData: FilterPresetsEntity?
+    var filterPresetsData: FilterValuesEntity?
     
     var address: String?
     var navTitle: String = ""
@@ -221,20 +221,17 @@ private extension DetailViewStore {
         state.isLoading = true
         state.errorMessage = nil
         
-        print("🔍 DetailViewStore: loadFilterDetail 시작, filterId: \(filterId)")
-        
         Task {
             do {
-                print("🔍 DetailViewStore: useCase.filterDetail 호출 전")
                 let (filter, profile, metadata, presets) = try await useCase.filterDetail(filterId)
-                print("🔍 DetailViewStore: useCase.filterDetail 호출 후, 데이터 수신 완료")
+                let metaEntity = metadata?.toEntity()
                 
                 state = await DetailViewState(
                     filterData: filter,
                     userInfoData: profile,
-                    photoMetaData: metadata?.toEntity(),
+                    photoMetaData: metaEntity,
                     filterPresetsData: presets,
-                    address: metadata?.getKoreanAddress(),
+                    address: metaEntity?.getKoreanAddress(),
                     navTitle: filter.title ?? "",
                     isLiked: filter.isLiked ?? false,
                     isLoading: false,
