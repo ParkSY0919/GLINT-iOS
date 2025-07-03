@@ -14,7 +14,6 @@ struct MainViewState {
     var todayArtistFilter: [FilterEntity]?
     var isLoading: Bool = true
     var errorMessage: String?
-    var hasLoadedOnce: Bool = false  // 한 번이라도 로드했는지 추적
 }
 
 enum MainViewAction {
@@ -61,17 +60,13 @@ final class MainViewStore {
     }
 }
 
-// MARK: - Private Action Handlers
 private extension MainViewStore {
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared() {
         // 이미 데이터가 있고 에러가 없으면 로딩하지 않음
         if hasDataAndNoError() { return }
         
-        // 첫 로드일 시 로드
-        if !state.hasLoadedOnce {
-            loadData()
-        }
+        loadData()
     }
     
     /// filterID 따른 상세화면 이동
@@ -104,16 +99,11 @@ private extension MainViewStore {
                     todayArtistUser: aProfile,
                     todayArtistFilter: aFilter,
                     isLoading: false,
-                    errorMessage: nil,
-                    hasLoadedOnce: true
+                    errorMessage: nil
                 )
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
-                // 에러가 발생해도 hasLoadedOnce는 true로 유지 (이전 데이터 보존)
-                if !state.hasLoadedOnce {
-                    state.hasLoadedOnce = true
-                }
             }
         }
     }

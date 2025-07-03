@@ -15,19 +15,19 @@ struct MainView: View {
         content
             .ignoresSafeArea(.all, edges: .top)
             .background(.gray100)
-            .onAppear {
+            .onViewDidLoad(perform: {
                 store.send(.viewAppeared)
-            }
-            .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)
+            })
+            .animation(.easeInOut(duration: 0.3), value: store.state.isLoading)
             .sensoryFeedback(.impact(weight: .light), trigger: store.state.errorMessage)
     }
     
     @ViewBuilder
     private var content: some View {
-        switch (store.state.isLoading, store.state.hasLoadedOnce, store.state.errorMessage) {
-        case (true, false, _):
+        switch (store.state.isLoading, store.state.errorMessage) {
+        case (true, _):
             StateViewBuilder.loadingView()
-        case (_, false, let error?) where !error.isEmpty:
+        case (_, let error?) where !error.isEmpty:
             StateViewBuilder.errorView(errorMessage: error) {
                 store.send(.retryButtonTapped)
             }
@@ -55,7 +55,7 @@ private extension MainView {
         }
         .padding(.bottom, 20)
         .overlay(alignment: .bottom) {
-            if store.state.isLoading && store.state.hasLoadedOnce {
+            if store.state.isLoading {
                 StateViewBuilder.loadingIndicator()
             }
         }
