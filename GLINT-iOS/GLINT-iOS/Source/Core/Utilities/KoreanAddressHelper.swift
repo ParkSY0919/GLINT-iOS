@@ -9,9 +9,9 @@ import Foundation
 import CoreLocation
 
 struct KoreanAddressHelper {
-    static func getKoreanAddress(latitude: Double, longitude: Double) async -> String {
+    static func getKoreanAddress(latitude: Float, longitude: Float) async -> String {
         let geocoder = CLGeocoder()
-        let location = CLLocation(latitude: latitude, longitude: longitude)
+        let location = CLLocation(latitude: Double(latitude), longitude: Double(longitude))
         
         do {
             let placemarks = try await geocoder.reverseGeocodeLocation(location)

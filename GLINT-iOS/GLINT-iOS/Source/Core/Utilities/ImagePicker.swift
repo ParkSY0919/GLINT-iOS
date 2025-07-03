@@ -173,7 +173,7 @@ struct ImagePicker: UIViewControllerRepresentable {
             return PhotoMetadataEntity(
                 camera: phoneInfo,
                 lensInfo: lensType,
-                focalLength: Int(focalLength),
+                focalLength: focalLength,
                 aperture: aperture,
                 iso: iso,
                 shutterSpeed: shutterSpeed,
@@ -186,7 +186,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                 longitude: longitude,
                 photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
                     lensInfo: lensType,
-                    focalLength: Double(Int(focalLength)),
+                    focalLength: focalLength,
                     aperture: aperture,
                     iso: iso),
                 megapixelInfoString: MegapixelCalculator.calculateMPString(
@@ -214,11 +214,11 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         
         // MARK: - 촬영 정보 추출
-        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Double, Double, Int) {
+        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Float, Float, Int) {
             // 렌즈 정보
             var lensType = "카메라 정보 없음"
-            var focalLengh: Double = 0
-            var aperture: Double = 0
+            var focalLengh: Float = 0
+            var aperture: Float = 0
             var iso: Int = 0
             
             if let focalLength = exifData[kCGImagePropertyExifFocalLength as String] as? Double {
@@ -226,8 +226,8 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
             
             // 초점거리mm, 조리개𝒇, ISO
-            if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Double,
-               let apertureData = exifData[kCGImagePropertyExifFNumber as String] as? Double,
+            if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Float,
+               let apertureData = exifData[kCGImagePropertyExifFNumber as String] as? Float,
                let isoData = exifData[kCGImagePropertyExifISOSpeedRatings as String] as? [Int],
                let isoValue = isoData.first {
                 focalLengh = focalLengthData
@@ -248,15 +248,15 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - GPS 정보 추출
-        private func extractGPSInfo(from gpsData: [String: Any], asset: PHAsset?) -> (Double, Double) {
-            var latitude: Double = 0.0
-            var longitude: Double = 0.0
+        private func extractGPSInfo(from gpsData: [String: Any], asset: PHAsset?) -> (Float, Float) {
+            var latitude: Float = 0.0
+            var longitude: Float = 0.0
             
             // EXIF GPS 데이터에서 추출
             if !gpsData.isEmpty {
-                if let lat = gpsData[kCGImagePropertyGPSLatitude as String] as? Double,
+                if let lat = gpsData[kCGImagePropertyGPSLatitude as String] as? Float,
                    let latRef = gpsData[kCGImagePropertyGPSLatitudeRef as String] as? String,
-                   let lon = gpsData[kCGImagePropertyGPSLongitude as String] as? Double,
+                   let lon = gpsData[kCGImagePropertyGPSLongitude as String] as? Float,
                    let lonRef = gpsData[kCGImagePropertyGPSLongitudeRef as String] as? String {
                     
                     latitude = latRef == "S" ? -lat : lat
@@ -265,8 +265,8 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
             // PHAsset의 location에서 추출
             else if let asset = asset, let location = asset.location {
-                latitude = location.coordinate.latitude
-                longitude = location.coordinate.longitude
+                latitude = Float(location.coordinate.latitude)
+                longitude = Float(location.coordinate.longitude)
             }
             
             return (latitude, longitude)

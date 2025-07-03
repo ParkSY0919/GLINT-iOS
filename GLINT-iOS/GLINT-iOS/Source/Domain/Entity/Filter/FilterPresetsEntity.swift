@@ -7,19 +7,19 @@
 
 import Foundation
 
-struct FilterPresetsEntity: ResponseData {
-    let brightness: Double
-    let exposure: Double
-    let contrast: Double
-    let saturation: Double
-    let sharpness: Double
-    let blur: Double
-    let vignette: Double
-    let noiseReduction: Double
-    let highlights: Double
-    let shadows: Double
-    let temperature: Int
-    let blackPoint: Double
+struct FilterPresetsEntity: RequestData {
+    let brightness: Float?
+    let exposure: Float?
+    let contrast: Float?
+    let saturation: Float?
+    let sharpness: Float?
+    let blur: Float?
+    let vignette: Float?
+    let noiseReduction: Float?
+    let highlights: Float?
+    let shadows: Float?
+    let temperature: Float?
+    let blackPoint: Float?
     var presetValues: [String] {
         return toStringArray()
     }
@@ -33,18 +33,19 @@ struct FilterPresetsEntity: ResponseData {
 
     func toStringArray() -> [String] {
         return [
-            String(format: "%.1f", brightness),
-            String(format: "%.1f", exposure),
-            String(format: "%.1f", contrast),
-            String(format: "%.1f", saturation),
-            String(format: "%.1f", sharpness),
-            String(format: "%.1f", blur),
-            String(format: "%.1f", vignette),
-            String(format: "%.1f", noiseReduction),
-            String(format: "%.1f", highlights),
-            String(format: "%.1f", shadows),
-            String(format: "%.0f", Double(temperature)),
-            String(format: "%.2f", blackPoint)
+            String(format: "%.1f", brightness ?? 0),
+            String(format: "%.1f", exposure ?? 0),
+            String(format: "%.1f", contrast ?? 1.0),
+            String(format: "%.1f", saturation ?? 1.0),
+            String(format: "%.1f", sharpness ?? 0),
+            String(format: "%.1f", blur ?? 0),
+            String(format: "%.1f", vignette ?? 0),
+            String(format: "%.1f", noiseReduction ?? 0),
+            String(format: "%.1f", highlights ?? 0),
+            String(format: "%.1f", shadows ?? 0),
+            String(format: "%.0f", temperature ?? 6500),
+            String(format: "%.2f", blackPoint ?? 0)
         ]
     }
+    
 }

@@ -10,8 +10,8 @@ import Foundation
 struct PhotoMetadata: ResponseData {
     let camera: String?
     let lensInfo: String?
-    let focalLength: Int?
-    let aperture: Double?
+    let focalLength: Float?
+    let aperture: Float?
     let iso: Int?
     let shutterSpeed: String?
     let pixelWidth: Int?
@@ -19,8 +19,8 @@ struct PhotoMetadata: ResponseData {
     let fileSize: Int?
     let format: String?
     let dateTimeOriginal: String?
-    let latitude: Double?
-    let longitude: Double?
+    let latitude: Float?
+    let longitude: Float?
 
     enum CodingKeys: String, CodingKey {
         case camera
@@ -60,7 +60,7 @@ struct PhotoMetadata: ResponseData {
             longitude: self.longitude,
             photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
                 lensInfo: self.lensInfo,
-                focalLength: Double(self.focalLength ?? 0),
+                focalLength: self.focalLength,
                 aperture: self.aperture,
                 iso: self.iso),
             megapixelInfoString: MegapixelCalculator.calculateMPString(
@@ -72,11 +72,11 @@ struct PhotoMetadata: ResponseData {
     }
 }
 
-struct PhotoMetadataEntity {
+struct PhotoMetadataEntity: RequestData {
     let camera: String?
     let lensInfo: String?
-    let focalLength: Int?
-    let aperture: Double?
+    let focalLength: Float?
+    let aperture: Float?
     let iso: Int?
     let shutterSpeed: String?
     let pixelWidth: Int?
@@ -84,8 +84,8 @@ struct PhotoMetadataEntity {
     let fileSize: Int?
     let format: String?
     let dateTimeOriginal: String?
-    let latitude: Double?
-    let longitude: Double?
+    let latitude: Float?
+    let longitude: Float?
     let photoMetadataString: String?
     let megapixelInfoString: String?
 
