@@ -8,7 +8,7 @@
 import Foundation
 
 extension TodayFilterResponse {
-    func toFilterEntity() -> FilterEntity {
+    func toEntity() -> FilterEntity {
         let original = self.files.first
         let filtered = self.files.last
         

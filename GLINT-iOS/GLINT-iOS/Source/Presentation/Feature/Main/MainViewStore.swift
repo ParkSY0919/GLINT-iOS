@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct MainViewState {
-    var todayFilter: TodayFilterResponse?
-    var todayArtist: TodayAuthorResponse?
-    var hotTrends: HotTrendResponse?
+    var todayFilterData: FilterEntity?
+    var hotTrendsData: [FilterEntity]?
+    var todayArtistUser: ProfileEntity?
+    var todayArtistFilter: [FilterEntity]?
     var isLoading: Bool = true
     var errorMessage: String?
     var hasLoadedOnce: Bool = false  // 한 번이라도 로드했는지 추적
 }
 
-// MARK: - Action
 enum MainViewAction {
     case viewAppeared                // 뷰가 나타났을 때
     case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
@@ -97,11 +97,12 @@ private extension MainViewStore {
         
         Task {
             do {
-                let (a, f, t) = try await useCase.loadMainViewState()
+                let (f, h, aProfile, aFilter) = try await useCase.loadMainViewState()
                 state = MainViewState(
-                    todayFilter: f,
-                    todayArtist: a,
-                    hotTrends: t,
+                    todayFilterData: f,
+                    hotTrendsData: h,
+                    todayArtistUser: aProfile,
+                    todayArtistFilter: aFilter,
                     isLoading: false,
                     errorMessage: nil,
                     hasLoadedOnce: true
@@ -119,9 +120,10 @@ private extension MainViewStore {
     
     /// 데이터가 있고 에러가 없는지 확인
     func hasDataAndNoError() -> Bool {
-        return state.todayFilter != nil &&
-               state.todayArtist != nil &&
-               state.hotTrends != nil &&
-               state.errorMessage == nil
+        return state.todayFilterData != nil &&
+        state.todayArtistUser != nil &&
+        state.todayArtistFilter != nil &&
+        state.hotTrendsData != nil &&
+        state.errorMessage == nil
     }
 }

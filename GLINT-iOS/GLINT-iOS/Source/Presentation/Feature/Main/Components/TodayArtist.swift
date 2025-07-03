@@ -13,8 +13,8 @@ import SwiftUI
 import NukeUI
 
 struct TodayArtistView: View {
-    let author: TodayAuthInfoResponse?
-    let filter: [FilterSummaryResponse]?
+    let author: ProfileEntity?
+    let filters: [FilterEntity]?
     let onTapWorksItem: (String) -> Void
     
     var body: some View {
@@ -45,10 +45,15 @@ private extension TodayArtistView {
         }
     }
     
-    func profileSection(_ author: TodayAuthInfoResponse) -> some View {
+    func profileSection(_ author: ProfileEntity) -> some View {
         HStack(spacing: 12) {
-            artistProfileImage(imageUrlString: author.profileImageURL)
-            artistNameSection(name: author.name, nick: author.nick)
+            if let url = author.profileImageURL {
+                artistProfileImage(imageUrlString: url)
+            }
+            if let name = author.name,
+               let nick = author.nick {
+                artistNameSection(name: name, nick: nick)
+            }
         }
         .padding(.top, 14)
         .padding(.leading, 20)
@@ -85,10 +90,10 @@ private extension TodayArtistView {
     
     @ViewBuilder
     var worksSection: some View {
-        if let filter = filter, !filter.isEmpty {
+        if let filter = filters, !filter.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
-                    ForEach(filter, id: \.filterID) { filterItem in
+                    ForEach(filter, id: \.id) { filterItem in
                         artistWorkItem(filterItem)
                     }
                 }
@@ -101,10 +106,8 @@ private extension TodayArtistView {
         }
     }
     
-    func artistWorkItem(_ filterItem: FilterSummaryResponse) -> some View {
-        let entity = filterItem.toEntity()
-        
-        return LazyImage(url: URL(string: entity.filtered ?? "")) { state in
+    func artistWorkItem(_ filterItem: FilterEntity) -> some View {
+        return LazyImage(url: URL(string: filterItem.filtered ?? "")) { state in
             lazyImageTransform(state) { image in
                 image.aspectRatio(contentMode: .fill)
             }
@@ -113,13 +116,13 @@ private extension TodayArtistView {
         .clipRectangle(8)
         .clipped()
         .onTapGesture {
-            onTapWorksItem(filterItem.filterID)
+            onTapWorksItem(filterItem.id)
         }
     }
     
     @ViewBuilder
-    func tagsSection(_ author: TodayAuthInfoResponse) -> some View {
-        let tags = author.hashTags
+    func tagsSection(_ author: ProfileEntity) -> some View {
+        let tags = author.hashTags ?? []
         if !tags.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
@@ -144,11 +147,10 @@ private extension TodayArtistView {
     }
     
     @ViewBuilder
-    func introductionSection(_ author: TodayAuthInfoResponse) -> some View {
-        if hasIntroductionContent(author) {
+    func introductionSection(_ author: ProfileEntity) -> some View {
+        if let introduction = author.introduction,
+           let description = author.description {
             VStack(alignment: .leading, spacing: 12) {
-                let introduction = author.introduction
-                let description = author.description
                 if !introduction.isEmpty {
                     artistIntroductionTitle(content: introduction)
                 }
@@ -172,11 +174,5 @@ private extension TodayArtistView {
             .font(.pretendardFont(.caption, size: 12))
             .foregroundColor(.gray60)
             .lineLimit(nil)
-    }
-    
-    func hasIntroductionContent(_ author: TodayAuthInfoResponse) -> Bool {
-        let hasIntroduction = author.introduction.isEmpty == false
-        let hasDescription = author.description.isEmpty == false
-        return hasIntroduction || hasDescription
     }
 }

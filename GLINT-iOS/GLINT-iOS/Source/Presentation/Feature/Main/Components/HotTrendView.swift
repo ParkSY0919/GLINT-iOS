@@ -11,7 +11,7 @@ import Nuke
 import NukeUI
 
 struct HotTrendView: View {
-    let hotTrends: HotTrendResponse?
+    let filterEntities: [FilterEntity]?
     let onHotTrendTapped: (String) -> Void
     private let imagePrefetcher = ImagePrefetcher()
     
@@ -19,10 +19,10 @@ struct HotTrendView: View {
     private var centralTrendID: String?
     
     var body: some View {
-        if let hotTrends {
+        if let filterEntities {
             contentView
                 .onAppear {
-                    centralTrendID = hotTrends.data.first?.filterID
+                    centralTrendID = filterEntities.first?.id
                 }
         } else {
             StateViewBuilder.emptyStateView(message: "핫 트렌드를 불러올 수 없습니다.")
@@ -47,7 +47,7 @@ private extension HotTrendView {
     
     var hotTrendScrollContentSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            if let data = hotTrends?.data {
+            if let data = filterEntities {
                 trendsHorizontalStack(data: data)
             }
         }
@@ -57,12 +57,11 @@ private extension HotTrendView {
         .clipped()
     }
     
-    func trendsHorizontalStack(data: [FilterSummaryResponse]) -> some View {
+    func trendsHorizontalStack(data: [FilterEntity]) -> some View {
         LazyHStack(spacing: 8) {
             ForEach(data) { trend in
-                let entity = trend.toEntity()
-                trendItem(for: entity)
-                    .prefetchImageIfPresent(entity.filtered)
+                trendItem(for: trend)
+                    .prefetchImageIfPresent(trend.filtered)
             }
         }
         .padding(.horizontal, screenWidthPadding)

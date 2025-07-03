@@ -11,5 +11,5 @@ struct MainViewUseCase {
     var todayAuthor: @Sendable () async throws -> TodayAuthorResponse
     var todayFilter: @Sendable () async throws -> TodayFilterResponse
     var hotTrend: @Sendable () async throws -> HotTrendResponse
-    var loadMainViewState: @Sendable () async throws -> (TodayAuthorResponse, TodayFilterResponse, HotTrendResponse)
+    var loadMainViewState: @Sendable () async throws -> (FilterEntity, [FilterEntity], ProfileEntity, [FilterEntity])
 }

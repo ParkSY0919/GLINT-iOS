@@ -63,7 +63,7 @@ private extension MainView {
     
     var todayFilterSection: some View {
         TodayFilterView(
-            filterEntity: store.state.todayFilter?.toFilterEntity(),
+            filterEntity: store.state.todayFilterData,
             onTryFilterTapped: { id in
                 store.send(.tryFilterTapped(id: id))
             },
@@ -80,7 +80,7 @@ private extension MainView {
     
     var hotTrendSection: some View {
         HotTrendView(
-            hotTrends: store.state.hotTrends,
+            filterEntities: store.state.hotTrendsData,
             onHotTrendTapped: { id in
                 store.send(.hotTrendTapped(id: id))
             }
@@ -90,8 +90,8 @@ private extension MainView {
     
     var todayArtistSection: some View {
         TodayArtistView(
-            author: store.state.todayArtist?.author,
-            filter: store.state.todayArtist?.filters,
+            author: store.state.todayArtistUser,
+            filters: store.state.todayArtistFilter,
             onTapWorksItem: { id in
                 store.send(.todayArtistTapped(id: id))
             }

@@ -129,10 +129,11 @@ private extension MakeViewStore {
                 
                 let filesResult = try await useCase.files(imageData)
                 
-//                guard let filterValues = state.filterValues else {
-//                    print("filterValues Nil")
-//                    return
-//                }
+                guard let filterValues = state.filterValues else {
+                    print("filterValues 가져오기 실패")
+                    state.filterValues = state.filterValues!.setDefaultValues()
+                    return
+                }
                 let request = CreateFilterRequest(
                     category: state.selectedCategory?.rawValue ?? "별",
                     title: /*state.filterName*/"케케",
@@ -140,20 +141,7 @@ private extension MakeViewStore {
                     description: /*state.introduce*/"케케",
                     files: filesResult.files,
                     photoMetadata: nil,
-                    filterValues: FilterValuesResponse.init(
-                        brightness: 0,
-                        exposure: 0,
-                        contrast: 0,
-                        saturation: 0,
-                        sharpness: 0,
-                        blur: 0,
-                        vignette: 0,
-                        noiseReduction: 0,
-                        highlights: 0,
-                        shadows: 0,
-                        temperature: 6500,
-                        blackPoint: 0
-                    )
+                    filterValues: filterValues
                 )
                 
                 let result = try await useCase.createFilter(request)

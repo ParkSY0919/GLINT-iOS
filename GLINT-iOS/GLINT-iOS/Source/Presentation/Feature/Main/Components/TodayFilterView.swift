@@ -25,9 +25,6 @@ struct TodayFilterView: View {
         .black.opacity(1.0)
     ])
     
-    @State
-    private var scrollOffset: CGFloat = 0
-    
     var body: some View {
         ZStack(alignment: .top) {
             if let filterEntity {
