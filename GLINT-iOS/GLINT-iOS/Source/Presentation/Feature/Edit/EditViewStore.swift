@@ -151,7 +151,7 @@ private extension EditViewStore {
                 return
             }
             // 필터된 이미지와 함께 pop
-            self.router.pop(withData: filteredImage)
+            self.router.pop(withData: filteredImage, addData: state.editState.toFilterPresetsEntity())
             GTLogger.shared.i("Filter applied and saved")
         }
     }
@@ -270,5 +270,38 @@ private extension EditViewStore {
         return FilterPropertyType.allCases.allSatisfy { type in
             params1[type] == params2[type]
         }
+    }
+}
+
+extension PhotoEditState {
+    func toFilterPresetsEntity() -> FilterPresetsEntity {
+        // 각 값을 개별 변수로 추출
+        let brightness = parameters[.brightness]?.currentValue ?? 0
+        let exposure = parameters[.exposure]?.currentValue ?? 0
+        let contrast = parameters[.contrast]?.currentValue ?? 0
+        let saturation = parameters[.saturation]?.currentValue ?? 0
+        let sharpness = parameters[.sharpness]?.currentValue ?? 0
+        let blur = parameters[.blur]?.currentValue ?? 0
+        let vignette = parameters[.vignette]?.currentValue ?? 0
+        let noiseReduction = parameters[.noiseReduction]?.currentValue ?? 0
+        let highlights = parameters[.highlights]?.currentValue ?? 0
+        let shadows = parameters[.shadows]?.currentValue ?? 0
+        let temperature = parameters[.temperature]?.currentValue ?? 0
+        let blackPoint = parameters[.blackPoint]?.currentValue ?? 0
+        
+        return FilterPresetsEntity(
+            brightness: brightness,
+            exposure: exposure,
+            contrast: contrast,
+            saturation: saturation,
+            sharpness: sharpness,
+            blur: blur,
+            vignette: vignette,
+            noiseReduction: noiseReduction,
+            highlights: highlights,
+            shadows: shadows,
+            temperature: temperature,
+            blackPoint: blackPoint
+        )
     }
 }

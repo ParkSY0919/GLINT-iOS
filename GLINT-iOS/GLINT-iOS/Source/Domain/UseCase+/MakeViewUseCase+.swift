@@ -15,6 +15,10 @@ extension MakeViewUseCase {
             files: { files in
                 let response = try await filterRepo.fileUpload(files)
                 return response
+            },
+            createFilter: { request in
+                let response = try await filterRepo.createFilter(request)
+                return response
             }
         )
     }()

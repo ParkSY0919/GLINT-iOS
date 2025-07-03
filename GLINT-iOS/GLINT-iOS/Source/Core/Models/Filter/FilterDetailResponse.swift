@@ -22,8 +22,8 @@ struct FilterDetailResponse: ResponseData {
     let likeCount: Int
     let buyerCount: Int
     let comments: [Comment]
-    let createdAt: String
-    let updatedAt: String
+    var createdAt: String = "9999-10-19T03:05:03.422Z"
+    var updatedAt: String = "9999-10-19T03:05:03.422Z"
 
     enum CodingKeys: String, CodingKey {
         case filterID = "filter_id"

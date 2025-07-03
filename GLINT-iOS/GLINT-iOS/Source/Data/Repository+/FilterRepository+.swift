@@ -17,6 +17,10 @@ extension FilterRepository {
                 return try await provider.requestMultipart(.filterFiles(files: files))
             },
             
+            createFilter: { request in
+                return try await provider.request(.createFilter(request: request))
+            },
+            
             // 필터 좋아요
             likeFilter: { filterID, likeStatus in
                 return try await provider.request(.likeFilter(filterID: filterID, likeStatus: likeStatus))

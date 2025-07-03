@@ -8,21 +8,31 @@
 import SwiftUI
 import PhotosUI
 
+struct CreateFilterParams {
+    let category: String
+    let title: String
+    let price: Int
+    let description: String
+    let files: [String]
+    let photoMetadata: PhotoMetadataEntity?
+    let filterValues: FilterPresetsEntity
+}
+
 struct MakeViewState {
     var filterName: String = ""
     var selectedCategory: FilterCategoryItem.CategoryType? = nil
+    var originImage: UIImage?
     var selectedImage: UIImage?
     var filteredImage: UIImage?
     var imageMetaData: PhotoMetadataEntity?
+    var filterValues: FilterPresetsEntity?
     var address: String?
     var introduce: String = ""
     var price: String = ""
-    var showingEditView: Bool = false
     
     var isLoading: Bool = false
     var errorMessage: String?
-    var saveResult: [String]? = nil
-    var showingSaveAlert: Bool = false
+//    var saveResult: [String]? = nil
 }
 
 enum MakeViewAction {
@@ -36,7 +46,7 @@ enum MakeViewAction {
     case priceChanged(String)
     case saveButtonTapped
     case retryButtonTapped
-    case editCompleted(UIImage)
+    case editCompleted(UIImage, FilterPresetsEntity)
 }
 
 @MainActor
@@ -62,6 +72,7 @@ final class MakeViewStore {
             state.selectedCategory = category
             
         case .imageSelected(let image, let metadata):
+            state.originImage = image
             state.selectedImage = image
             extractImageMetaData(image: image, meta: metadata)
             
@@ -87,9 +98,11 @@ final class MakeViewStore {
         case .retryButtonTapped:
             state.errorMessage = nil
             
-        case .editCompleted(let filteredImage):
-            state.selectedImage = filteredImage
+        case .editCompleted(let filteredImage, let filterValues):
             state.filteredImage = filteredImage
+            state.selectedImage = filteredImage
+            state.filterValues = filterValues
+            print(state.filterValues ?? "없지롱")
         }
     }
 }
@@ -114,12 +127,39 @@ private extension MakeViewStore {
                     filteredImage: state.filteredImage
                 )
                 
-                let result = try await useCase.files(imageData)
+                let filesResult = try await useCase.files(imageData)
+                
+//                guard let filterValues = state.filterValues else {
+//                    print("filterValues Nil")
+//                    return
+//                }
+                let request = CreateFilterRequest(
+                    category: state.selectedCategory?.rawValue ?? "별",
+                    title: /*state.filterName*/"케케",
+                    price: /*Int(state.price) ?? 0*/100,
+                    description: /*state.introduce*/"케케",
+                    files: filesResult.files,
+                    photoMetadata: nil,
+                    filterValues: FilterValuesResponse.init(
+                        brightness: 0,
+                        exposure: 0,
+                        contrast: 0,
+                        saturation: 0,
+                        sharpness: 0,
+                        blur: 0,
+                        vignette: 0,
+                        noiseReduction: 0,
+                        highlights: 0,
+                        shadows: 0,
+                        temperature: 6500,
+                        blackPoint: 0
+                    )
+                )
+                
+                let result = try await useCase.createFilter(request)
+                print("result: \(result)")
                 
                 state.isLoading = false
-                state.saveResult = result.files
-                state.showingSaveAlert = true
-                GTLogger.shared.i("Filter save success: \(result.files)")
                 
             } catch {
                 state.isLoading = false
@@ -130,8 +170,8 @@ private extension MakeViewStore {
     }
     
     func setupEditCallback() {
-        router.onPopData(UIImage.self) { [weak self] filteredImage in
-            self?.send(.editCompleted(filteredImage))
+        router.onPopData(UIImage.self, FilterPresetsEntity.self) { [weak self] filteredImage, filterValues in
+            self?.send(.editCompleted(filteredImage, filterValues))
         }
     }
 }

@@ -11,6 +11,7 @@ import Alamofire
 
 enum FilterEndPoint {
     case filterFiles(files: [Data])
+    case createFilter(request: CreateFilterRequest)
     case likeFilter(filterID: String, likeStatus: Bool)
 }
 
@@ -19,6 +20,8 @@ extension FilterEndPoint: EndPoint {
         switch self {
         case .filterFiles, .likeFilter:
             return "v1/filters/"
+        case .createFilter:
+            return "v1/filters"
         }
     }
     
@@ -26,6 +29,8 @@ extension FilterEndPoint: EndPoint {
         switch self {
         case .filterFiles:
             return utilPath + "files"
+        case .createFilter:
+            return utilPath
         case .likeFilter(let id, _):
             return utilPath + "\(id)/like"
         }
@@ -33,7 +38,7 @@ extension FilterEndPoint: EndPoint {
     
     var method: Alamofire.HTTPMethod {
         switch self {
-        case .filterFiles, .likeFilter:
+        case .filterFiles, .createFilter, .likeFilter:
             return .post
         }
     }
@@ -42,6 +47,8 @@ extension FilterEndPoint: EndPoint {
         switch self {
         case .filterFiles(let files):
             return .multipartData(MultipartConfig(files: files))
+        case .createFilter(let request):
+            return .bodyEncodable(request)
         case .likeFilter(_, let likeStatus):
             return .bodyEncodable(["like_status": likeStatus])
         }

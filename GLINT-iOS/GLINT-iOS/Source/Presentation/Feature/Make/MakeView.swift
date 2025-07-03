@@ -30,16 +30,6 @@ struct MakeView: View {
             }
         }
     }
-    
-    private var saveBarItem: some View {
-        Button {
-            store.send(.saveButtonTapped)
-        } label: {
-            Image(systemName: "square.and.arrow.down")
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(.gray0)
-        }
-    }
 }
 
 private extension MakeView {
@@ -82,7 +72,6 @@ private extension MakeView {
         }
     }
     
-    @ViewBuilder
     func textFieldSection(_ type: GLTextFieldType) -> some View {
         switch type {
         case .filterName:

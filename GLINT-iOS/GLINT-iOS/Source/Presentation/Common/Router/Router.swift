@@ -40,6 +40,8 @@ final class NavigationRouter<Route: Hashable>: Router {
     // 데이터 전달용 저장소 - 타겟 경로 길이를 키로 사용
     private var popCallbacks: [Int: (Any) -> Void] = [:]
     
+    private var popCallbacksOverData: [Int: (Any, Any) -> Void] = [:]
+    
     // 현재 보여지는 뷰 (Router 프로토콜 준수용)
     var currentView: some View {
         EmptyView()
@@ -59,34 +61,35 @@ final class NavigationRouter<Route: Hashable>: Router {
     }
     
     // 데이터와 함께 이전 화면으로 돌아가기
-    func pop<T>(withData data: T) {
-        let targetRouteIndex = path.count - 1 // pop 후 남을 경로의 길이
+    func pop<T, U>(withData data: T, addData: U) {
+        let targetRouteIndex = path.count - 1
         print("🔄 Attempting to pop with data. Target route index: \(targetRouteIndex)")
-        print("🔄 Available callbacks: \(Array(popCallbacks.keys))")
+        print("🔄 Available callbacks: \(Array(popCallbacksOverData.keys))")
         
         // 저장된 콜백이 있으면 실행
-        if let callback = popCallbacks[targetRouteIndex] {
+        if let callback = popCallbacksOverData[targetRouteIndex] {
             print("✅ Found callback for target route index: \(targetRouteIndex)")
-            callback(data)
-            popCallbacks.removeValue(forKey: targetRouteIndex)
+            callback(data, addData)
+            popCallbacksOverData.removeValue(forKey: targetRouteIndex)
         } else {
             print("❌ No callback found for target route index: \(targetRouteIndex)")
         }
-        
         pop()
     }
-    
+
     // 데이터 수신 콜백 등록
-    func onPopData<T>(_ type: T.Type, callback: @escaping (T) -> Void) {
+    func onPopData<T, U>(_ tType: T.Type, _ uType: U.Type, callback: @escaping (T, U) -> Void) {
         let currentRouteIndex = path.count
-        print("📝 Registering callback for route index: \(currentRouteIndex), type: \(type)")
-        popCallbacks[currentRouteIndex] = { data in
+        print("📝 Registering callback for route index: \(currentRouteIndex), types: \(tType), \(uType)")
+        
+        popCallbacksOverData[currentRouteIndex] = { tData, uData in
             print("🎯 Callback executed for route index: \(currentRouteIndex)")
-            if let typedData = data as? T {
-                print("✅ Data type matches: \(type)")
-                callback(typedData)
+            if let tTypedData = tData as? T,
+               let uTypedData = uData as? U {
+                print("✅ Data types match: \(tType), \(uType)")
+                callback(tTypedData, uTypedData)
             } else {
-                print("❌ Data type mismatch. Expected: \(type), Got: \(type.self)")
+                print("❌ Data type mismatch. Expected: (\(tType), \(uType)), Got: (\(type(of: tData)), \(type(of: uData)))")
             }
         }
     }

@@ -73,19 +73,33 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         
         print("📝 Step 1: Request created")
         
-        do {
-            let response = await request
+        let dataResponse = try await withTimeout(seconds: 10) {
+            await request
                 .validate(statusCode: 200..<300)
                 .serializingDecodable(T.self, decoder: endPoint.decoder)
                 .response
+        }
+        
+        print("📝 Step 2: Response received")
+        
+        return try handleResponse(dataResponse, endPoint: endPoint)
+    }
+
+    // 타임아웃 헬퍼 함수
+    func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        return try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
             
-            print("📝 Step 2: Response received")
-            print("@@@", response)
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                throw URLError(.timedOut)
+            }
             
-            return try handleResponse(response, endPoint: endPoint)
-        } catch {
-            print("❌ Error occurred: \(error)")
-            throw error
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
         }
     }
     
