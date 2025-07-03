@@ -15,16 +15,15 @@ struct EditView: View {
     
     var body: some View {
         content
-            .ignoresSafeArea(.all, edges: .bottom)
-            .background(.gray100)
+            .appScreenStyle(ignoresSafeArea: true, safeAreaEdges: .bottom)
             .navigationSetup(
                 title: "EDIT",
                 onBackButtonTapped: { store.send(.backButtonTapped) },
                 onRightButtonTapped: { store.send(.saveButtonTapped) }
             )
-            .onAppear {
+            .onViewDidLoad(perform: {
                 store.send(.initialize(image: image))
-            }
+            })
     }
 }
 

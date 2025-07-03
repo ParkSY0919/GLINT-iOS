@@ -13,13 +13,15 @@ struct MainView: View {
     
     var body: some View {
         content
-            .ignoresSafeArea(.all, edges: .top)
-            .background(.gray100)
+            .appScreenStyle(
+                ignoresSafeArea: true,
+                safeAreaEdges: .top,
+                isLoading: store.state.isLoading,
+                errorMessage: store.state.errorMessage
+            )
             .onViewDidLoad(perform: {
                 store.send(.viewAppeared)
             })
-            .animation(.easeInOut(duration: 0.3), value: store.state.isLoading)
-            .sensoryFeedback(.impact(weight: .light), trigger: store.state.errorMessage)
     }
     
     @ViewBuilder

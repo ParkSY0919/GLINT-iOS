@@ -8,24 +8,26 @@
 import SwiftUI
 
 struct LoginView: View {
-    @Environment(LoginViewStore.self) private var store
+    @Environment(LoginViewStore.self)
+    private var store
     
     var body: some View {
         NavigationStack {
             contentView
-            .onAppear {
-                store.send(.viewAppeared)
-            }
-            .navigationSetup(title: "Login")
+                .appScreenStyle(ignoresSafeArea: true)
+                .onViewDidLoad(perform: {
+                    store.send(.viewAppeared)
+                })
+                .navigationSetup(title: "Login")
         }
     }
 }
 
-// MARK: - Views
 private extension LoginView {
     var contentView: some View {
         ZStack {
-            backgroundSection
+            Color.gray100
+                .ignoresSafeArea(.all)
             
             VStack(spacing: 20) {
                 formFieldsSection
@@ -40,15 +42,6 @@ private extension LoginView {
                 StateViewBuilder.loadingView()
             }
         }
-    }
-    
-    var backgroundSection: some View {
-        LinearGradient(
-            gradient: Gradient(colors: [.gray, .bgPoint]),
-            startPoint: .topLeading,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
     }
     
     var formFieldsSection: some View {

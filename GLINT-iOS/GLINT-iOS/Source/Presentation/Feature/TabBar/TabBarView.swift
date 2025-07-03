@@ -63,6 +63,6 @@ struct TabBarView: View {
             .offset(y: tabBarVisibility.isVisible ? 0 : 100)
             .animation(.easeInOut(duration: 0.3), value: tabBarVisibility.isVisible)
         }
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .ignoresSafeArea(.all, edges: .bottom)
     }
 }
