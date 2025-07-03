@@ -8,5 +8,9 @@
 import Foundation
 
 struct PaymentInfoRequest: RequestData {
-    let order_code: String
+    let orderCode: String
+    
+    enum CodingKeys: String, CodingKey {
+        case orderCode = "order_code"
+    }
 }

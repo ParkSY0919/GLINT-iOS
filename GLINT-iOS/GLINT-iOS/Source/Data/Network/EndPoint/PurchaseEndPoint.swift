@@ -33,7 +33,7 @@ extension PurchaseEndPoint: EndPoint {
         case .paymentValidation:
             return utilPath + "validation"
         case .paymentInfo(let request):
-            return utilPath + "\(request.order_code)"
+            return utilPath + "\(request.orderCode)"
         }
         
     }
