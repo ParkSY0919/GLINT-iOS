@@ -25,9 +25,9 @@ struct DetailView: View {
     
     var body: some View {
         Group {
-            if store.state.isLoading && !store.state.hasLoadedOnce {
+            if store.state.isLoading {
                 StateViewBuilder.loadingView()
-            } else if let errorMessage = store.state.errorMessage, !store.state.hasLoadedOnce {
+            } else if let errorMessage = store.state.errorMessage {
                 StateViewBuilder.errorView(errorMessage: errorMessage) {
                     store.send(.retryButtonTapped)
                 }
@@ -52,9 +52,21 @@ struct DetailView: View {
             onBackButtonTapped: { store.send(.backButtonTapped) },
             onLikeButtonTapped: { store.send(.likeButtonTapped) }
         )
-        .onAppear {
-            store.send(.viewAppeared(id: id))
+        .conditionalAlert(
+            title: "구매 결과",
+            isPresented: Binding(
+                get: { store.state.showPaymentAlert },
+                set: { _ in store.send(.paymentAlertDismissed) }
+            )
+        ) {
+            if let productName = store.state.purchaseInfo.0,
+               let merchantUid = store.state.purchaseInfo.1 {
+                Text("\(productName) 필터 구매를 성공하였습니다.\n주문번호: \(merchantUid)")
+            }
         }
+        .onViewDidLoad(perform: {
+            store.send(.viewAppeared(id: id))
+        })
         .onOpenURL { openURL in
             Iamport.shared.receivedURL(openURL)
         }
