@@ -107,5 +107,25 @@ extension View {
     func onViewDidLoad(perform action: (() -> Void)? = nil) -> some View {
         self.modifier(ViewDidLoadModifier(action: action))
     }
+    
+    func appScreenStyle(
+        backgroundColor: Color = .gray100,
+        ignoresSafeArea: Bool = true,
+        safeAreaEdges: Edge.Set = .top,
+        isLoading: Bool = false,
+        errorMessage: String? = nil,
+        animationDuration: Double = 0.3,
+        feedbackType: SensoryFeedback = .impact(weight: .light)
+    ) -> some View {
+        modifier(ScreenStyleModifier(
+            backgroundColor: backgroundColor,
+            ignoresSafeArea: ignoresSafeArea,
+            safeAreaEdges: safeAreaEdges,
+            isLoading: isLoading,
+            errorMessage: errorMessage,
+            animationDuration: animationDuration,
+            feedbackType: feedbackType
+        ))
+    }
 }
 
