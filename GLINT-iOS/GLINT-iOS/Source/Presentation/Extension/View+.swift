@@ -127,5 +127,21 @@ extension View {
             feedbackType: feedbackType
         ))
     }
+    
+    func conditionalAlert<MessageContent: View>(
+        title: String,
+        buttonTitle: String = "확인",
+        isPresented: Binding<Bool>,
+        onConfirm: (() -> Void)? = nil,
+        @ViewBuilder messageContent: @escaping () -> MessageContent
+    ) -> some View {
+        modifier(ConditionalAlertModifier(
+            title: title,
+            buttonTitle: buttonTitle,
+            isPresented: isPresented,
+            messageContent: messageContent,
+            onConfirm: onConfirm
+        ))
+    }
 }
 
