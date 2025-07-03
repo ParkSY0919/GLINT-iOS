@@ -103,5 +103,9 @@ extension View {
     func nonScrollable() -> some View {
         modifier(NonScrollableView())
     }
+    
+    func onViewDidLoad(perform action: (() -> Void)? = nil) -> some View {
+        self.modifier(ViewDidLoadModifier(action: action))
+    }
 }
 
