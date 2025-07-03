@@ -87,7 +87,7 @@ final class DetailViewStore {
             handleDismissPaymentSheet()
             
         case .paymentAlertDismissed:
-            handlepaymentAlertDismissed()
+            handlePaymentAlertDismissed()
         }
     }
 }
@@ -232,7 +232,7 @@ private extension DetailViewStore {
         }
     }
     
-    func handlepaymentAlertDismissed() {
+    func handlePaymentAlertDismissed() {
         state.showPaymentAlert = false
     }
 }

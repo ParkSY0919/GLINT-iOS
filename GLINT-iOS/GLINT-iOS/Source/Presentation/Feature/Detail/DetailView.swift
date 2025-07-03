@@ -61,7 +61,7 @@ struct DetailView: View {
         ) {
             if let productName = store.state.purchaseInfo.0,
                let merchantUid = store.state.purchaseInfo.1 {
-                Text("\(productName) 필터 구매를 성공하였습니다.\n주문번호: \(merchantUid)")
+                Text("'\(productName)' 필터 구매를 성공하였습니다.\n주문번호: \(merchantUid)")
             }
         }
         .onViewDidLoad(perform: {
