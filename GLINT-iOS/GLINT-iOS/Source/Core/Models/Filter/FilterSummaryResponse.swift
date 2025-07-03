@@ -24,34 +24,4 @@ struct FilterSummaryResponse: ResponseData {
         case buyerCount = "buyer_count"
         case createdAt, updatedAt
     }
-    
-    func toEntity() -> FilterEntity {
-        var newFiles = [""]
-        func toImageString() {
-            for index in 0..<files.count {
-                newFiles.append(files[index].imageURL)
-            }
-        }
-        
-        toImageString()
-        let original = self.files.first
-        let filtered = self.files.last
-        
-        return FilterEntity(
-            id: self.filterID,
-            category: self.category,
-            title: self.title,
-            introduction: nil,
-            description: self.description,
-            original: original?.imageURL,
-            filtered: filtered?.imageURL,
-            isDownloaded: nil,
-            isLiked: self.isLiked,
-            price: nil,
-            likeCount: self.likeCount,
-            buyerCount: self.buyerCount,
-            createdAt: self.createdAt,
-            updatedAt: self.updatedAt
-        )
-    }
 }

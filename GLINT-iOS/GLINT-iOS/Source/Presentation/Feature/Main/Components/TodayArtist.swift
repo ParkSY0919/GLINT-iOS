@@ -13,7 +13,7 @@ import SwiftUI
 import NukeUI
 
 struct TodayArtistView: View {
-    let author: TodayAuthInfo?
+    let author: TodayAuthInfoResponse?
     let filter: [FilterSummaryResponse]?
     let onTapWorksItem: (String) -> Void
     
@@ -45,7 +45,7 @@ private extension TodayArtistView {
         }
     }
     
-    func profileSection(_ author: TodayAuthInfo) -> some View {
+    func profileSection(_ author: TodayAuthInfoResponse) -> some View {
         HStack(spacing: 12) {
             artistProfileImage(imageUrlString: author.profileImageURL)
             artistNameSection(name: author.name, nick: author.nick)
@@ -118,7 +118,7 @@ private extension TodayArtistView {
     }
     
     @ViewBuilder
-    func tagsSection(_ author: TodayAuthInfo) -> some View {
+    func tagsSection(_ author: TodayAuthInfoResponse) -> some View {
         let tags = author.hashTags
         if !tags.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
@@ -144,7 +144,7 @@ private extension TodayArtistView {
     }
     
     @ViewBuilder
-    func introductionSection(_ author: TodayAuthInfo) -> some View {
+    func introductionSection(_ author: TodayAuthInfoResponse) -> some View {
         if hasIntroductionContent(author) {
             VStack(alignment: .leading, spacing: 12) {
                 let introduction = author.introduction
@@ -174,7 +174,7 @@ private extension TodayArtistView {
             .lineLimit(nil)
     }
     
-    func hasIntroductionContent(_ author: TodayAuthInfo) -> Bool {
+    func hasIntroductionContent(_ author: TodayAuthInfoResponse) -> Bool {
         let hasIntroduction = author.introduction.isEmpty == false
         let hasDescription = author.description.isEmpty == false
         return hasIntroduction || hasDescription

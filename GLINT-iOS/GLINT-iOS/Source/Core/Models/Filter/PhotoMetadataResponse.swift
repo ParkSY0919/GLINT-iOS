@@ -35,39 +35,4 @@ struct PhotoMetadataResponse: ResponseData {
         case dateTimeOriginal = "date_time_original"
         case latitude, longitude
     }
-    
-//    func getKoreanAddress() async -> String {
-//        return await KoreanAddressHelper.getKoreanAddress(
-//            latitude: latitude ?? 0,
-//            longitude: longitude ?? 0
-//        )
-//    }
-    
-    func toEntity() -> PhotoMetadataEntity {
-        return .init(
-            camera: self.camera,
-            lensInfo: self.lensInfo,
-            focalLength: self.focalLength,
-            aperture: self.aperture,
-            iso: self.iso,
-            shutterSpeed: self.shutterSpeed,
-            pixelWidth: self.pixelWidth,
-            pixelHeight: self.pixelHeight,
-            fileSize: self.fileSize,
-            format: self.format,
-            dateTimeOriginal: self.dateTimeOriginal,
-            latitude: self.latitude,
-            longitude: self.longitude,
-            photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
-                lensInfo: self.lensInfo,
-                focalLength: self.focalLength,
-                aperture: self.aperture,
-                iso: self.iso),
-            megapixelInfoString: MegapixelCalculator.calculateMPString(
-                width: self.pixelWidth,
-                height: self.pixelHeight,
-                fileSize: self.fileSize
-            )
-        )
-    }
 }
