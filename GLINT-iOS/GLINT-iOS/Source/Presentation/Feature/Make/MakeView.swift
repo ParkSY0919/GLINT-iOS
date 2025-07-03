@@ -13,8 +13,18 @@ struct MakeView: View {
     
     var body: some View {
         content
-            .navigationSetup(title: "MAKE",
-                             onRightButtonTapped: { store.send(.saveButtonTapped) })
+            .navigationSetup(title: "MAKE", onRightButtonTapped: { store.send(.saveButtonTapped) })
+            .conditionalAlert(
+                title: "등록 결과",
+                isPresented: Binding(
+                    get: { store.state.showCreateAlert },
+                    set: { _ in store.send(.createAlertDismissed) }
+                )
+            ) {
+                if let filterTitle = store.state.createFilterTitle {
+                    Text("'\(filterTitle)' 필터 생성을 성공하였습니다.")
+                }
+            }
     }
     
     private var content: some View {

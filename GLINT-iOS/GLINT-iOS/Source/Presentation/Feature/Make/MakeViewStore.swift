@@ -8,16 +8,6 @@
 import SwiftUI
 import PhotosUI
 
-struct CreateFilterParams {
-    let category: String
-    let title: String
-    let price: Int
-    let description: String
-    let files: [String]
-    let photoMetadata: PhotoMetadataEntity?
-    let filterValues: FilterValuesEntity
-}
-
 struct MakeViewState {
     var filterName: String = ""
     var selectedCategory: FilterCategoryItem.CategoryType? = nil
@@ -32,7 +22,8 @@ struct MakeViewState {
     
     var isLoading: Bool = false
     var errorMessage: String?
-//    var saveResult: [String]? = nil
+    var showCreateAlert: Bool = false
+    var createFilterTitle: String?
 }
 
 enum MakeViewAction {
@@ -47,6 +38,7 @@ enum MakeViewAction {
     case saveButtonTapped
     case retryButtonTapped
     case editCompleted(UIImage, FilterValuesEntity)
+    case createAlertDismissed
 }
 
 @MainActor
@@ -103,6 +95,9 @@ final class MakeViewStore {
             state.selectedImage = filteredImage
             state.filterValues = filterValues
             print(state.filterValues ?? "없지롱")
+            
+        case .createAlertDismissed:
+            handleCreateAlertDismissed()
         }
     }
 }
@@ -123,11 +118,11 @@ private extension MakeViewStore {
         Task {
             do {
                 let imageData = try ImageConverter.convertToData(
-                    originalImage: state.selectedImage,
+                    originalImage: state.originImage,
                     filteredImage: state.filteredImage
                 )
                 
-                let filesResult = try await useCase.files(imageData)
+                let uploadFilesResult = try await useCase.files(imageData)
                 
                 guard let filterValues = state.filterValues else {
                     print("filterValues 가져오기 실패")
@@ -136,19 +131,20 @@ private extension MakeViewStore {
                 }
                 let request = CreateFilterRequest(
                     category: state.selectedCategory?.rawValue ?? "별",
-                    title: /*state.filterName*/"케케",
-                    price: /*Int(state.price) ?? 0*/100,
-                    description: /*state.introduce*/"케케",
-                    files: filesResult.files,
+                    title: state.filterName,
+                    price: Int(state.price) ?? 0,
+                    description: state.introduce,
+                    files: uploadFilesResult,
                     photoMetadata: nil,
                     filterValues: filterValues
                 )
                 
                 let result = try await useCase.createFilter(request)
                 print("result: \(result)")
+                state.createFilterTitle = result
+                state.showCreateAlert = true
                 
                 state.isLoading = false
-                
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
@@ -161,5 +157,9 @@ private extension MakeViewStore {
         router.onPopData(UIImage.self, FilterValuesEntity.self) { [weak self] filteredImage, filterValues in
             self?.send(.editCompleted(filteredImage, filterValues))
         }
+    }
+    
+    func handleCreateAlertDismissed() {
+        state.showCreateAlert = false
     }
 }
