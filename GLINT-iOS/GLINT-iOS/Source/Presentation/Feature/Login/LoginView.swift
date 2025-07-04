@@ -18,7 +18,7 @@ struct LoginView: View {
                 .onViewDidLoad(perform: {
                     store.send(.viewAppeared)
                 })
-                .navigationSetup(title: "Login")
+                .navigationSetup(title: Strings.Login.title)
         }
     }
 }
@@ -49,7 +49,7 @@ private extension LoginView {
             FormFieldView(
                 formCase: .email,
                 errorMessage: !store.state.email.isEmpty && !store.state.isEmailValid
-                ? "유효한 이메일을 입력해주세요" : nil,
+                ? Strings.Login.Error.emailValidation : nil,
                 text: Binding(
                     get: { store.state.email },
                     set: { store.send(.emailChanged($0)) }
@@ -65,7 +65,7 @@ private extension LoginView {
                 formCase: .password,
                 isSecure: true,
                 errorMessage: !store.state.password.isEmpty && !store.state.isPasswordValid
-                ? "8자 이상, 특수문자를 포함해주세요" : nil,
+                ? Strings.Login.Error.passwordValidation : nil,
                 text: Binding(
                     get: { store.state.password },
                     set: { store.send(.passwordChanged($0)) }
@@ -76,7 +76,7 @@ private extension LoginView {
     
     var signInSection: some View {
         VStack(spacing: 8) {
-            Button("Sign in") {
+            Button(Strings.Login.signIn) {
                 store.send(.signInButtonTapped)
             }
             .buttonStyle(GLCTAButton())
@@ -102,7 +102,7 @@ private extension LoginView {
             Button {
                 store.send(.createAccountButtonTapped)
             } label: {
-                Text("회원가입")
+                Text(Strings.Login.signUp)
                     .font(.system(size: 14))
                     .foregroundColor(Color(uiColor: .systemGray4))
                     .padding(.horizontal, 10)
@@ -125,6 +125,7 @@ private extension LoginView {
         }
     }
 }
+
 #Preview {
     LoginView()
         .environment(LoginViewStore(useCase: .liveValue, rootRouter: RootRouter.init()))

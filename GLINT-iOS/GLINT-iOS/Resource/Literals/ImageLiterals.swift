@@ -7,11 +7,13 @@
 
 import SwiftUI
 
+typealias Images = ImageLiterals
+
 enum ImageLiterals {}
 
-extension ImageLiterals {
+extension Images {
     
-    struct TabBar {
+    enum TabBar {
         static let home = Image(.home)
         static let homeSelected = Image(.homeFill)
         static let grid = Image(.section)
@@ -24,20 +26,25 @@ extension ImageLiterals {
         static let profileSelected = Image(.personFillTabBar)
     }
     
-    struct Login {
+    enum Login {
         static let apple = Image(systemName: "apple.logo")
         static let kakao = Image(.kakao)
     }
     
-    struct Main {
+    enum Main {
         static let food = Image(.food)
         static let person = Image(.person)
         static let landscape = Image(.landscape)
         static let nightscape = Image(.nightscape)
         static let star = Image(.star)
+        
+        // MARK: - Banner Images
+        static let banner1 = Image("banner_image_1")
+        static let banner2 = Image("banner_image_2")
+        static let banner3 = Image("banner_image_3")
     }
     
-    struct Detail {
+    enum Detail {
         static let divideBtn = Image(.divideButton)
         static let noMap = Image(.noMap)
         static let filterValues: [Image] = [
@@ -48,7 +55,7 @@ extension ImageLiterals {
         static let likeFill = Image(.likeFill)
     }
     
-    struct Make {
+    enum Make {
         static let upload = Image(.upload)
     }
     

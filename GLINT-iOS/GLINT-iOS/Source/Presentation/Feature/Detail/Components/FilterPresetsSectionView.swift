@@ -96,7 +96,7 @@ private extension FilterPresetsSectionView {
         ) {
             ForEach(0..<12, id: \.self) { index in
                 VStack(spacing: 4) {
-                    let icons = ImageLiterals.Detail.filterValues
+                    let icons = Images.Detail.filterValues
                     if let data = filterPresetsData {
                         icons[index]
                             .font(.system(size: 20))

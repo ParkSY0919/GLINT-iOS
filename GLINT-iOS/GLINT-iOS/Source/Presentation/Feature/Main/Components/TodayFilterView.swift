@@ -32,7 +32,7 @@ struct TodayFilterView: View {
                 contentStackSection(filterEntity)
                 tryButtonSection(filterEntity.id)
             } else {
-                StateViewBuilder.emptyStateView(message: "오늘의 필터를 불러올 수 없습니다")
+                StateViewBuilder.emptyStateView(message: Strings.Main.Error.todayFilterLoadFailed)
             }
         }
         .frame(height: 555)
@@ -75,7 +75,7 @@ private extension TodayFilterView {
     }
     
     var smallTitleSection: some View {
-        Text("오늘의 필터 소개")
+        Text(Strings.Main.todayFilterIntro)
             .font(.pretendardFont(.body_medium, size: 13))
             .foregroundStyle(.gray60)
             .foregroundColor(.white.opacity(0.8))
@@ -111,7 +111,7 @@ private extension TodayFilterView {
             Button {
                 onTryFilterTapped(filterID)
             } label: {
-                Text("사용해보기")
+                Text(Strings.Main.tryFilter)
                     .font(.pretendardFont(.caption_medium, size: 12))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)

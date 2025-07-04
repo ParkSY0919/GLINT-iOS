@@ -61,7 +61,7 @@ private extension HotTrendItemView {
     
     var itemLikesOverlay: some View {
         HStack(spacing: 3) {
-            ImageLiterals.Detail.likeFill
+            Images.Detail.likeFill
             Text("\(trend.likeCount ?? 0 )")
         }
         .font(.pretendardFont(.caption_semi, size: 16))

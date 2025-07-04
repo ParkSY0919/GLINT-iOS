@@ -105,7 +105,7 @@ private extension FilterSectionView {
                     
                     // 슬라이더 핸들
                     ZStack {
-                        ImageLiterals.Detail.divideBtn
+                        Images.Detail.divideBtn
                             .font(.system(size: 8, weight: .medium))
                             .foregroundColor(.gray60)
                     }

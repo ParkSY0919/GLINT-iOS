@@ -15,18 +15,18 @@ struct FormFieldView: View {
         var label : String {
             switch self {
             case .email:
-                return "Email"
+                return Strings.Login.emailLabel
             case .password:
-                return "Password"
+                return Strings.Login.passwordLabel
             }
         }
         
         var placeholder : String {
             switch self {
             case .email:
-                return "Enter your email"
+                return Strings.Login.emailPlaceholder
             case .password:
-                return "Enter your password"
+                return Strings.Login.passwordPlaceholder
             }
         }
     }
@@ -39,7 +39,11 @@ struct FormFieldView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             formLabelSection
-            formFieldSection(SecureField(formCase.placeholder, text: $text), isSecure: self.isSecure)
+            if isSecure {
+                formFieldSection(SecureField(formCase.placeholder, text: $text))
+            } else {
+                formFieldSection(TextField(formCase.placeholder, text: $text))
+            }
             HStack {
                 Spacer()
                 if let errorMessage = errorMessage, !text.isEmpty {
@@ -58,7 +62,7 @@ private extension FormFieldView {
     }
     
     @ViewBuilder
-    func formFieldSection<Content: View>(_ content: Content, isSecure: Bool) -> some View {
+    func formFieldSection<Content: View>(_ content: Content) -> some View {
         content
             .padding()
             .background(.gray60)
@@ -72,5 +76,13 @@ private extension FormFieldView {
             .foregroundColor(.red)
             .padding(.bottom, -50)
             .padding(.trailing, 4)
+    }
+    
+    func textFieldStyle() -> some View {
+        self
+            .padding()
+            .background(.gray60)
+            .cornerRadius(8)
+            .font(.textFieldFont)
     }
 }

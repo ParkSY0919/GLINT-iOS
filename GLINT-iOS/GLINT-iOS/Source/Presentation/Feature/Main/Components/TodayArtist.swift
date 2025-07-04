@@ -27,7 +27,7 @@ struct TodayArtistView: View {
 
 private extension TodayArtistView {
     var titleSection: some View {
-        Text("오늘의 작가 소개")
+        Text(Strings.Main.todayArtistIntro)
             .font(.pretendardFont(.body_bold, size: 16))
             .padding(.leading, 20)
             .foregroundColor(.gray60)
@@ -41,7 +41,7 @@ private extension TodayArtistView {
             tagsSection(author)
             introductionSection(author)
         } else {
-            StateViewBuilder.emptyStateView(message: "작가 정보를 불러올 수 없습니다")
+            StateViewBuilder.emptyStateView(message: Strings.Main.Error.artistInfoLoadFailed)
         }
     }
     
@@ -102,7 +102,7 @@ private extension TodayArtistView {
             .frame(height: 80)
             .padding(.top, 10)
         } else {
-            StateViewBuilder.emptyStateView(message: "대표 작품을 불러올 수 없습니다")
+            StateViewBuilder.emptyStateView(message: Strings.Main.Error.artistWorksLoadFailed)
         }
     }
     

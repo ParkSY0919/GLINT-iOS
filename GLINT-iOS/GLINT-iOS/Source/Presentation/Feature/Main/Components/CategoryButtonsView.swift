@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CategoryButtonsView: View {
-    private let categories: [FilterCategoryItem] = StringLiterals.categories
+    private let categories: [FilterCategoryItem] = Strings.Main.categories
     let onTapCategory: (FilterCategoryItem) -> Void
     
     // 버튼 크기 및 내부 요소 스타일 상수 정의

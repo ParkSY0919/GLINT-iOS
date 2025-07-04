@@ -12,7 +12,7 @@ struct GTLikeButton: View {
     let action: () -> Void
     
     var body: some View {
-        let image = likedState ? ImageLiterals.Detail.likeFill : ImageLiterals.Detail.like
+        let image = likedState ? Images.Detail.likeFill : Images.Detail.like
         
         Button {
             let impactFeedback = UIImpactFeedbackGenerator(style: .light)

@@ -75,7 +75,7 @@ private extension MainViewStore {
     }
     
     func handleToCategory(_ selectedCategory: FilterCategoryItem) {
-        print("selectedCategory: \(selectedCategory)")
+        print("\(Strings.Main.Log.categorySelected): \(selectedCategory)")
     }
     
     /// 재시도 버튼 탭 처리

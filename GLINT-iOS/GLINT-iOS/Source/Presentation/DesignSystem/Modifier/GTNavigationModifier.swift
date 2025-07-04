@@ -44,7 +44,7 @@ struct GTNavigationSetupModifier: ViewModifier {
                 if let uploadAction = onRightButtonTapped {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button(action: uploadAction) {
-                            ImageLiterals.Make.upload
+                            Images.Make.upload
                                 .frame(width: 32, height: 32)
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(.gray75)

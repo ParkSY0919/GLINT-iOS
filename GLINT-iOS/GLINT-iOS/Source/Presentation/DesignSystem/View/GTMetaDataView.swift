@@ -71,7 +71,7 @@ struct GTMetaDataView: View {
                                 Rectangle()
                                     .fill(.brandBlack)
                                     .overlay {
-                                        ImageLiterals.Detail.noMap
+                                        Images.Detail.noMap
                                     }
                             }
                         }

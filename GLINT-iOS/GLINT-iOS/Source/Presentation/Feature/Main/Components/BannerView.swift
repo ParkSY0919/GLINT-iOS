@@ -10,12 +10,16 @@ import SwiftUI
 struct BannerView: View {
     struct BannerItem: Identifiable {
         let id = UUID()
-        let imageName: String
+        let image: Image
     }
     @State
     private var currentIndex = 0
     
-    let items: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
+    let items: [BannerItem] = [
+        BannerItem(image: Images.Main.banner1),
+        BannerItem(image: Images.Main.banner2),
+        BannerItem(image: Images.Main.banner3)
+    ]
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {
@@ -33,9 +37,7 @@ struct BannerView: View {
             }
             .padding(.horizontal, 20)
     }
-}
-
-private extension BannerView {
+    
     var contentView: some View {
         TabView(selection: $currentIndex) {
             ForEach(items.indices, id: \.self) { index in
@@ -45,7 +47,7 @@ private extension BannerView {
     }
     
     func bannerItem(at index: Int) -> some View {
-        Image(items[index].imageName)
+        items[index].image
             .resizable()
             .scaledToFill()
             .tag(index)
@@ -66,6 +68,6 @@ private extension BannerView {
     
     func handleBannerTap(at index: Int) {
         //TODO: 추후 배너 연결
-        print("배너 \(index + 1) 탭됨")
+        print("\(Strings.Main.Log.bannerTapped) \(index + 1) \(Strings.Main.Log.bannerTappedSuffix)")
     }
 }

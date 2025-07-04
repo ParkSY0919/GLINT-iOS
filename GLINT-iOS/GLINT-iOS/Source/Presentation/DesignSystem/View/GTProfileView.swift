@@ -36,7 +36,7 @@ private extension GTProfileView {
                     .clipShape(Circle())
             }
         } else {
-            ImageLiterals.TabBar.profile
+            Images.TabBar.profile
                 .resizable()  // 👈 추가 필요
                 .aspectRatio(contentMode: .fill)
                 .frame(width: 72, height: 72)

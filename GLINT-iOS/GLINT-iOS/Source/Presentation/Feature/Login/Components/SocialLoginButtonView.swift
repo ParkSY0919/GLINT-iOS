@@ -14,9 +14,9 @@ struct SocialLoginButtonView: View {
         var icon: Image {
             switch self {
             case .apple:
-                return ImageLiterals.Login.apple
+                return Images.Login.apple
             case .kakao:
-                return ImageLiterals.Login.kakao
+                return Images.Login.kakao
             }
         }
         

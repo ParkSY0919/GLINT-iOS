@@ -25,7 +25,7 @@ struct HotTrendView: View {
                     centralTrendID = filterEntities.first?.id
                 }
         } else {
-            StateViewBuilder.emptyStateView(message: "핫 트렌드를 불러올 수 없습니다.")
+            StateViewBuilder.emptyStateView(message: Strings.Main.Error.hotTrendLoadFailed)
         }
     }
 }
@@ -39,7 +39,7 @@ private extension HotTrendView {
     }
     
     var hotTrendTitleSection: some View {
-        Text("핫 트렌드")
+        Text(Strings.Main.hotTrend)
             .font(.pretendardFont(.body_bold, size: 16))
             .foregroundStyle(.gray60)
             .padding(.leading, 20)

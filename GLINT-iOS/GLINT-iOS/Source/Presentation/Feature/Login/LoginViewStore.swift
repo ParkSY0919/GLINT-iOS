@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-// MARK: - State
 struct LoginViewState {
     var email: String = ""
     var password: String = ""
@@ -17,7 +15,6 @@ struct LoginViewState {
     var isPasswordValid: Bool = true
 }
 
-// MARK: - Action
 enum LoginViewAction {
     case viewAppeared
     case emailChanged(String)
@@ -30,7 +27,6 @@ enum LoginViewAction {
     case createAccountButtonTapped
 }
 
-// MARK: - LoginState
 enum LoginState: Equatable {
     case idle
     case loading
@@ -38,7 +34,6 @@ enum LoginState: Equatable {
     case failure(String)
 }
 
-// MARK: - Store
 @MainActor
 @Observable
 final class LoginViewStore {
@@ -83,7 +78,6 @@ final class LoginViewStore {
     }
 }
 
-// MARK: - Private Action Handlers
 private extension LoginViewStore {
     func handleViewAppeared() {
         // 뷰가 나타났을 때 필요한 초기화 로직
@@ -126,7 +120,7 @@ private extension LoginViewStore {
     
     func handleKakaoLoginButtonTapped() {
         // TODO: Kakao 로그인 구현
-        print("Kakao 로그인 버튼 탭됨")
+        print(Strings.Login.Log.kakaoLoginTapped)
     }
     
     func handleCreateAccountButtonTapped() {
@@ -145,10 +139,10 @@ private extension LoginViewStore {
             try await useCase.checkEmailValidation(state.email)
             state.isEmailValid = true
             state.loginState = .idle
-            print("서버 이메일 유효성 검사 성공")
+            print(Strings.Login.Log.emailCheckSuccess)
         } catch {
-            state.loginState = .failure("이메일 검사 실패: \(error.localizedDescription)")
-            print("서버 이메일 유효성 검사 실패: \(error.localizedDescription)")
+            state.loginState = .failure("\(Strings.Login.Error.emailCheckFailure): \(error.localizedDescription)")
+            print("\(Strings.Login.Log.emailCheckFailure): \(error.localizedDescription)")
         }
     }
     
@@ -156,24 +150,24 @@ private extension LoginViewStore {
         validateInputs()
         
         guard state.isEmailValid, state.isPasswordValid else {
-            state.loginState = .failure("입력 정보를 확인해주세요.")
+            state.loginState = .failure(Strings.Login.Error.inputValidation)
             return
         }
         
         guard !state.email.isEmpty, !state.password.isEmpty else {
-            state.loginState = .failure("이메일과 비밀번호를 모두 입력해주세요.")
+            state.loginState = .failure(Strings.Login.Error.emptyFields)
             return
         }
         
         state.loginState = .loading
         
         do {
-            let response = try await useCase.signUp(state.email, state.password, "anonymous")
+            _ = try await useCase.signUp(state.email, state.password, "anonymous")
             state.loginState = .success
             // Store에서 네비게이션 처리
             handleLoginSuccess()
         } catch {
-            state.loginState = .failure("회원가입 실패: \(error.localizedDescription)")
+            state.loginState = .failure("\(Strings.Login.Error.signUpFailure): \(error.localizedDescription)")
         }
     }
     
@@ -181,24 +175,24 @@ private extension LoginViewStore {
         validateInputs()
         
         guard state.isEmailValid, state.isPasswordValid else {
-            state.loginState = .failure("입력 정보를 확인해주세요.")
+            state.loginState = .failure(Strings.Login.Error.inputValidation)
             return
         }
         
         guard !state.email.isEmpty, !state.password.isEmpty else {
-            state.loginState = .failure("이메일과 비밀번호를 입력해주세요.")
+            state.loginState = .failure(Strings.Login.Error.emptyLoginFields)
             return
         }
         
         state.loginState = .loading
         
         do {
-            let response = try await useCase.signIn(state.email, state.password)
+            _ = try await useCase.signIn(state.email, state.password)
             state.loginState = .success
             // Store에서 네비게이션 처리
             handleLoginSuccess()
         } catch {
-            state.loginState = .failure("로그인 실패: \(error.localizedDescription)")
+            state.loginState = .failure("\(Strings.Login.Error.loginFailure): \(error.localizedDescription)")
         }
     }
     
@@ -206,12 +200,12 @@ private extension LoginViewStore {
         state.loginState = .loading
         
         do {
-            let response = try await useCase.signInApple()
+            _ = try await useCase.signInApple()
             state.loginState = .success
             // Store에서 네비게이션 처리
             handleLoginSuccess()
         } catch {
-            state.loginState = .failure("Apple 로그인 실패: \(error.localizedDescription)")
+            state.loginState = .failure("\(Strings.Login.Error.appleLoginFailure): \(error.localizedDescription)")
         }
     }
     
