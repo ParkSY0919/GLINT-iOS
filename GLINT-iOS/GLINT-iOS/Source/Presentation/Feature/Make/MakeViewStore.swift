@@ -70,7 +70,7 @@ final class MakeViewStore {
             
         case .imageChangeRequested:
             // 이미지 변경 요청 처리
-            GTLogger.shared.i("Image change requested")
+            GTLogger.shared.i(Strings.Make.Log.imageChangeRequested)
             
         case .editButtonTapped(let image):
             router.push(.edit(originImage: image))
@@ -94,7 +94,7 @@ final class MakeViewStore {
             state.filteredImage = filteredImage
             state.selectedImage = filteredImage
             state.filterValues = filterValues
-            print(state.filterValues ?? "없지롱")
+            print(state.filterValues ?? Strings.Make.Log.filterValuesNotFound)
             
         case .createAlertDismissed:
             handleCreateAlertDismissed()
@@ -125,7 +125,7 @@ private extension MakeViewStore {
                 let uploadFilesResult = try await useCase.files(imageData)
                 
                 guard let filterValues = state.filterValues else {
-                    print("filterValues 가져오기 실패")
+                    print(Strings.Make.Error.filterValuesFailed)
                     state.filterValues = state.filterValues!.setDefaultValues()
                     return
                 }
@@ -148,7 +148,7 @@ private extension MakeViewStore {
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
-                GTLogger.shared.w("Filter save failed: \(String(describing: state.errorMessage))")
+                GTLogger.shared.w("\(Strings.Make.Error.filterSaveFailed): \(String(describing: state.errorMessage))")
             }
         }
     }

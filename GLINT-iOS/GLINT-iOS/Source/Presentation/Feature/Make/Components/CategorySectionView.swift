@@ -20,7 +20,7 @@ struct CategorySectionView: View {
     }
     
     private var titleSection: some View {
-        Text("카테고리")
+        Text(Strings.Make.category)
             .font(.pretendardFont(.body_bold, size: 16))
             .foregroundColor(.gray60)
     }

@@ -88,6 +88,8 @@ extension Strings {
         static let coin = "Coin"
         static let download = "다운로드"
         static let like = "찜하기"
+        static let bef = "Before"
+        static let aft = "After"
         
         // MARK: - Error Messages
         enum Error {
@@ -112,6 +114,32 @@ extension Strings {
             static let purchaseSuccessMessage = "필터 구매를 성공하였습니다."
             static let orderNumberPrefix = "주문번호: "
             static let slpIdentiCode = "imp14511373"
+        }
+    }
+    
+    enum Make {
+        // MARK: - UI Text
+        static let title = "MAKE"
+        static let registrationResult = "등록 결과"
+        static let titlePhotoRegistration = "대표 사진 등록"
+        static let changePhoto = "사진 변경하기"
+        static let editPhoto = "수정하기"
+        static let category = "카테고리"
+        static let noInfo = "정보 없음"
+        
+        // MARK: - Success Messages
+        static let filterCreationSuccess = "필터 생성을 성공하였습니다."
+        
+        // MARK: - Error Messages
+        enum Error {
+            static let filterValuesFailed = "filterValues 가져오기 실패"
+            static let filterSaveFailed = "Filter save failed"
+        }
+        
+        // MARK: - Log Messages
+        enum Log {
+            static let imageChangeRequested = "Image change requested"
+            static let filterValuesNotFound = "없지롱"
         }
     }
     
