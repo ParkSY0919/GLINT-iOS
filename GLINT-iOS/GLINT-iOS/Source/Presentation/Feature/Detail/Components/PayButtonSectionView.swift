@@ -15,7 +15,7 @@ struct PayButtonSectionView: View {
         Button {
             onPurchaseButtonTapped()
         } label: {
-            Text(isPurchased ? "구매완료" : "결제하기")
+            Text(isPurchased ? Strings.Detail.purchaseCompleted : Strings.Detail.payNow)
                 .font(.pretendardFont(.body_bold, size: 16))
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)

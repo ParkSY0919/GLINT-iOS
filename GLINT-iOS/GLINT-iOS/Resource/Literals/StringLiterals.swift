@@ -76,4 +76,43 @@ extension Strings {
         ]
     }
     
+    enum Detail {
+        // MARK: - UI Text
+        static let purchaseResult = "구매 결과"
+        static let noInfo = "정보 없음"
+        static let filterPresets = "Filter Presets"
+        static let lutLabel = "LUT"
+        static let purchaseCompleted = "구매완료"
+        static let payNow = "결제하기"
+        static let unknownBuyer = "미공개"
+        static let coin = "Coin"
+        static let download = "다운로드"
+        static let like = "찜하기"
+        
+        // MARK: - Error Messages
+        enum Error {
+            static let filterInfoNotFound = "필터 정보를 가져오지 못했습니다."
+            static let paymentFailed = "결제에 실패했습니다."
+            static let unknownError = "알 수 없는 오류"
+            static let paymentDataMissing = "결제 데이터가 없습니다"
+        }
+        
+        // MARK: - Log Messages
+        enum Log {
+            static let purchaseButtonTapped = "구매 버튼 탭됨"
+            static let likeButtonTapped = "찜 버튼 탭됨"
+            static let messageButtonTapped = "메시지 보내기 버튼 탭됨"
+            static let paymentFailed = "결제 실패"
+            static let paymentSuccessStart = "결제 성공 후 추가 로직 실행 시작!"
+        }
+        
+        // MARK: - Purchase Messages
+        enum Purchase {
+            static let lockedFilterMessage = "결제 후 필요한 유료 필터입니다"
+            static let purchaseSuccessMessage = "필터 구매를 성공하였습니다."
+            static let orderNumberPrefix = "주문번호: "
+            static let slpIdentiCode = "imp14511373"
+        }
+    }
+    
 }

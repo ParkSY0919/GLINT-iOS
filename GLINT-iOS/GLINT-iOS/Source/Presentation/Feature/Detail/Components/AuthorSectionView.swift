@@ -13,7 +13,7 @@ struct AuthorSectionView: View {
     let onTapMessageBtn: () -> Void
     
     var body: some View {
-        content
+        contentView
             .padding(.horizontal, 20)
             .padding(.top, 24)
             .padding(.bottom, 32)
@@ -21,7 +21,7 @@ struct AuthorSectionView: View {
 }
 
 private extension AuthorSectionView {
-    var content: some View {
+    var contentView: some View {
         VStack(alignment: .leading, spacing: 16) {
             // 작가 프로필
             GTProfileView(

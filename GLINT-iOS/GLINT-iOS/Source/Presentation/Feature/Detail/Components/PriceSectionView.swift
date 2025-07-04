@@ -15,7 +15,7 @@ struct PriceSectionView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("\(price.formatted()) Coin")
+                Text("\(price.formatted()) \(Strings.Detail.coin)")
                     .font(.pointFont(.title, size: 32))
                     .foregroundColor(.gray0)
                 
@@ -32,11 +32,10 @@ struct PriceSectionView: View {
     }
 }
 
-// MARK: - Private Views
 private extension PriceSectionView {
     var downloadCountBox: some View {
         VStack(spacing: 4) {
-            Text("다운로드")
+            Text(Strings.Detail.download)
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             
@@ -52,7 +51,7 @@ private extension PriceSectionView {
     
     var likeCountBox: some View {
         VStack(spacing: 4) {
-            Text("찜하기")
+            Text(Strings.Detail.like)
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             

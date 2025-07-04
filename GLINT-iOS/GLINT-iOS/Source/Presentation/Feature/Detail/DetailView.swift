@@ -53,7 +53,7 @@ struct DetailView: View {
             onLikeButtonTapped: { store.send(.likeButtonTapped) }
         )
         .conditionalAlert(
-            title: "구매 결과",
+            title: Strings.Detail.purchaseResult,
             isPresented: Binding(
                 get: { store.state.showPaymentAlert },
                 set: { _ in store.send(.paymentAlertDismissed) }
@@ -61,7 +61,7 @@ struct DetailView: View {
         ) {
             if let productName = store.state.purchaseInfo.0,
                let merchantUid = store.state.purchaseInfo.1 {
-                Text("'\(productName)' 필터 구매를 성공하였습니다.\n주문번호: \(merchantUid)")
+                Text("'\(productName)' \(Strings.Detail.Purchase.purchaseSuccessMessage)\n\(Strings.Detail.Purchase.orderNumberPrefix)\(merchantUid)")
             }
         }
         .onViewDidLoad(perform: {
@@ -96,8 +96,8 @@ private extension DetailView {
                 MetaDataSectionView(
                     camera: store.state.photoMetaData?.camera,
                     
-                    photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? "정보 없음",
-                    megapixelInfo: store.state.photoMetaData?.megapixelInfoString ?? "정보 없음",
+                    photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? Strings.Detail.noInfo,
+                    megapixelInfo: store.state.photoMetaData?.megapixelInfoString ?? Strings.Detail.noInfo,
                     address: store.state.address,
                     latitude: store.state.photoMetaData?.latitude,
                     longitude: store.state.photoMetaData?.longitude

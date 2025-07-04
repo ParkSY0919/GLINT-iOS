@@ -107,7 +107,7 @@ private extension DetailViewStore {
     
     /// 구매 버튼 탭 처리
     func handlePurchaseButtonTapped() {
-        print("구매 버튼 탭됨")
+        print(Strings.Detail.Log.purchaseButtonTapped)
         state.isLoading = true
         state.errorMessage = nil
         
@@ -117,7 +117,7 @@ private extension DetailViewStore {
                 guard let filterID = state.filterData?.id,
                       let filterPrice = state.filterData?.price else {
                     state.isLoading = false
-                    state.errorMessage = "필터 정보를 가져오지 못했습니다."
+                    state.errorMessage = Strings.Detail.Error.filterInfoNotFound
                     return
                 }
                 state.createOrderCode = try await useCase.createOrder(filterID, filterPrice)
@@ -139,15 +139,15 @@ private extension DetailViewStore {
             state.isPurchased = true
             state.showPaymentSheet = false
         } else {
-            GTLogger.shared.w("결제 실패: \(response?.error_msg ?? "알 수 없는 오류")")
-            state.errorMessage = response?.error_msg ?? "결제에 실패했습니다."
+            GTLogger.shared.w("\(Strings.Detail.Log.paymentFailed): \(response?.error_msg ?? Strings.Detail.Error.unknownError)")
+            state.errorMessage = response?.error_msg ?? Strings.Detail.Error.paymentFailed
             
             state.showPaymentSheet = false
         }
     }
     
     func isValidationReceipt(_ impUid: String?) async {
-        GTLogger.shared.i("결제 성공 후 추가 로직 실행 시작!")
+        GTLogger.shared.i(Strings.Detail.Log.paymentSuccessStart)
         guard let impUid else { return }
         
         Task {
@@ -170,7 +170,7 @@ private extension DetailViewStore {
     
     /// 찜 버튼 탭 처리
     func handleLikeTapped() {
-        print("찜 버튼 탭됨")
+        print(Strings.Detail.Log.likeButtonTapped)
         
         Task {
             do {
@@ -179,7 +179,7 @@ private extension DetailViewStore {
                 
                 guard let filterID = state.filterData?.id, let isLiked = state.isLiked else {
                     state.isLoading = false
-                    state.errorMessage = "필터 정보를 가져오지 못했습니다."
+                    state.errorMessage = Strings.Detail.Error.filterInfoNotFound
                     return
                 }
                 let newLikedState = !isLiked
@@ -194,7 +194,7 @@ private extension DetailViewStore {
     
     /// 메시지 보내기 버튼 탭 처리
     func handleSendMessageTapped() {
-        print("메시지 보내기 버튼 탭됨")
+        print(Strings.Detail.Log.messageButtonTapped)
         // TODO: 메시지 화면으로 네비게이션
     }
     
@@ -241,7 +241,7 @@ extension DetailViewStore {
     func createPaymentData() -> IamportPayment {
         guard let orderCode = state.createOrderCode,
               let filterData = state.filterData else {
-            fatalError("결제 데이터가 없습니다")
+            fatalError(Strings.Detail.Error.paymentDataMissing)
         }
         
         return IamportPayment(
@@ -251,7 +251,7 @@ extension DetailViewStore {
         ).then {
             $0.pay_method = PayMethod.card.rawValue
             $0.name = filterData.title
-            $0.buyer_name = state.userInfoData?.nick ?? "미공개"
+            $0.buyer_name = state.userInfoData?.nick ?? Strings.Detail.unknownBuyer
             $0.app_scheme = "sesac"
         }
     }
