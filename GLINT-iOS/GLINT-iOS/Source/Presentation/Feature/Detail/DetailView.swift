@@ -59,9 +59,15 @@ struct DetailView: View {
                 set: { _ in store.send(.paymentAlertDismissed) }
             )
         ) {
-            if let productName = store.state.purchaseInfo.0,
-               let merchantUid = store.state.purchaseInfo.1 {
-                Text("'\(productName)' \(Strings.Detail.Purchase.purchaseSuccessMessage)\n\(Strings.Detail.Purchase.orderNumberPrefix)\(merchantUid)")
+            if let merchantUid = store.state.purchaseInfo.1 {
+                let productName = store.state.purchaseInfo.0
+                    ?? store.state.filterData?.title
+                    ?? "noneTitle"
+                
+                Text("""
+                    '\(productName)' \(Strings.Detail.Purchase.purchaseSuccessMessage)
+                    \(Strings.Detail.Purchase.orderNumberPrefix)\(merchantUid)
+                    """)
             }
         }
         .onViewDidLoad(perform: {
@@ -73,7 +79,6 @@ struct DetailView: View {
     }
 }
 
-// MARK: - Views
 private extension DetailView {
     var contentView: some View {
         ScrollView(showsIndicators: false) {
