@@ -28,7 +28,6 @@ struct FilterSectionView: View {
     }
 }
 
-// MARK: - Private Views
 private extension FilterSectionView {
     var beforeAfterImageView: some View {
         GeometryReader { geometry in
