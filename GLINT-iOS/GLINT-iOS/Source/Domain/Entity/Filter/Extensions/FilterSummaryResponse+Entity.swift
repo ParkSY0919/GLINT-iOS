@@ -1,33 +1,13 @@
 //
-//  Filter.swift
+//  FilterSummaryResponse+Entity.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 6/19/25.
+//  Created by 박신영 on 7/3/25.
 //
 
 import Foundation
 
-struct Filter: ResponseData {
-    let filterID, title, description: String
-    let category: String?
-    let files: [String]
-    let creator: ProfileEntity
-    let isLiked: Bool
-    let likeCount, buyerCount: Int
-    let createdAt, updatedAt: String
-    let isDownloaded: Bool?
-    let price: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case filterID = "filter_id"
-        case category, title, description, files, creator, price
-        case isLiked = "is_liked"
-        case likeCount = "like_count"
-        case buyerCount = "buyer_count"
-        case isDownloaded = "is_downloaded"
-        case createdAt, updatedAt
-    }
-    
+extension FilterSummaryResponse {
     func toEntity() -> FilterEntity {
         var newFiles = [""]
         func toImageString() {
@@ -42,15 +22,15 @@ struct Filter: ResponseData {
         
         return FilterEntity(
             id: self.filterID,
-            category: self.category ?? "푸드",
+            category: self.category,
             title: self.title,
             introduction: nil,
             description: self.description,
             original: original?.imageURL,
             filtered: filtered?.imageURL,
-            isDownloaded: self.isDownloaded ?? false,
+            isDownloaded: nil,
             isLiked: self.isLiked,
-            price: self.price ?? 0,
+            price: nil,
             likeCount: self.likeCount,
             buyerCount: self.buyerCount,
             createdAt: self.createdAt,

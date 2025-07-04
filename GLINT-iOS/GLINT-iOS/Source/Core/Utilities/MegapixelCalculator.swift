@@ -8,7 +8,10 @@
 
 struct MegapixelCalculator {
     // 문자열로 반환 (MP 단위 포함)
-    static func calculateMPString(width: Int, height: Int, fileSize: Int) -> String {
+    static func calculateMPString(width: Int?, height: Int?, fileSize: Int?) -> String? {
+        guard let width = width, let height = height, let fileSize = fileSize else {
+            return nil
+        }
         let mpDouble = Double(width * height) / 1_000_000
         let mp = Int(mpDouble.rounded())
         

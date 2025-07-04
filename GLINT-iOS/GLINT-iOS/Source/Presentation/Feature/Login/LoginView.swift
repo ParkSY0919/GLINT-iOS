@@ -6,103 +6,88 @@
 //
 
 import SwiftUI
-import Combine
 
 struct LoginView: View {
-    @State
-    private var viewModel: LoginViewStore
-    private var rootRouter: RootRouter
-    
-    init(useCase: LoginViewUseCase, rootRouter: RootRouter) {
-        self._viewModel = State(initialValue: LoginViewStore(useCase: useCase))
-        self.rootRouter = rootRouter
-    }
+    @Environment(LoginViewStore.self)
+    private var store
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                backgroundSection
-                
-                VStack(spacing: 20) {
-                    formFieldsSection
-                    signInSection
-                    signUpSection
-                    socialLoginSection
-                }
-                .padding()
-                .disabled(viewModel.loginState == .loading)
-                
-                if viewModel.loginState == .loading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.5)
-                }
-            }
-            .onChange(of: viewModel.loginState) { _, newState in
-                if newState == .success {
-                    print("로그인 성공! (View) - TabBar로 전환")
-                    rootRouter.navigate(to: .tabBar)
-                }
-            }
-            .systemNavigationBarHidden()
+            contentView
+                .appScreenStyle(ignoresSafeArea: true)
+                .onViewDidLoad(perform: {
+                    store.send(.viewAppeared)
+                })
+                .navigationSetup(title: Strings.Login.title)
         }
     }
 }
 
-// MARK: - Configure Views
 private extension LoginView {
-    var backgroundSection: some View {
-        LinearGradient(
-            gradient: Gradient(colors: [.gray, .bgPoint]),
-            startPoint: .topLeading,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
+    var contentView: some View {
+        ZStack {
+            Color.gray100
+                .ignoresSafeArea(.all)
+            
+            VStack(spacing: 20) {
+                formFieldsSection
+                signInSection
+                signUpSection
+                socialLoginSection
+            }
+            .padding()
+            .disabled(store.state.loginState == .loading)
+            
+            if store.state.loginState == .loading {
+                StateViewBuilder.loadingView()
+            }
+        }
     }
     
     var formFieldsSection: some View {
         VStack(spacing: 20) {
             FormFieldView(
                 formCase: .email,
-                errorMessage: !viewModel.email.isEmpty && !viewModel.isEmailValid
-                ? "유효한 이메일을 입력해주세요" : nil,
-                text: $viewModel.email
+                errorMessage: !store.state.email.isEmpty && !store.state.isEmailValid
+                ? Strings.Login.Error.emailValidation : nil,
+                text: Binding(
+                    get: { store.state.email },
+                    set: { store.send(.emailChanged($0)) }
+                )
             )
             .keyboardType(.emailAddress)
             .autocapitalization(.none)
             .onSubmit {
-                Task { await viewModel.checkEmailAvailability() }
-            }
-            .onChange(of: viewModel.email) { _, _ in
-                viewModel.validateInputs()
+                store.send(.emailSubmitted)
             }
             
             FormFieldView(
                 formCase: .password,
                 isSecure: true,
-                errorMessage: !viewModel.password.isEmpty && !viewModel.isPasswordValid
-                ? "8자 이상, 특수문자를 포함해주세요" : nil,
-                text: $viewModel.password
+                errorMessage: !store.state.password.isEmpty && !store.state.isPasswordValid
+                ? Strings.Login.Error.passwordValidation : nil,
+                text: Binding(
+                    get: { store.state.password },
+                    set: { store.send(.passwordChanged($0)) }
+                )
             )
-            .onChange(of: viewModel.password) { _, _ in
-                viewModel.validateInputs()
-            }
         }
     }
     
     var signInSection: some View {
         VStack(spacing: 8) {
-            Button("Sign in") {
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-                Task {
-                    await viewModel.loginWithEmail()
-                }
+            Button(Strings.Login.signIn) {
+                store.send(.signInButtonTapped)
             }
             .buttonStyle(GLCTAButton())
-            .disabled(viewModel.email.isEmpty || viewModel.password.isEmpty || !viewModel.isEmailValid || !viewModel.isPasswordValid || viewModel.loginState == .loading)
+            .disabled(store.state.email.isEmpty ||
+                     store.state.password.isEmpty ||
+                     !store.state.isEmailValid ||
+                     !store.state.isPasswordValid ||
+                     store.state.loginState == .loading)
             .padding(.top, 30)
             
-            if case .failure(let message) = viewModel.loginState {
+            if case .failure(let message) = store.state.loginState {
                 Text(message)
                     .font(.system(size: 14))
                     .foregroundColor(.red)
@@ -115,9 +100,9 @@ private extension LoginView {
         HStack {
             Rectangle().fill(Color(uiColor: .systemGray4)).frame(height: 1)
             Button {
-                viewModel.navigateToCreateAccount()
+                store.send(.createAccountButtonTapped)
             } label: {
-                Text("회원가입")
+                Text(Strings.Login.signUp)
                     .font(.system(size: 14))
                     .foregroundColor(Color(uiColor: .systemGray4))
                     .padding(.horizontal, 10)
@@ -132,17 +117,16 @@ private extension LoginView {
     var socialLoginSection: some View {
         HStack(spacing: 20) {
             SocialLoginButtonView(type: .apple) {
-                Task {
-                    await viewModel.appleLogin()
-                }
+                store.send(.appleLoginButtonTapped)
             }
             SocialLoginButtonView(type: .kakao) {
-                // TODO: Kakao 로그인 구현
+                store.send(.kakaoLoginButtonTapped)
             }
         }
     }
 }
 
 #Preview {
-    LoginView(useCase: .liveValue, rootRouter: RootRouter())
+    LoginView()
+        .environment(LoginViewStore(useCase: .liveValue, rootRouter: RootRouter.init()))
 }

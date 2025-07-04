@@ -9,49 +9,58 @@ import SwiftUI
 
 import NukeUI
 
+import SwiftUI
+import NukeUI
+
 struct TodayArtistView: View {
-    @Binding var author: TodayAuthInfo?
-    @Binding var filter: [FilterSummary]?
-    let router: NavigationRouter<MainTabRoute>
+    let author: ProfileEntity?
+    let filters: [FilterEntity]?
+    let onTapWorksItem: (String) -> Void
     
     var body: some View {
-        artistContainer()
-    }
-    
-    // MARK: - Container
-    private func artistContainer() -> some View {
-        VStack(alignment: .leading) {
-            sectionTitle()
-            artistProfileSection()
-            artistWorksScrollView()
-            artistTagsSection()
-            artistIntroductionSection()
+        VStack(alignment: .leading, spacing: 0) {
+            titleSection
+            contentView
         }
     }
-    
-    // MARK: - Section Title
-    private func sectionTitle() -> some View {
-        Text("오늘의 작가 소개")
+}
+
+private extension TodayArtistView {
+    var titleSection: some View {
+        Text(Strings.Main.todayArtistIntro)
             .font(.pretendardFont(.body_bold, size: 16))
             .padding(.leading, 20)
             .foregroundColor(.gray60)
-            
     }
     
-    // MARK: - Artist Profile Section
-    private func artistProfileSection() -> some View {
+    @ViewBuilder
+    var contentView: some View {
+        if let author = author {
+            profileSection(author)
+            worksSection
+            tagsSection(author)
+            introductionSection(author)
+        } else {
+            StateViewBuilder.emptyStateView(message: Strings.Main.Error.artistInfoLoadFailed)
+        }
+    }
+    
+    func profileSection(_ author: ProfileEntity) -> some View {
         HStack(spacing: 12) {
-            artistProfileImage()
-            artistNameSection()
+            if let url = author.profileImageURL {
+                artistProfileImage(imageUrlString: url)
+            }
+            if let name = author.name,
+               let nick = author.nick {
+                artistNameSection(name: name, nick: nick)
+            }
         }
         .padding(.top, 14)
         .padding(.leading, 20)
     }
     
-    private func artistProfileImage() -> some View {
-        let imageUrlString = author?.profileImageURL ?? ""
-        
-        return LazyImage(url: URL(string: imageUrlString)) { state in
+    func artistProfileImage(imageUrlString: String) -> some View {
+        LazyImage(url: URL(string: imageUrlString)) { state in
             lazyImageTransform(state) { image in
                 image.aspectRatio(contentMode: .fill)
             }
@@ -60,69 +69,74 @@ struct TodayArtistView: View {
         .clipShape(Circle())
     }
     
-    private func artistNameSection() -> some View {
-        VStack(alignment: .leading) {
-            artistName()
-            artistNickname()
+    func artistNameSection(name: String, nick: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            artistName(name: name)
+            artistNickname(nick: nick)
         }
     }
     
-    private func artistName() -> some View {
-        Text(author?.name ?? "")
+    func artistName(name: String) -> some View {
+        Text(name)
             .font(.pointFont(.body, size: 20))
             .foregroundColor(.gray30)
     }
     
-    private func artistNickname() -> some View {
-        Text(author?.nick ?? "")
+    func artistNickname(nick: String) -> some View {
+        Text(nick)
             .font(.pretendardFont(.body_medium, size: 16))
             .foregroundColor(.gray75)
     }
     
-    // MARK: - Artist Works Scroll View
-    private func artistWorksScrollView() -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            artistWorksHorizontalStack()
-        }
-        .frame(height: 80)
-        .padding(.top, 10)
-        .padding(.horizontal, 20)
-    }
-    
-    private func artistWorksHorizontalStack() -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                if let filter = filter {
-                    ForEach(filter, id: \.filterID) { filter in
-                        let entity = filter.toEntity()
-                        LazyImage(url: URL(string: entity.filtered ?? "")) { state in
-                            lazyImageTransform(state) { image in
-                                image.aspectRatio(contentMode: .fill)
-                            }
-                        }
-                        .frame(width: 120, height: 80)
-                        .clipRectangle(8)
-                        .clipped()
+    @ViewBuilder
+    var worksSection: some View {
+        if let filter = filters, !filter.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(spacing: 12) {
+                    ForEach(filter, id: \.id) { filterItem in
+                        artistWorkItem(filterItem)
                     }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal)
+            .frame(height: 80)
+            .padding(.top, 10)
+        } else {
+            StateViewBuilder.emptyStateView(message: Strings.Main.Error.artistWorksLoadFailed)
         }
     }
     
-    
-    // MARK: - Artist Tags Section
-    private func artistTagsSection() -> some View {
-        HStack {
-            ForEach(author?.hashTags ?? [], id: \.self) { tag in
-                artistTag(tag: tag)
+    func artistWorkItem(_ filterItem: FilterEntity) -> some View {
+        return LazyImage(url: URL(string: filterItem.filtered ?? "")) { state in
+            lazyImageTransform(state) { image in
+                image.aspectRatio(contentMode: .fill)
             }
         }
-        .padding(.leading, 20)
-        .padding(.top, 10)
+        .frame(width: 120, height: 80)
+        .clipRectangle(8)
+        .clipped()
+        .onTapGesture {
+            onTapWorksItem(filterItem.id)
+        }
     }
     
-    private func artistTag(tag: String) -> some View {
+    @ViewBuilder
+    func tagsSection(_ author: ProfileEntity) -> some View {
+        let tags = author.hashTags ?? []
+        if !tags.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(tags, id: \.self) { tag in
+                        artistTag(tag: tag)
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+            .padding(.top, 10)
+        }
+    }
+    
+    func artistTag(tag: String) -> some View {
         Text(tag)
             .font(.pointFont(.caption, size: 10))
             .foregroundColor(.gray60)
@@ -132,26 +146,33 @@ struct TodayArtistView: View {
             .clipShape(Capsule())
     }
     
-    // MARK: - Artist Introduction Section
-    private func artistIntroductionSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            artistIntroductionTitle()
-            artistIntroductionBody()
+    @ViewBuilder
+    func introductionSection(_ author: ProfileEntity) -> some View {
+        if let introduction = author.introduction,
+           let description = author.description {
+            VStack(alignment: .leading, spacing: 12) {
+                if !introduction.isEmpty {
+                    artistIntroductionTitle(content: introduction)
+                }
+                if !description.isEmpty {
+                    artistIntroductionBody(content: description)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 20)
     }
     
-    private func artistIntroductionTitle() -> some View {
-        Text(author?.introduction ?? "")
+    func artistIntroductionTitle(content: String) -> some View {
+        Text(content)
             .font(.pointFont(.body, size: 14))
             .foregroundColor(.gray60)
     }
     
-    private func artistIntroductionBody() -> some View {
-        Text(author?.description ?? "")
+    func artistIntroductionBody(content: String) -> some View {
+        Text(content)
             .font(.pretendardFont(.caption, size: 12))
             .foregroundColor(.gray60)
+            .lineLimit(nil)
     }
 }
-

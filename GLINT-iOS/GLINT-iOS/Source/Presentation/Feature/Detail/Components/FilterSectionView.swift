@@ -28,7 +28,6 @@ struct FilterSectionView: View {
     }
 }
 
-// MARK: - Private Views
 private extension FilterSectionView {
     var beforeAfterImageView: some View {
         GeometryReader { geometry in
@@ -86,7 +85,7 @@ private extension FilterSectionView {
     
     var beforeAfterControlBar: some View {
         HStack(spacing: 4) {
-            Text("Before")
+            Text(Strings.Detail.bef)
                 .font(.pretendardFont(.caption_semi, size: 10))
                 .foregroundColor(.gray60)
                 .padding(.horizontal, 10)
@@ -105,7 +104,7 @@ private extension FilterSectionView {
                     
                     // 슬라이더 핸들
                     ZStack {
-                        ImageLiterals.Detail.divideBtn
+                        Images.Detail.divideBtn
                             .font(.system(size: 8, weight: .medium))
                             .foregroundColor(.gray60)
                     }
@@ -122,7 +121,7 @@ private extension FilterSectionView {
             }
             .frame(height: 24)
             
-            Text("After")
+            Text(Strings.Detail.aft)
                 .font(.pretendardFont(.caption_semi, size: 10))
                 .foregroundColor(.gray60)
                 .padding(.horizontal, 10)
@@ -133,4 +132,4 @@ private extension FilterSectionView {
         .padding(.horizontal, 20)
         .padding(.top, 12)
     }
-} 
+}

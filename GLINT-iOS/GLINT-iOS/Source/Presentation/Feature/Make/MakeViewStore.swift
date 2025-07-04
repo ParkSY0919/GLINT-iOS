@@ -10,33 +10,35 @@ import PhotosUI
 
 struct MakeViewState {
     var filterName: String = ""
-    var selectedCategory: CategoryType? = nil
+    var selectedCategory: FilterCategoryItem.CategoryType? = nil
+    var originImage: UIImage?
     var selectedImage: UIImage?
     var filteredImage: UIImage?
-    var imageMetaData: PhotoMetadata?
+    var imageMetaData: PhotoMetadataEntity?
+    var filterValues: FilterValuesEntity?
     var address: String?
     var introduce: String = ""
     var price: String = ""
-    var showingEditView: Bool = false
     
     var isLoading: Bool = false
     var errorMessage: String?
-    var saveResult: [String]? = nil
-    var showingSaveAlert: Bool = false
+    var showCreateAlert: Bool = false
+    var createFilterTitle: String?
 }
 
 enum MakeViewAction {
     case filterNameChanged(String)
-    case categorySelected(CategoryType)
-    case imageSelected(UIImage, PhotoMetadata?)
+    case categorySelected(FilterCategoryItem.CategoryType)
+    case imageSelected(UIImage, PhotoMetadataEntity?)
     case imageChangeRequested
-    case editButtonTapped
-    case editViewDismissed
+    case editButtonTapped(UIImage)
     case filteredImageReceived(UIImage)
     case introduceChanged(String)
     case priceChanged(String)
     case saveButtonTapped
     case retryButtonTapped
+    case editCompleted(UIImage, FilterValuesEntity)
+    case createAlertDismissed
 }
 
 @MainActor
@@ -44,9 +46,13 @@ enum MakeViewAction {
 final class MakeViewStore {
     private(set) var state = MakeViewState()
     private let useCase: MakeViewUseCase
+    private let router: NavigationRouter<MakeTabRoute>
     
-    init(useCase: MakeViewUseCase) {
+    init(useCase: MakeViewUseCase, router: NavigationRouter<MakeTabRoute>) {
         self.useCase = useCase
+        self.router = router
+        
+        setupEditCallback()
     }
     
     func send(_ action: MakeViewAction) {
@@ -58,18 +64,16 @@ final class MakeViewStore {
             state.selectedCategory = category
             
         case .imageSelected(let image, let metadata):
+            state.originImage = image
             state.selectedImage = image
             extractImageMetaData(image: image, meta: metadata)
             
         case .imageChangeRequested:
             // 이미지 변경 요청 처리
-            GTLogger.shared.i("Image change requested")
+            GTLogger.shared.i(Strings.Make.Log.imageChangeRequested)
             
-        case .editButtonTapped:
-            state.showingEditView = true
-            
-        case .editViewDismissed:
-            state.showingEditView = false
+        case .editButtonTapped(let image):
+            router.push(.edit(originImage: image))
             
         case .filteredImageReceived(let image):
             state.selectedImage = image
@@ -85,12 +89,21 @@ final class MakeViewStore {
             
         case .retryButtonTapped:
             state.errorMessage = nil
+            
+        case .editCompleted(let filteredImage, let filterValues):
+            state.filteredImage = filteredImage
+            state.selectedImage = filteredImage
+            state.filterValues = filterValues
+            print(state.filterValues ?? Strings.Make.Log.filterValuesNotFound)
+            
+        case .createAlertDismissed:
+            handleCreateAlertDismissed()
         }
     }
 }
 
 private extension MakeViewStore {
-    func extractImageMetaData(image: UIImage, meta: PhotoMetadata?) {
+    func extractImageMetaData(image: UIImage, meta: PhotoMetadataEntity?) {
         Task {
             let address = await meta?.getKoreanAddress()
             state.imageMetaData = meta
@@ -105,34 +118,48 @@ private extension MakeViewStore {
         Task {
             do {
                 let imageData = try ImageConverter.convertToData(
-                    originalImage: state.selectedImage,
+                    originalImage: state.originImage,
                     filteredImage: state.filteredImage
                 )
                 
-                let result = try await useCase.files(imageData)
+                let uploadFilesResult = try await useCase.files(imageData)
+                
+                guard let filterValues = state.filterValues else {
+                    print(Strings.Make.Error.filterValuesFailed)
+                    state.filterValues = state.filterValues!.setDefaultValues()
+                    return
+                }
+                let request = CreateFilterRequest(
+                    category: state.selectedCategory?.rawValue ?? "별",
+                    title: state.filterName,
+                    price: Int(state.price) ?? 0,
+                    description: state.introduce,
+                    files: uploadFilesResult,
+                    photoMetadata: nil,
+                    filterValues: filterValues
+                )
+                
+                let result = try await useCase.createFilter(request)
+                print("result: \(result)")
+                state.createFilterTitle = result
+                state.showCreateAlert = true
                 
                 state.isLoading = false
-                state.saveResult = result.files
-                state.showingSaveAlert = true
-                GTLogger.shared.i("Filter save success: \(result.files)")
-                
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
-                GTLogger.shared.w("Filter save failed: \(String(describing: state.errorMessage))")
+                GTLogger.shared.w("\(Strings.Make.Error.filterSaveFailed): \(String(describing: state.errorMessage))")
             }
         }
     }
-}
-
-enum CategoryType: String, CaseIterable {
-    case 푸드 = "푸드"
-    case 인물 = "인물"
-    case 풍경 = "풍경"
-    case 야경 = "야경"
-    case 별 = "별"
     
-    var displayName: String {
-        return self.rawValue
+    func setupEditCallback() {
+        router.onPopData(UIImage.self, FilterValuesEntity.self) { [weak self] filteredImage, filterValues in
+            self?.send(.editCompleted(filteredImage, filterValues))
+        }
+    }
+    
+    func handleCreateAlertDismissed() {
+        state.showCreateAlert = false
     }
 }

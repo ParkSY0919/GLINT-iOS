@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TodayFilterResponse: Codable {
+struct TodayFilterResponse: ResponseData {
     let filterID, title, introduction, description: String
     let files: [String]
     let createdAt, updatedAt: String
@@ -16,28 +16,4 @@ struct TodayFilterResponse: Codable {
         case filterID = "filter_id"
         case title, introduction, description, files, createdAt, updatedAt
     }
-    
-    func toFilterEntity() -> FilterEntity {
-        let original = self.files.first
-        let filtered = self.files.last
-        
-        return .init(
-            id: filterID,
-            category: nil,
-            title: title,
-            introduction: introduction,
-            description: description,
-            original: original?.imageURL,
-            filtered: filtered?.imageURL,
-            isDownloaded: nil,
-            isLiked: nil,
-            price: nil,
-            likeCount: nil,
-            buyerCount: nil,
-            createdAt: createdAt,
-            updatedAt: updatedAt
-        )
-    }
 }
-
-

@@ -24,5 +24,6 @@ struct GLSocialLoginButton: ButtonStyle {
             .foregroundColor(foregroundColor)
             .cornerRadius(8)
             .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .roundedRectangleStroke(radius: 8, color: .gray0)
     }
 }

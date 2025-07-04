@@ -13,30 +13,43 @@ struct PriceSectionView: View {
     let likeCount: Int
     
     var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("\(price.formatted()) Coin")
-                    .font(.pointFont(.title, size: 32))
-                    .foregroundColor(.gray0)
-                
-                HStack(spacing: 12) {
-                    downloadCountBox
-                    likeCountBox
-                }
-            }
-            
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 24)
+        contentView
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
     }
 }
 
-// MARK: - Private Views
 private extension PriceSectionView {
+    var contentView: some View {
+        HStack(alignment: .top, spacing: 16) {
+            priceInfoSection
+            Spacer()
+        }
+    }
+    
+    var priceInfoSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            priceTextSection
+            statisticsSection
+        }
+    }
+    
+    var priceTextSection: some View {
+        Text("\(price.formatted()) \(Strings.Detail.coin)")
+            .font(.pointFont(.title, size: 32))
+            .foregroundColor(.gray0)
+    }
+    
+    var statisticsSection: some View {
+        HStack(spacing: 12) {
+            downloadCountBox
+            likeCountBox
+        }
+    }
+    
     var downloadCountBox: some View {
         VStack(spacing: 4) {
-            Text("다운로드")
+            Text(Strings.Detail.download)
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             
@@ -52,7 +65,7 @@ private extension PriceSectionView {
     
     var likeCountBox: some View {
         VStack(spacing: 4) {
-            Text("찜하기")
+            Text(Strings.Detail.like)
                 .font(.pretendardFont(.caption, size: 12))
                 .foregroundColor(.gray60)
             

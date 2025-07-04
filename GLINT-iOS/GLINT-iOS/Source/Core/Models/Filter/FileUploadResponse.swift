@@ -5,7 +5,10 @@
 //  Created by 박신영 on 6/25/25.
 //
 
+import Foundation
 
-struct FileUploadResponse: Codable {
+struct FileUploadResponse: ResponseData {
     let files: [String]
 }
+
+

@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct RefreshTokenResponse: Codable {
+struct RefreshTokenResponse: ResponseData {
     let accessToken: String
     let refreshToken: String
 }

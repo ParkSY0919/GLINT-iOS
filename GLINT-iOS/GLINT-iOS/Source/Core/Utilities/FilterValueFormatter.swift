@@ -14,9 +14,9 @@ struct FilterValueFormatter {
     }
     
     // MARK: - 2. 조건부 포맷팅 (정수면 .0 제거)
-    static func formatSmart(_ value: Double) -> String {
+    static func formatSmart(_ value: Float) -> String {
         let rounded = (value * 10).rounded() / 10
-        if rounded == Double(Int(rounded)) {
+        if rounded == Float(Int(rounded)) {
             return String(Int(rounded))
         } else {
             return String(format: "%.1f", rounded)
@@ -24,13 +24,16 @@ struct FilterValueFormatter {
     }
     
     static func photoMetaDataFormat(
-        lensInfo: String,
-        focalLength: Double,
-        aperture: Double,
-        iso: Int
-    ) -> String {
-        let focalLength =  formatSmart(focalLength)
-        let aperture = formatSmart(aperture)
-        return "\(lensInfo) - \(focalLength)mm 𝒇\(aperture) ISO \(iso)"
+        lensInfo: String?,
+        focalLength: Float?,
+        aperture: Float?,
+        iso: Int?
+    ) -> String? {
+        guard let lensInfo, let focalLength, let aperture, let iso else {
+            return nil
+        }
+        let focalLengthStr =  formatSmart(focalLength)
+        let apertureStr = formatSmart(aperture)
+        return "\(lensInfo) - \(focalLengthStr)mm 𝒇\(apertureStr) ISO \(iso)"
     }
 }

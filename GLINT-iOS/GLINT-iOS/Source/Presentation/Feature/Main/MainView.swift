@@ -8,36 +8,39 @@
 import SwiftUI
 
 struct MainView: View {
-    let router: NavigationRouter<MainTabRoute>
-    @Environment(MainViewStore.self) private var store
+    @Environment(MainViewStore.self)
+    private var store
     
     var body: some View {
-        Group {
-            if store.state.isLoading && !store.state.hasLoadedOnce {
-                StateViewBuilder.loadingView()
-            } else if let errorMessage = store.state.errorMessage, !store.state.hasLoadedOnce {
-                StateViewBuilder.errorView(
-                    errorMessage: errorMessage
-                ) {
-                    store.send(.retryButtonTapped)
-                }
-            } else {
-                contentView
+        content
+            .appScreenStyle(
+                ignoresSafeArea: true,
+                safeAreaEdges: .top,
+                isLoading: store.state.isLoading,
+                errorMessage: store.state.errorMessage
+            )
+            .onViewDidLoad(perform: {
+                store.send(.viewAppeared)
+            })
+    }
+    
+    @ViewBuilder
+    private var content: some View {
+        switch (store.state.isLoading, store.state.errorMessage) {
+        case (true, _):
+            StateViewBuilder.loadingView()
+        case (_, let error?) where !error.isEmpty:
+            StateViewBuilder.errorView(errorMessage: error) {
+                store.send(.retryButtonTapped)
             }
+        default:
+            mainContentView
         }
-        .ignoresSafeArea(.all, edges: .top)
-        .background(.gray100)
-        .onAppear {
-            store.send(.viewAppeared)
-        }
-        .animation(.easeInOut(duration: 0.3), value: store.state.isLoading && !store.state.hasLoadedOnce)
-        .sensoryFeedback(.impact(weight: .light), trigger: store.state.errorMessage)
     }
 }
 
-// MARK: - Views
 private extension MainView {
-    var contentView: some View {
+    var mainContentView: some View {
         ScrollView(showsIndicators: false) {
             scrollContent
         }
@@ -54,30 +57,32 @@ private extension MainView {
         }
         .padding(.bottom, 20)
         .overlay(alignment: .bottom) {
-            loadingIndicator
+            if store.state.isLoading {
+                StateViewBuilder.loadingIndicator()
+            }
         }
     }
     
     var todayFilterSection: some View {
         TodayFilterView(
-            todayFilter: .constant(store.state.todayFilter),
-            router: router,
+            filterEntity: store.state.todayFilterData,
             onTryFilterTapped: { id in
                 store.send(.tryFilterTapped(id: id))
+            },
+            onTapCategory: { category in
+                store.send(.categoryTapped(category: category))
             }
         )
     }
     
     var bannerSection: some View {
-        let bannerItems: [BannerItem] = (1...3).map { BannerItem(imageName: "banner_image_\($0)") }
-        return BannerView(items: bannerItems, router: router)
+        return BannerView()
             .padding(.top, 20)
     }
     
     var hotTrendSection: some View {
         HotTrendView(
-            hotTrends: .constant(store.state.hotTrends),
-            router: router,
+            filterEntities: store.state.hotTrendsData,
             onHotTrendTapped: { id in
                 store.send(.hotTrendTapped(id: id))
             }
@@ -87,23 +92,12 @@ private extension MainView {
     
     var todayArtistSection: some View {
         TodayArtistView(
-            author: .constant(store.state.todayArtist?.author),
-            filter: .constant(store.state.todayArtist?.filters),
-            router: router
+            author: store.state.todayArtistUser,
+            filters: store.state.todayArtistFilter,
+            onTapWorksItem: { id in
+                store.send(.todayArtistTapped(id: id))
+            }
         )
         .padding(.top, 30)
-    }
-    
-    @ViewBuilder
-    var loadingIndicator: some View {
-        if store.state.isLoading && store.state.hasLoadedOnce {
-            HStack {
-                Spacer()
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .padding()
-                Spacer()
-            }
-        }
     }
 }

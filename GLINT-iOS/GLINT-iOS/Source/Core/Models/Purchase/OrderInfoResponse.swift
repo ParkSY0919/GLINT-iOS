@@ -8,5 +8,5 @@
 import Foundation
 
 struct OrderInfoResponse: ResponseData {
-    let data: [Datum]
+    let data: [DatumResponse]
 }

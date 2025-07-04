@@ -13,7 +13,7 @@ struct AuthorSectionView: View {
     let onTapMessageBtn: () -> Void
     
     var body: some View {
-        content
+        contentView
             .padding(.horizontal, 20)
             .padding(.top, 24)
             .padding(.bottom, 32)
@@ -21,32 +21,41 @@ struct AuthorSectionView: View {
 }
 
 private extension AuthorSectionView {
-    var content: some View {
+    var contentView: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // 작가 프로필
-            GTProfileView(
-                userInfo: userInfo,
-                isEnableChat: true,
-                onTapMessageBtn: onTapMessageBtn
-            )
-            .prefetchImageIfPresent(userInfo?.profileImageURL)
-            
-            // 해시태그
-            if let hashTags = userInfo?.hashTags, !hashTags.isEmpty {
-                GTHashTagsView(hashTags: hashTags)
-            }
-            
-            // 작가 소개
-            if hasProfileInfo {
-                GTProfileInfoView(
-                    introduction: userInfo?.introduction,
-                    description: userInfo?.description
-                )
-            }
+            profileSection
+            hashTagSection
+            profileInfoSection
         }
     }
     
-    private var hasProfileInfo: Bool {
+    var profileSection: some View {
+        GTProfileView(
+            userInfo: userInfo,
+            isEnableChat: true,
+            onTapMessageBtn: onTapMessageBtn
+        )
+        .prefetchImageIfPresent(userInfo?.profileImageURL)
+    }
+    
+    @ViewBuilder
+    var hashTagSection: some View {
+        if let hashTags = userInfo?.hashTags, !hashTags.isEmpty {
+            GTHashTagsView(hashTags: hashTags)
+        }
+    }
+    
+    @ViewBuilder
+    var profileInfoSection: some View {
+        if hasProfileInfo {
+            GTProfileInfoView(
+                introduction: userInfo?.introduction,
+                description: userInfo?.description
+            )
+        }
+    }
+    
+    var hasProfileInfo: Bool {
         let hasIntro = userInfo?.introduction?.isEmpty == false
         let hasDesc = userInfo?.description?.isEmpty == false
         return hasIntro || hasDesc

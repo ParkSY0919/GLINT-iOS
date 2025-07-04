@@ -14,6 +14,7 @@ enum AuthError: LocalizedError {
     case invalidEmailFormat
     case invalidPasswordFormat
     case noDeviceTokenFound
+    case noData
     
     var errorDescription: String? {
         switch self {
@@ -23,6 +24,7 @@ enum AuthError: LocalizedError {
         case .invalidEmailFormat: return "올바른 이메일 형식이 아닙니다."
         case .invalidPasswordFormat: return "올바른 비밀번호 형식이 아닙니다."
         case .noDeviceTokenFound: return "디바이스 토큰이 없습니다."
+        case .noData: return "데이터가 없습니다."
         }
     }
 }

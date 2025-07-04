@@ -8,5 +8,9 @@
 import Foundation
 
 struct PaymentValidationRequest: RequestData {
-    let imp_uid: String
+    let impUid: String
+    
+    enum CodingKeys: String, CodingKey {
+        case impUid = "imp_uid"
+    }
 }

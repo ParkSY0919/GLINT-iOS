@@ -13,8 +13,8 @@ struct GTMetaDataView: View {
     let photoMetadataString: String
     let megapixelInfo: String
     let address: String?
-    let latitude: Double?
-    let longitude: Double?
+    let latitude: Float?
+    let longitude: Float?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -71,7 +71,7 @@ struct GTMetaDataView: View {
                                 Rectangle()
                                     .fill(.brandBlack)
                                     .overlay {
-                                        ImageLiterals.Detail.noMap
+                                        Images.Detail.noMap
                                     }
                             }
                         }
@@ -113,8 +113,8 @@ struct GTMetaDataView: View {
 }
 
 struct StaticMiniMapView: View {
-    let latitude: Double
-    let longitude: Double
+    let latitude: Float
+    let longitude: Float
     
     @State private var mapImage: UIImage?
     @State private var isLoading = true
@@ -155,7 +155,7 @@ struct StaticMiniMapView: View {
     }
     
     private func generateMapSnapshot() {
-        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        let coordinate = CLLocationCoordinate2D(latitude: Double(latitude), longitude: Double(longitude))
         
         let options = MKMapSnapshotter.Options()
         options.region = MKCoordinateRegion(
@@ -163,7 +163,7 @@ struct StaticMiniMapView: View {
             latitudinalMeters: 1000,
             longitudinalMeters: 1000
         )
-        options.size = CGSize(width: 240, height: 240) // 2x for retina
+        options.size = CGSize(width: 240, height: 240)
         options.mapType = .standard
         
         let snapshotter = MKMapSnapshotter(options: options)

@@ -12,10 +12,17 @@ struct MetaDataSectionView: View {
     let photoMetadataString: String
     let megapixelInfo: String
     let address: String?
-    let latitude: Double?
-    let longitude: Double?
+    let latitude: Float?
+    let longitude: Float?
     
     var body: some View {
+        metaDataSection
+            .padding(.top, 20)
+    }
+}
+
+private extension MetaDataSectionView {
+    var metaDataSection: some View {
         GTMetaDataView(
             camera: camera,
             photoMetadataString: photoMetadataString,
@@ -24,6 +31,5 @@ struct MetaDataSectionView: View {
             latitude: latitude,
             longitude: longitude
         )
-        .padding(.top, 20)
     }
 } 

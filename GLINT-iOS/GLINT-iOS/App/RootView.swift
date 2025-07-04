@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  RootView.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 5/9/25.
@@ -7,16 +7,16 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct RootView: View {
     @State private var rootRouter = RootRouter()
-    @Environment(\.loginViewUseCase)
-    private var useCase
+    @Environment(\.loginViewUseCase) private var loginViewUseCase
     
     var body: some View {
         Group {
             switch rootRouter.currentRoute {
-            case .login:
-                LoginView(useCase: useCase, rootRouter: rootRouter)
+            case .signIn:
+                LoginView()
+                    .environment(LoginViewStore(useCase: loginViewUseCase, rootRouter: rootRouter))
             case .tabBar:
                 TabBarView()
             }
@@ -26,5 +26,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    RootView()
 }

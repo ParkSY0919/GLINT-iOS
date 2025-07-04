@@ -9,7 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct ImagePicker: UIViewControllerRepresentable {
-    let onImageSelected: (UIImage, PhotoMetadata?) -> Void
+    let onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void
     @Environment(\.dismiss) private var dismiss
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -86,7 +86,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 메타데이터 추출
-        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadata? {
+        private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadataEntity? {
             // PHAsset
             if let assetIdentifier = result.assetIdentifier {
                 if let metadata = await extractFromPHAsset(identifier: assetIdentifier) {
@@ -99,7 +99,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - PHAsset을 통한 메타데이터 추출
-        private func extractFromPHAsset(identifier: String) async -> PhotoMetadata? {
+        private func extractFromPHAsset(identifier: String) async -> PhotoMetadataEntity? {
             let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
             guard let asset = fetchResult.firstObject else {
                 return nil
@@ -124,7 +124,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - 파일에서 직접 메타데이터 추출
-        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadata? {
+        private func extractFromFile(result: PHPickerResult) async -> PhotoMetadataEntity? {
             return await withCheckedContinuation { continuation in
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
                     guard let url = url, error == nil else {
@@ -144,7 +144,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         // MARK: - EXIF 데이터 추출 및 변환 (동기 함수 - 변경 없음)
-        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadata? {
+        private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadataEntity? {
             guard let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
                   let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [String: Any] else {
                 return nil
@@ -170,10 +170,10 @@ struct ImagePicker: UIViewControllerRepresentable {
             let pixelWidth = properties[kCGImagePropertyPixelWidth as String] as? Int ?? 0
             let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int ?? 0
             
-            return PhotoMetadata(
+            return PhotoMetadataEntity(
                 camera: phoneInfo,
                 lensInfo: lensType,
-                focalLength: Int(focalLength),
+                focalLength: focalLength,
                 aperture: aperture,
                 iso: iso,
                 shutterSpeed: shutterSpeed,
@@ -183,8 +183,19 @@ struct ImagePicker: UIViewControllerRepresentable {
                 format: format,
                 dateTimeOriginal: dateTime,
                 latitude: latitude,
-                longitude: longitude
+                longitude: longitude,
+                photoMetadataString: FilterValueFormatter.photoMetaDataFormat(
+                    lensInfo: lensType,
+                    focalLength: focalLength,
+                    aperture: aperture,
+                    iso: iso),
+                megapixelInfoString: MegapixelCalculator.calculateMPString(
+                    width: pixelWidth,
+                    height: pixelHeight,
+                    fileSize: fileSize
+                )
             )
+            
         }
         
         private func extractPhoneInfo(from tiffData: [String: Any]) -> String {
@@ -203,11 +214,11 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         
         // MARK: - 촬영 정보 추출
-        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Double, Double, Int) {
+        private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Float, Float, Int) {
             // 렌즈 정보
             var lensType = "카메라 정보 없음"
-            var focalLengh: Double = 0
-            var aperture: Double = 0
+            var focalLengh: Float = 0
+            var aperture: Float = 0
             var iso: Int = 0
             
             if let focalLength = exifData[kCGImagePropertyExifFocalLength as String] as? Double {
@@ -215,8 +226,8 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
             
             // 초점거리mm, 조리개𝒇, ISO
-            if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Double,
-               let apertureData = exifData[kCGImagePropertyExifFNumber as String] as? Double,
+            if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Float,
+               let apertureData = exifData[kCGImagePropertyExifFNumber as String] as? Float,
                let isoData = exifData[kCGImagePropertyExifISOSpeedRatings as String] as? [Int],
                let isoValue = isoData.first {
                 focalLengh = focalLengthData
@@ -232,20 +243,20 @@ struct ImagePicker: UIViewControllerRepresentable {
                   let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int else {
                 return "정보 없음"
             }
-            let mp = MegapixelCalculator.calculateMPString(width: pixelWidth, height: pixelHeight, fileSize: 0)
+            guard let mp = MegapixelCalculator.calculateMPString(width: pixelWidth, height: pixelHeight, fileSize: 0) else { return "정보 없음" }
             return mp
         }
         
         // MARK: - GPS 정보 추출
-        private func extractGPSInfo(from gpsData: [String: Any], asset: PHAsset?) -> (Double, Double) {
-            var latitude: Double = 0.0
-            var longitude: Double = 0.0
+        private func extractGPSInfo(from gpsData: [String: Any], asset: PHAsset?) -> (Float, Float) {
+            var latitude: Float = 0.0
+            var longitude: Float = 0.0
             
             // EXIF GPS 데이터에서 추출
             if !gpsData.isEmpty {
-                if let lat = gpsData[kCGImagePropertyGPSLatitude as String] as? Double,
+                if let lat = gpsData[kCGImagePropertyGPSLatitude as String] as? Float,
                    let latRef = gpsData[kCGImagePropertyGPSLatitudeRef as String] as? String,
-                   let lon = gpsData[kCGImagePropertyGPSLongitude as String] as? Double,
+                   let lon = gpsData[kCGImagePropertyGPSLongitude as String] as? Float,
                    let lonRef = gpsData[kCGImagePropertyGPSLongitudeRef as String] as? String {
                     
                     latitude = latRef == "S" ? -lat : lat
@@ -254,8 +265,8 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
             // PHAsset의 location에서 추출
             else if let asset = asset, let location = asset.location {
-                latitude = location.coordinate.latitude
-                longitude = location.coordinate.longitude
+                latitude = Float(location.coordinate.latitude)
+                longitude = Float(location.coordinate.longitude)
             }
             
             return (latitude, longitude)

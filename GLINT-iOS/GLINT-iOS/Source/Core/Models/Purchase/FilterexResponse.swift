@@ -1,5 +1,5 @@
 //
-//  FilterPayment.swift
+//  FilterexResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/24/25.
@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct FilterPayment: ResponseData {
+struct FilterexResponse: ResponseData {
     let id, category, title, description: String
     let files: [String]
     let price: Int
-    let creator: CreatorPayment
-    let filterValues: [String: Double]?
+    let creator: UserInfoResponse
+    let filterValues: [String: Double]
     let createdAt, updatedAt: String
 
     enum CodingKeys: String, CodingKey {

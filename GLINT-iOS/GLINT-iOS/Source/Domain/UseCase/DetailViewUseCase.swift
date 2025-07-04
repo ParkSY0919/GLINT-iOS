@@ -11,11 +11,12 @@ struct DetailViewUseCase {
     var filterDetail: @Sendable (_ filterID: String) async throws -> (
         FilterEntity,
         ProfileEntity,
-        PhotoMetadata?,
-        FilterPresetsEntity
+        PhotoMetadataEntity?,
+        FilterValuesEntity
     )
-    var createOrder: @Sendable (_ filterID: String, _ filterPrice: Int) async throws -> CreateOrderResponse
+    var likeFilter: @Sendable (_ filterID: String, _ likeStatus: Bool) async throws -> Bool //likeStatus 사용
+    var createOrder: @Sendable (_ filterID: String, _ filterPrice: Int) async throws -> String //orderCode 사용
     var orderInfo: @Sendable () async throws -> OrderInfoResponse
-    var paymentValidation: @Sendable (_ imp_uid: String) async throws -> PaymentValidationResponse
-    var paymentInfo: @Sendable (_ order_code: String) async throws -> PaymentInfoResponse
+    var paymentValidation: @Sendable (_ impUid: String) async throws -> String //orderCode 사용
+    var paymentInfo: @Sendable (_ orderCode: String) async throws -> (String?, String) //name, merchantUid 사용
 }

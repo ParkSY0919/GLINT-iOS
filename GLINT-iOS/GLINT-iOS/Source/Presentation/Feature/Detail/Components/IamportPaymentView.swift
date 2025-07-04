@@ -41,7 +41,7 @@ final class IamportPaymentViewController: UIViewController {
     }
     
     private func requestIamportPayment() {
-        let userCode = "imp14511373" // slp 식별코드
+        let userCode = Strings.Detail.Purchase.slpIdentiCode
         Task {
             let response = await withCheckedContinuation { continuation in
                 DispatchQueue.main.async {

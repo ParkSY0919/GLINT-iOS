@@ -7,22 +7,22 @@
 
 import SwiftUI
 
-// MARK: - State
 struct MainViewState {
-    var todayFilter: TodayFilterResponse?
-    var todayArtist: TodayAuthorResponse?
-    var hotTrends: HotTrendResponse?
+    var todayFilterData: FilterEntity?
+    var hotTrendsData: [FilterEntity]?
+    var todayArtistUser: ProfileEntity?
+    var todayArtistFilter: [FilterEntity]?
     var isLoading: Bool = true
     var errorMessage: String?
-    var hasLoadedOnce: Bool = false  // 한 번이라도 로드했는지 추적
 }
 
-// MARK: - Action
 enum MainViewAction {
-    case viewAppeared                // 뷰가 나타났을 때
-    case tryFilterTapped(id: String) // 오늘의 필터 사용 버튼 탭
-    case hotTrendTapped(id: String) // 핫 트렌드 아이템 탭
-    case retryButtonTapped          // 재시도 버튼 탭
+    case viewAppeared
+    case tryFilterTapped(id: String)
+    case hotTrendTapped(id: String)
+    case todayArtistTapped(id: String)
+    case categoryTapped(category: FilterCategoryItem)
+    case retryButtonTapped
 }
 
 @MainActor
@@ -30,10 +30,11 @@ enum MainViewAction {
 final class MainViewStore {
     private(set) var state = MainViewState()
     private let useCase: MainViewUseCase
-    weak var router: NavigationRouter<MainTabRoute>?
+    private let router: NavigationRouter<MainTabRoute>
     
-    init(useCase: MainViewUseCase) {
+    init(useCase: MainViewUseCase, router: NavigationRouter<MainTabRoute>) {
         self.useCase = useCase
+        self.router = router
     }
     
     func send(_ action: MainViewAction) {
@@ -42,10 +43,16 @@ final class MainViewStore {
             handleViewAppeared()
             
         case .tryFilterTapped(let id):
-            handleTryFilterTapped(id)
+            handleToDetailView(id)
             
         case .hotTrendTapped(let id):
-            handleHotTrendTapped(id)
+            handleToDetailView(id)
+            
+        case .todayArtistTapped(let id):
+            handleToDetailView(id)
+            
+        case .categoryTapped(let category):
+            handleToCategory(category)
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
@@ -53,31 +60,22 @@ final class MainViewStore {
     }
 }
 
-// MARK: - Private Action Handlers
 private extension MainViewStore {
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared() {
         // 이미 데이터가 있고 에러가 없으면 로딩하지 않음
         if hasDataAndNoError() { return }
         
-        // 첫 로드일 시 로드
-        if !state.hasLoadedOnce {
-            loadData()
-        }
+        loadData()
     }
     
-    /// 필터 사용 버튼 탭 처리
-    func handleTryFilterTapped(_ filterID: String) {
-        print("오늘의 필터 사용해보기 버튼 탭됨")
-        // DetailView로 네비게이션
-        router?.push(.detail(id: filterID))
+    /// filterID 따른 상세화면 이동
+    func handleToDetailView(_ filterID: String) {
+        router.push(.detail(id: filterID))
     }
     
-    /// 핫 트렌드 아이템 탭 처리
-    func handleHotTrendTapped(_ filterID: String) {
-        print("핫 트렌드 아이템 탭됨")
-        // DetailView로 네비게이션
-        router?.push(.detail(id: filterID))
+    func handleToCategory(_ selectedCategory: FilterCategoryItem) {
+        print("\(Strings.Main.Log.categorySelected): \(selectedCategory)")
     }
     
     /// 재시도 버튼 탭 처리
@@ -94,31 +92,28 @@ private extension MainViewStore {
         
         Task {
             do {
-                let (a, f, t) = try await useCase.loadMainViewState()
+                let (f, h, aProfile, aFilter) = try await useCase.loadMainViewState()
                 state = MainViewState(
-                    todayFilter: f,
-                    todayArtist: a,
-                    hotTrends: t,
+                    todayFilterData: f,
+                    hotTrendsData: h,
+                    todayArtistUser: aProfile,
+                    todayArtistFilter: aFilter,
                     isLoading: false,
-                    errorMessage: nil,
-                    hasLoadedOnce: true
+                    errorMessage: nil
                 )
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
-                // 에러가 발생해도 hasLoadedOnce는 true로 유지 (이전 데이터 보존)
-                if !state.hasLoadedOnce {
-                    state.hasLoadedOnce = true
-                }
             }
         }
     }
     
     /// 데이터가 있고 에러가 없는지 확인
     func hasDataAndNoError() -> Bool {
-        return state.todayFilter != nil &&
-               state.todayArtist != nil &&
-               state.hotTrends != nil &&
-               state.errorMessage == nil
+        return state.todayFilterData != nil &&
+        state.todayArtistUser != nil &&
+        state.todayArtistFilter != nil &&
+        state.hotTrendsData != nil &&
+        state.errorMessage == nil
     }
 }

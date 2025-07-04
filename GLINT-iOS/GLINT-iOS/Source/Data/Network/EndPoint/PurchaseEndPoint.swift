@@ -8,7 +8,7 @@
 import Foundation
 
 import Alamofire
-
+//TODO: 추후 프로퍼티 2개 이하 request 방식 변경
 enum PurchaseEndPoint {
     case createOrder(CreateOrderRequest)
     case infoOrder
@@ -33,7 +33,7 @@ extension PurchaseEndPoint: EndPoint {
         case .paymentValidation:
             return utilPath + "validation"
         case .paymentInfo(let request):
-            return utilPath + "\(request.order_code)"
+            return utilPath + "\(request.orderCode)"
         }
         
     }

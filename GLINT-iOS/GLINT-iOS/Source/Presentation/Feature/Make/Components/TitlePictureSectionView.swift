@@ -10,9 +10,9 @@ import PhotosUI
 
 struct TitlePictureSectionView: View {
     let selectedImage: UIImage?
-    let imageMetaData: PhotoMetadata?
+    let imageMetaData: PhotoMetadataEntity?
     let address: String?
-    let onImageSelected: (UIImage, PhotoMetadata?) -> Void // 메타데이터도 함께 전달
+    let onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void // 메타데이터도 함께 전달
     let onImageChangeRequested: () -> Void
     let onEditButtonTapped: () -> Void
     
@@ -23,7 +23,7 @@ struct TitlePictureSectionView: View {
         VStack(alignment: .leading, spacing: 12) {
             // 타이틀과 버튼들
             HStack {
-                Text("대표 사진 등록")
+                Text(Strings.Make.titlePhotoRegistration)
                     .font(.pretendardFont(.body_bold, size: 16))
                     .foregroundColor(.gray60)
                     .padding(.leading, 20)
@@ -31,13 +31,13 @@ struct TitlePictureSectionView: View {
                 Spacer()
                 
                 if selectedImage != nil {
-                    Button("사진 변경하기") {
+                    Button(Strings.Make.changePhoto) {
                         showingChangeImagePicker = true
                     }
                     .font(.pretendardFont(.body_medium, size: 16))
                     .foregroundColor(.brandDeep)
                     
-                    Button("수정하기") {
+                    Button(Strings.Make.editPhoto) {
                         onEditButtonTapped()
                     }
                     .font(.pretendardFont(.body_medium, size: 16))
@@ -73,8 +73,8 @@ struct TitlePictureSectionView: View {
                 if let metaData = imageMetaData {
                     GTMetaDataView(
                         camera: metaData.camera,
-                        photoMetadataString: metaData.photoMetadataString ?? "정보 없음",
-                        megapixelInfo: metaData.megapixelInfoString ?? "정보 없음",
+                        photoMetadataString: metaData.photoMetadataString ?? Strings.Make.noInfo,
+                        megapixelInfo: metaData.megapixelInfoString ?? Strings.Make.noInfo,
                         address: address,
                         latitude: metaData.latitude,
                         longitude: metaData.longitude
@@ -89,7 +89,7 @@ struct TitlePictureSectionView: View {
                         .fill(.gray90)
                         .frame(height: 200)
                         .overlay {
-                            Image(systemName: "plus")
+                            Images.Make.upload
                                 .font(.system(size: 40, weight: .light))
                                 .foregroundColor(.gray60)
                         }
@@ -117,5 +117,6 @@ struct TitlePictureSectionView: View {
         return containerWidth / aspectRatio
     }
 }
+
 
 

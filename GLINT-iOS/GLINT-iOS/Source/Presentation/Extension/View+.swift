@@ -103,5 +103,45 @@ extension View {
     func nonScrollable() -> some View {
         modifier(NonScrollableView())
     }
+    
+    func onViewDidLoad(perform action: (() -> Void)? = nil) -> some View {
+        self.modifier(ViewDidLoadModifier(action: action))
+    }
+    
+    func appScreenStyle(
+        backgroundColor: Color = .gray100,
+        ignoresSafeArea: Bool = true,
+        safeAreaEdges: Edge.Set = .top,
+        isLoading: Bool = false,
+        errorMessage: String? = nil,
+        animationDuration: Double = 0.3,
+        feedbackType: SensoryFeedback = .impact(weight: .light)
+    ) -> some View {
+        modifier(ScreenStyleModifier(
+            backgroundColor: backgroundColor,
+            ignoresSafeArea: ignoresSafeArea,
+            safeAreaEdges: safeAreaEdges,
+            isLoading: isLoading,
+            errorMessage: errorMessage,
+            animationDuration: animationDuration,
+            feedbackType: feedbackType
+        ))
+    }
+    
+    func conditionalAlert<MessageContent: View>(
+        title: String,
+        buttonTitle: String = "확인",
+        isPresented: Binding<Bool>,
+        onConfirm: (() -> Void)? = nil,
+        @ViewBuilder messageContent: @escaping () -> MessageContent
+    ) -> some View {
+        modifier(ConditionalAlertModifier(
+            title: title,
+            buttonTitle: buttonTitle,
+            isPresented: isPresented,
+            messageContent: messageContent,
+            onConfirm: onConfirm
+        ))
+    }
 }
 

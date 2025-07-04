@@ -8,5 +8,8 @@
 import Foundation
 
 struct SignUpRequest: RequestData {
-    let email, password, nick, deviceToken: String
+    let email: String
+    let password: String
+    let nick: String
+    let deviceToken: String
 }

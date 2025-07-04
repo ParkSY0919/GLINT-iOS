@@ -1,5 +1,5 @@
 //
-//  UserInfo.swift
+//  UserInfoResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/20/25.
@@ -7,11 +7,11 @@
 
 import Foundation
 
-struct UserInfo: ResponseData {
+struct UserInfoResponse: ResponseData {
     let userID, nick: String
     let name, introduction, description: String?
     let profileImage: String?
-    let hashTags: [String]
+    let hashTags: [String]?
     
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"

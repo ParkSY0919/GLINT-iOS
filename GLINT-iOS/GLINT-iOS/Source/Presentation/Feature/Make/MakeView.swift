@@ -8,9 +8,26 @@
 import SwiftUI
 
 struct MakeView: View {
-    @Environment(MakeViewStore.self) private var store
+    @Environment(MakeViewStore.self)
+    private var store
     
     var body: some View {
+        content
+            .navigationSetup(title: Strings.Make.title, onRightButtonTapped: { store.send(.saveButtonTapped) })
+            .conditionalAlert(
+                title: Strings.Make.registrationResult,
+                isPresented: Binding(
+                    get: { store.state.showCreateAlert },
+                    set: { _ in store.send(.createAlertDismissed) }
+                )
+            ) {
+                if let filterTitle = store.state.createFilterTitle {
+                    Text("'\(filterTitle)' \(Strings.Make.filterCreationSuccess)")
+                }
+            }
+    }
+    
+    private var content: some View {
         Group {
             if store.state.isLoading {
                 StateViewBuilder.loadingView()
@@ -19,109 +36,16 @@ struct MakeView: View {
                     store.send(.retryButtonTapped)
                 }
             } else {
-                contentView
-            }
-        }
-        .navigationTitle("MAKE")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    store.send(.saveButtonTapped)
-                } label: {
-                    Image(systemName: "square.and.arrow.down")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.gray0)
-                }
-            }
-        }
-        .navigationDestination(isPresented: Binding(
-            get: { store.state.showingEditView },
-            set: { _ in store.send(.editViewDismissed) }
-        )) {
-            if let image = store.state.selectedImage {
-                EditView(
-                    originalImage: image,
-                    onSave: { filteredImage in
-                        store.send(.filteredImageReceived(filteredImage))
-                    },
-                    onBack: {
-                        store.send(.editViewDismissed)
-                    }
-                )
+                makeContentView
             }
         }
     }
 }
 
-// MARK: - Views
 private extension MakeView {
-    var contentView: some View {
+    var makeContentView: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 0) {
-                // 1. FilterName Section
-                GLTextField(
-                    type: .filterName,
-                    text: Binding(
-                        get: { store.state.filterName },
-                        set: { store.send(.filterNameChanged($0)) }
-                    )
-                )
-                .padding(.horizontal, 20)
-                
-                // 2. Category Section
-                CategorySectionView(
-                    selectedCategory: Binding(
-                        get: { store.state.selectedCategory },
-                        set: { if let category = $0 { store.send(.categorySelected(category)) } }
-                    ),
-                    onCategorySelected: { category in
-                        store.send(.categorySelected(category))
-                    }
-                )
-                .padding(.horizontal, 20)
-                
-                // 3. TitlePicture Section
-                TitlePictureSectionView(
-                    selectedImage: store.state.selectedImage,
-                    imageMetaData: store.state.imageMetaData,
-                    address: store.state.address,
-                    onImageSelected: { image, metadata  in
-                        store.send(.imageSelected(image, metadata))
-                    },
-                    onImageChangeRequested: {
-                        store.send(.imageChangeRequested)
-                    },
-                    onEditButtonTapped: {
-                        store.send(.editButtonTapped)
-                    }
-                )
-                
-                // 4. Introduce Section
-                GLTextField(
-                    type: .introduce,
-                    text: Binding(
-                        get: { store.state.introduce },
-                        set: { store.send(.introduceChanged($0)) }
-                    )
-                )
-                .padding(.horizontal, 20)
-                
-                // 5. Price Section
-                GLTextField(
-                    type: .price,
-                    text: Binding(
-                        get: { store.state.price },
-                        set: { store.send(.priceChanged($0)) }
-                    )
-                )
-                .padding(.horizontal, 20)
-                
-                // 하단 여백
-                Spacer()
-                    .frame(height: 100)
-            }
+            scrollViewContentSection
         }
         .background(.gray100)
         .detectScroll()
@@ -129,16 +53,93 @@ private extension MakeView {
         .onTapGesture {
             hideKeyboard()
         }
-        
+    }
+    
+    var scrollViewContentSection: some View {
+        VStack(spacing: 0) {
+            // FilterName Section
+            textFieldSection(.filterName)
+                .padding(.horizontal, 20)
+            
+            // Category Section
+            categorySection
+                .padding(.horizontal, 20)
+            
+            // FilterPicture Section
+            filterPictureSection
+            
+            // Introduce Section
+            textFieldSection(.introduce)
+                .padding(.horizontal, 20)
+            
+            // Price Section
+            textFieldSection(.price)
+                .padding(.horizontal, 20)
+            
+            // 하단 여백
+            Spacer()
+                .frame(height: 100)
+        }
+    }
+    
+    func textFieldSection(_ type: GLTextFieldType) -> some View {
+        switch type {
+        case .filterName:
+            GLTextField(
+                type: .filterName,
+                text: Binding(
+                    get: { store.state.filterName },
+                    set: { store.send(.filterNameChanged($0)) }
+                )
+            )
+        case .introduce:
+            GLTextField(
+                type: .introduce,
+                text: Binding(
+                    get: { store.state.introduce },
+                    set: { store.send(.introduceChanged($0)) }
+                )
+            )
+        case .price:
+            GLTextField(
+                type: .price,
+                text: Binding(
+                    get: { store.state.price },
+                    set: { store.send(.priceChanged($0)) }
+                )
+            )
+        }
+    }
+    
+    var categorySection: some View {
+        CategorySectionView(
+            selectedCategory: store.state.selectedCategory,
+            onCategorySelected: { category in
+                store.send(.categorySelected(category))
+            }
+        )
+    }
+    
+    var filterPictureSection: some View {
+        TitlePictureSectionView(
+            selectedImage: store.state.selectedImage,
+            imageMetaData: store.state.imageMetaData,
+            address: store.state.address,
+            onImageSelected: { image, metadata  in
+                store.send(.imageSelected(image, metadata))
+            },
+            onImageChangeRequested: {
+                store.send(.imageChangeRequested)
+            },
+            onEditButtonTapped: {
+                if let selectedImage = store.state.selectedImage {
+                    store.send(.editButtonTapped(selectedImage))
+                }
+            }
+        )
     }
     
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
-} 
- 
-
-#Preview {
-    MakeView()
-        .environment(MakeViewStore(useCase: MakeViewUseCase.liveValue))
 }

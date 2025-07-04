@@ -11,28 +11,23 @@ import MapKit
 import NukeUI
 import iamport_ios
 
-//TODO: store @Environment 형태로 바꾸기
 struct DetailView: View {
+    @Environment(DetailViewStore.self)
+    private var store
     @Environment(\.openURL)
     private var openURL
     
-    @State
-    private var store: DetailViewStore
-    
-    let router: NavigationRouter<MainTabRoute>
     let id: String
         
-    init(id: String, router: NavigationRouter<MainTabRoute>) {
+    init(id: String) {
         self.id = id
-        self.router = router
-        self._store = State(wrappedValue: DetailViewStore(useCase: .liveValue))
     }
     
     var body: some View {
         Group {
-            if store.state.isLoading && !store.state.hasLoadedOnce {
+            if store.state.isLoading {
                 StateViewBuilder.loadingView()
-            } else if let errorMessage = store.state.errorMessage, !store.state.hasLoadedOnce {
+            } else if let errorMessage = store.state.errorMessage {
                 StateViewBuilder.errorView(errorMessage: errorMessage) {
                     store.send(.retryButtonTapped)
                 }
@@ -54,19 +49,36 @@ struct DetailView: View {
         .navigationSetup(
             title: store.state.navTitle,
             isLiked: store.state.isLiked,
-            onBackButtonTapped: { router.pop() },
+            onBackButtonTapped: { store.send(.backButtonTapped) },
             onLikeButtonTapped: { store.send(.likeButtonTapped) }
         )
-        .onAppear {
-            store.send(.viewAppeared(id: id))
+        .conditionalAlert(
+            title: Strings.Detail.purchaseResult,
+            isPresented: Binding(
+                get: { store.state.showPaymentAlert },
+                set: { _ in store.send(.paymentAlertDismissed) }
+            )
+        ) {
+            if let merchantUid = store.state.purchaseInfo.1 {
+                let productName = store.state.purchaseInfo.0
+                    ?? store.state.filterData?.title
+                    ?? "noneTitle"
+                
+                Text("""
+                    '\(productName)' \(Strings.Detail.Purchase.purchaseSuccessMessage)
+                    \(Strings.Detail.Purchase.orderNumberPrefix)\(merchantUid)
+                    """)
+            }
         }
+        .onViewDidLoad(perform: {
+            store.send(.viewAppeared(id: id))
+        })
         .onOpenURL { openURL in
             Iamport.shared.receivedURL(openURL)
         }
     }
 }
 
-// MARK: - Views
 private extension DetailView {
     var contentView: some View {
         ScrollView(showsIndicators: false) {
@@ -89,8 +101,8 @@ private extension DetailView {
                 MetaDataSectionView(
                     camera: store.state.photoMetaData?.camera,
                     
-                    photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? "정보 없음",
-                    megapixelInfo: store.state.photoMetaData?.megapixelInfoString ?? "정보 없음",
+                    photoMetadataString: store.state.photoMetaData?.photoMetadataString ?? Strings.Detail.noInfo,
+                    megapixelInfo: store.state.photoMetaData?.megapixelInfoString ?? Strings.Detail.noInfo,
                     address: store.state.address,
                     latitude: store.state.photoMetaData?.latitude,
                     longitude: store.state.photoMetaData?.longitude

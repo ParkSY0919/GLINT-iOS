@@ -22,17 +22,18 @@ extension MainViewUseCase {
                 return try await repository.hotTrend()
             },
             loadMainViewState: {
+                async let filter = repository.todayFilter().toEntity()
+                async let hotTrend = repository.hotTrend().data.toEntities()
                 async let author = repository.todayAuthor()
-                async let filter = repository.todayFilter()
-                async let trend = repository.hotTrend()
                 
-                let (authorData, filterData, trendData) = try await (author, filter, trend)
+                let (
+                    filterData,
+                    hotTrendData,
+                    authorDataProfile,
+                    authorDataFilters
+                ) = try await (filter, hotTrend, author.author, author.filters)
                 
-                print("todayAuthor: \(authorData)\n")
-                print("todayFilter: \(filterData)\n")
-                print("hotTrend: \(trendData)\n")
-                
-                return (authorData, filterData, trendData)
+                return (filterData, hotTrendData, authorDataProfile.toEntity(), authorDataFilters.toEntities())
             }
         )
     }()

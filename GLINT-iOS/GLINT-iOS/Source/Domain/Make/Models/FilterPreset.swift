@@ -11,7 +11,7 @@ struct FilterPreset {
     let id: String
     let name: String
     let parameters: FilterParameters
-    let category: CategoryType
+    let category: FilterCategoryItem.CategoryType
     let thumbnailURL: String?
     let createdAt: Date
     
@@ -19,7 +19,7 @@ struct FilterPreset {
         id: String = UUID().uuidString,
         name: String,
         parameters: FilterParameters,
-        category: CategoryType,
+        category: FilterCategoryItem.CategoryType,
         thumbnailURL: String? = nil,
         createdAt: Date = Date()
     ) {

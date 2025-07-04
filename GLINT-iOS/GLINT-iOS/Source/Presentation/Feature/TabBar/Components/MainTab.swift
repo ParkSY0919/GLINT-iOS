@@ -8,15 +8,15 @@
 import SwiftUI
 
 struct MainTab: View {
-    @Bindable var router: NavigationRouter<MainTabRoute>
-    @Environment(MainViewStore.self) private var store
+    @Environment(NavigationRouter<MainTabRoute>.self)
+    private var router
+    @Environment(\.detailViewUseCase)
+    private var detailViewUseCase
+    
     
     var body: some View {
         RouterNavigationStack(router: router) {
-            MainView(router: router)
-                .onAppear {
-                    store.router = router
-                }
+            MainView()
         } destination: { route in
             destinationView(for: route)
         }
@@ -26,9 +26,10 @@ struct MainTab: View {
     private func destinationView(for route: MainTabRoute) -> some View {
         switch route {
         case .home:
-            MainView(router: router)
+            MainView()
         case .detail(let id):
-            DetailView(id: id, router: router)
+            DetailView(id: id)
+                .environment(DetailViewStore(useCase: detailViewUseCase, router: router))
         }
     }
 }

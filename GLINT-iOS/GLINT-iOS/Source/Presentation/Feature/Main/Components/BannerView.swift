@@ -8,19 +8,22 @@
 import SwiftUI
 
 struct BannerView: View {
-    let items: [BannerItem]
-    let router: NavigationRouter<MainTabRoute>
+    struct BannerItem: Identifiable {
+        let id = UUID()
+        let image: Image
+    }
+    @State
+    private var currentIndex = 0
     
-    @State private var currentIndex = 0
+    let items: [BannerItem] = [
+        BannerItem(image: Images.Main.banner1),
+        BannerItem(image: Images.Main.banner2),
+        BannerItem(image: Images.Main.banner3)
+    ]
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     
     var body: some View {
-        bannerContainer()
-    }
-    
-    // MARK: - Container
-    private func bannerContainer() -> some View {
-        bannerTabView()
+        contentView
             .tabViewStyle(.page(indexDisplayMode: .never))
             .frame(height: 100)
             .clipShape(RoundedRectangle(cornerRadius: 15))
@@ -28,13 +31,14 @@ struct BannerView: View {
                 pageIndicator()
             }
             .onReceive(timer) { _ in
-                handleTimerUpdate()
+                withAnimation(.default) {
+                    currentIndex = (currentIndex + 1) % items.count
+                }
             }
             .padding(.horizontal, 20)
     }
     
-    // MARK: - Banner TabView
-    private func bannerTabView() -> some View {
+    var contentView: some View {
         TabView(selection: $currentIndex) {
             ForEach(items.indices, id: \.self) { index in
                 bannerItem(at: index)
@@ -42,9 +46,8 @@ struct BannerView: View {
         }
     }
     
-    // MARK: - Banner Item
-    private func bannerItem(at index: Int) -> some View {
-        Image(items[index].imageName)
+    func bannerItem(at index: Int) -> some View {
+        items[index].image
             .resizable()
             .scaledToFill()
             .tag(index)
@@ -53,8 +56,7 @@ struct BannerView: View {
             }
     }
     
-    // MARK: - Page Indicator
-    private func pageIndicator() -> some View {
+    func pageIndicator() -> some View {
         Text("\(currentIndex + 1) / \(items.count)")
             .font(.caption2)
             .padding(EdgeInsets(top: 3, leading: 6, bottom: 3, trailing: 6))
@@ -64,19 +66,8 @@ struct BannerView: View {
             .padding(10)
     }
     
-    // MARK: - Actions
-    private func handleBannerTap(at index: Int) {
-        print("배너 \(index + 1) 탭됨")
-    }
-    
-    private func handleTimerUpdate() {
-        withAnimation(.default) {
-            currentIndex = (currentIndex + 1) % items.count
-        }
+    func handleBannerTap(at index: Int) {
+        //TODO: 추후 배너 연결
+        print("\(Strings.Main.Log.bannerTapped) \(index + 1) \(Strings.Main.Log.bannerTappedSuffix)")
     }
 }
-//#Preview {
-//    BannerView(items: DummyFilterAppData.bannerItems, router: NavigationRouter<MainTabRoute>())
-////        .padding()
-//}
-

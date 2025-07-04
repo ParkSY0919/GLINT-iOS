@@ -13,8 +13,8 @@ final class TabBarViewModel {
     var selectedTab: Int = 0
     
     // 각 탭 NavigationRouter
-    var mainRouter = NavigationRouter<MainTabRoute>()
-    var makeRouter = NavigationRouter<MakeTabRoute>()
+    let mainRouter = NavigationRouter<MainTabRoute>()
+    let makeRouter = NavigationRouter<MakeTabRoute>()
     
     // 각 탭의 Store 관리
     let mainViewStore: MainViewStore
@@ -25,8 +25,8 @@ final class TabBarViewModel {
         mainViewUseCase: MainViewUseCase,
         makeViewUseCase: MakeViewUseCase
     ) {
-        self.mainViewStore = MainViewStore(useCase: mainViewUseCase)
-        self.makeViewStore = MakeViewStore(useCase: makeViewUseCase)
+        self.mainViewStore = MainViewStore(useCase: mainViewUseCase, router: mainRouter)
+        self.makeViewStore = MakeViewStore(useCase: makeViewUseCase, router: makeRouter)
     }
     
     func selectTab(_ index: Int) {

@@ -18,32 +18,32 @@ struct TabBarItemModel: Identifiable {
 struct TabBarItems {   
     static let items: [TabBarItemModel] = [
         TabBarItemModel(
-            icon: ImageLiterals.TabBar.home,
-            selectedIcon: ImageLiterals.TabBar.homeSelected,
+            icon: Images.TabBar.home,
+            selectedIcon: Images.TabBar.homeSelected,
             title: "HOME",
             tag: 0
         ),
         TabBarItemModel(
-            icon: ImageLiterals.TabBar.grid,
-            selectedIcon: ImageLiterals.TabBar.gridSelected,
+            icon: Images.TabBar.grid,
+            selectedIcon: Images.TabBar.gridSelected,
             title: "FEED",
             tag: 1
         ),
         TabBarItemModel(
-            icon: ImageLiterals.TabBar.sparkles,
-            selectedIcon: ImageLiterals.TabBar.sparklesSelected,
+            icon: Images.TabBar.sparkles,
+            selectedIcon: Images.TabBar.sparklesSelected,
             title: "MAKE",
             tag: 2
         ),
         TabBarItemModel(
-            icon: ImageLiterals.TabBar.search,
-            selectedIcon: ImageLiterals.TabBar.searchSelected,
+            icon: Images.TabBar.search,
+            selectedIcon: Images.TabBar.searchSelected,
             title: "SEARCH",
             tag: 3
         ),
         TabBarItemModel(
-            icon: ImageLiterals.TabBar.profile,
-            selectedIcon: ImageLiterals.TabBar.profileSelected,
+            icon: Images.TabBar.profile,
+            selectedIcon: Images.TabBar.profileSelected,
             title: "PROFILE",
             tag: 4
         )

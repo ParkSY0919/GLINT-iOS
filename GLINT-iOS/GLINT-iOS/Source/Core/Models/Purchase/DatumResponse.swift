@@ -1,5 +1,5 @@
 //
-//  OrderItem.swift
+//  DatumResponse.swift
 //  GLINT-iOS
 //
 //  Created by 박신영 on 6/24/25.
@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct OrderItem: ResponseData {
+struct DatumResponse: ResponseData {
     let orderID, orderCode: String
-    let filter: FilterPayment
+    let filter: FilterexResponse
     let paidAt, createdAt, updatedAt: String
 
     enum CodingKeys: String, CodingKey {

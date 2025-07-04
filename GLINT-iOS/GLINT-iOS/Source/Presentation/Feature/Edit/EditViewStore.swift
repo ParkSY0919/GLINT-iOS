@@ -8,24 +8,21 @@
 import SwiftUI
 
 struct EditViewState {
-    var originalImage: UIImage
-    var filteredImage: UIImage
+    var originalImage: UIImage?
+    var filteredImage: UIImage?
     var showingOriginal: Bool = false
     var selectedPropertyType: FilterPropertyType = .brightness
     var editState: PhotoEditState = PhotoEditState()
     var isSliderActive: Bool = false
+    var isInitialized: Bool = false
     
     var currentValue: Float {
         editState.parameters[selectedPropertyType]?.currentValue ?? selectedPropertyType.defaultValue
     }
-    
-    init(originalImage: UIImage) {
-        self.originalImage = originalImage
-        self.filteredImage = originalImage
-    }
 }
 
 enum EditViewAction {
+    case initialize(image: UIImage)
     case propertySelected(FilterPropertyType)
     case valueChanged(Float)
     case valueChangeEnded(Float)
@@ -36,78 +33,136 @@ enum EditViewAction {
     case backButtonTapped
 }
 
-
+@MainActor
 @Observable
 final class EditViewStore {
-    var state: EditViewState
+    private(set) var state = EditViewState()
+    
+    private let router: NavigationRouter<MakeTabRoute>
     private let imageFilterManager = ImageFilterManager()
     
     // 성능 최적화를 위한 변수들
-    private let previewSize: CGFloat = 256 // 더욱 작은 프리뷰
-    private var basePreviewImage: UIImage // 기본 프리뷰 이미지
-    private var currentFilteredPreview: UIImage? // 현재 필터 적용된 프리뷰
-    private var lastAppliedParameters: FilterParameters? // 마지막 적용된 파라미터들
+    private let previewSize: CGFloat = 256
+    private var basePreviewImage: UIImage?
+    private var currentFilteredPreview: UIImage?
+    private var lastAppliedParameters: FilterParameters?
     
-    init(originalImage: UIImage) {
-        self.state = EditViewState(originalImage: originalImage)
-        // 매우 작은 프리뷰 이미지 생성
-        self.basePreviewImage = originalImage.resized(to: previewSize) ?? originalImage
-        // 초기 필터 적용
-        applyAllFiltersToPreview()
+    init(router: NavigationRouter<MakeTabRoute>) {
+        self.router = router
     }
     
     func send(_ action: EditViewAction) {
         switch action {
-        case .propertySelected(let type):
-            let previousType = state.selectedPropertyType
-            state.selectedPropertyType = type
+        case .initialize(let image):
+            handleInitialization(with: image)
             
-            // 프리셋 변경 시에도 모든 필터가 적용된 상태 유지
-            if previousType != type {
-                // 현재 모든 필터가 적용된 프리뷰를 유지
-                updateDisplayImage()
-            }
+        case .propertySelected(let type):
+            handlePropertySelection(type)
             
         case .valueChanged(let value):
-            // 실시간으로 파라미터 업데이트
-            state.editState.parameters[state.selectedPropertyType]?.currentValue = value
-            state.isSliderActive = true
-            
-            // 실시간 반영 (디바운싱 없이)
-            applyCurrentValueToPreview(value)
+            handleValueChange(value)
             
         case .valueChangeEnded(let value):
-            state.isSliderActive = false
-            
-            // 드래그 종료 시 모든 필터를 프리뷰에 재적용하고 히스토리 저장
-            applyAllFiltersToPreview()
-            state.editState.updateParameter(state.selectedPropertyType, value: value)
+            handleValueChangeEnded(value)
             
         case .toggleImageView:
-            state.showingOriginal.toggle()
+            handleImageToggle()
             
         case .undoButtonTapped:
-            if state.editState.undo() {
-                applyAllFiltersToPreview()
-            }
+            handleUndo()
             
         case .redoButtonTapped:
-            if state.editState.redo() {
-                applyAllFiltersToPreview()
-            }
+            handleRedo()
             
         case .saveButtonTapped:
-            // 최종 저장 시에만 원본 크기로 필터 적용
-            applyAllFiltersToOriginal()
-            GTLogger.shared.i("Filter applied and saved")
+            handleSave()
             
         case .backButtonTapped:
-            GTLogger.shared.i("Back button tapped")
+            handleBack()
+        }
+    }
+}
+
+private extension EditViewStore {
+    func handleInitialization(with image: UIImage) {
+        state.originalImage = image
+        state.filteredImage = image
+        state.isInitialized = true
+        
+        basePreviewImage = image.resized(to: previewSize) ?? image
+        applyAllFiltersToPreview()
+    }
+    
+    func handlePropertySelection(_ type: FilterPropertyType) {
+        guard state.isInitialized else { return }
+        
+        let previousType = state.selectedPropertyType
+        state.selectedPropertyType = type
+        
+        if previousType != type {
+            updateDisplayImage()
         }
     }
     
-    // 현재 값만 실시간으로 적용 (가장 효율적)
-    private func applyCurrentValueToPreview(_ value: Float) {
+    func handleValueChange(_ value: Float) {
+        guard state.isInitialized else { return }
+        
+        state.editState.parameters[state.selectedPropertyType]?.currentValue = value
+        state.isSliderActive = true
+        applyCurrentValueToPreview(value)
+    }
+    
+    func handleValueChangeEnded(_ value: Float) {
+        guard state.isInitialized else { return }
+        
+        state.isSliderActive = false
+        applyAllFiltersToPreview()
+        state.editState.updateParameter(state.selectedPropertyType, value: value)
+    }
+    
+    func handleImageToggle() {
+        guard state.isInitialized else { return }
+        state.showingOriginal.toggle()
+    }
+    
+    func handleUndo() {
+        guard state.isInitialized else { return }
+        
+        if state.editState.undo() {
+            applyAllFiltersToPreview()
+        }
+    }
+    
+    func handleRedo() {
+        guard state.isInitialized else { return }
+        
+        if state.editState.redo() {
+            applyAllFiltersToPreview()
+        }
+    }
+    
+    func handleSave() {
+        guard state.isInitialized else { return }
+        
+        applyAllFiltersToOriginal { [weak self] in
+            guard let self = self,
+                  let filteredImage = self.state.filteredImage else {
+                self?.router.pop()
+                return
+            }
+            // 필터된 이미지와 함께 pop
+            self.router.pop(withData: filteredImage, addData: state.editState.toFilterPresetsEntity())
+            GTLogger.shared.i("Filter applied and saved")
+        }
+    }
+    
+    func handleBack() {
+        router.pop()
+        GTLogger.shared.i("Back button tapped")
+    }
+    
+    // MARK: - Image Processing Methods
+    func applyCurrentValueToPreview(_ value: Float) {
         guard let baseFilteredPreview = currentFilteredPreview else {
             applyAllFiltersToPreview()
             return
@@ -116,7 +171,6 @@ final class EditViewStore {
         let currentType = state.selectedPropertyType
         
         do {
-            // 기존에 필터가 적용된 프리뷰에서 현재 필터만 다시 적용
             let filteredImage = try imageFilterManager.applyFilters(
                 to: baseFilteredPreview,
                 filterType: currentType,
@@ -128,11 +182,11 @@ final class EditViewStore {
         }
     }
     
-    // 모든 필터를 프리뷰에 적용
-    private func applyAllFiltersToPreview() {
+    func applyAllFiltersToPreview() {
+        guard let basePreviewImage = basePreviewImage else { return }
+        
         let filterParameters = createFilterParameters()
         
-        // 이전과 같은 파라미터면 스킵
         if let lastParams = lastAppliedParameters, areParametersEqual(filterParameters, lastParams) {
             return
         }
@@ -151,39 +205,41 @@ final class EditViewStore {
         }
     }
     
-    // 원본 이미지에 모든 필터 적용 (최종 저장용)
-    private func applyAllFiltersToOriginal() {
+    func applyAllFiltersToOriginal(completion: @escaping () -> Void = {}) {
+        guard let originalImage = state.originalImage else {
+            completion()
+            return
+        }
+        
         let filterParameters = createFilterParameters()
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            
+        Task {
             do {
-                let filteredImage = try self.imageFilterManager.applyFilters(
-                    to: self.state.originalImage,
-                    with: filterParameters
-                )
+                let filteredImage = try await Task.detached(priority: .userInitiated) {
+                    try await self.imageFilterManager.applyFilters(
+                        to: originalImage,
+                        with: filterParameters
+                    )
+                }.value
                 
-                DispatchQueue.main.async {
-                    self.state.filteredImage = filteredImage
-                }
+                self.state.filteredImage = filteredImage
+                completion()
+                
             } catch {
-                DispatchQueue.main.async {
-                    self.state.filteredImage = self.state.originalImage
-                }
+                self.state.filteredImage = originalImage
+                GTLogger.shared.e("Filter application failed: \(error)")
+                completion()
             }
         }
     }
     
-    // 화면에 표시할 이미지 업데이트
-    private func updateDisplayImage() {
+    func updateDisplayImage() {
         if let currentPreview = currentFilteredPreview {
             state.filteredImage = currentPreview
         }
     }
     
-    // FilterParameters 생성
-    private func createFilterParameters() -> FilterParameters {
+    func createFilterParameters() -> FilterParameters {
         var filterParameters = FilterParameters()
         
         for (filterType, parameter) in state.editState.parameters {
@@ -210,26 +266,42 @@ final class EditViewStore {
         return filterParameters
     }
     
-    // 파라미터 비교 함수
-    private func areParametersEqual(_ params1: FilterParameters, _ params2: FilterParameters) -> Bool {
+    func areParametersEqual(_ params1: FilterParameters, _ params2: FilterParameters) -> Bool {
         return FilterPropertyType.allCases.allSatisfy { type in
             params1[type] == params2[type]
         }
     }
 }
 
-// 더 효율적인 이미지 리사이징
-extension UIImage {
-    func resized(to maxSize: CGFloat) -> UIImage? {
-        let ratio = min(maxSize / size.width, maxSize / size.height)
-        if ratio >= 1.0 { return self }
+extension PhotoEditState {
+    func toFilterPresetsEntity() -> FilterValuesEntity {
+        // 각 값을 개별 변수로 추출
+        let brightness = parameters[.brightness]?.currentValue ?? 0
+        let exposure = parameters[.exposure]?.currentValue ?? 0
+        let contrast = parameters[.contrast]?.currentValue ?? 0
+        let saturation = parameters[.saturation]?.currentValue ?? 0
+        let sharpness = parameters[.sharpness]?.currentValue ?? 0
+        let blur = parameters[.blur]?.currentValue ?? 0
+        let vignette = parameters[.vignette]?.currentValue ?? 0
+        let noiseReduction = parameters[.noiseReduction]?.currentValue ?? 0
+        let highlights = parameters[.highlights]?.currentValue ?? 0
+        let shadows = parameters[.shadows]?.currentValue ?? 0
+        let temperature = parameters[.temperature]?.currentValue ?? 0
+        let blackPoint = parameters[.blackPoint]?.currentValue ?? 0
         
-        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
-        
-        // 더 효율적인 리사이징
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        return renderer.image { _ in
-            draw(in: CGRect(origin: .zero, size: newSize))
-        }
+        return FilterValuesEntity(
+            brightness: brightness,
+            exposure: exposure,
+            contrast: contrast,
+            saturation: saturation,
+            sharpness: sharpness,
+            blur: blur,
+            vignette: vignette,
+            noiseReduction: noiseReduction,
+            highlights: highlights,
+            shadows: shadows,
+            temperature: temperature,
+            blackPoint: blackPoint
+        )
     }
-} 
+}

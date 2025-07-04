@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct MakeTab: View {
-    @Bindable var router: NavigationRouter<MakeTabRoute>
+    @Environment(NavigationRouter<MakeTabRoute>.self)
+    private var router
     
     var body: some View {
         RouterNavigationStack(router: router) {
@@ -23,6 +24,9 @@ struct MakeTab: View {
         switch route {
         case .make:
             MakeView()
+        case .edit(let image):
+            EditView(image: image)
+                .environment(EditViewStore(router: router))
         }
     }
 }

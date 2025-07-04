@@ -17,11 +17,11 @@ protocol Router {
 @Observable
 final class RootRouter {
     enum Route: Hashable {
-        case login
+        case signIn
         case tabBar
     }
     
-    var currentRoute: Route = .login
+    var currentRoute: Route = .signIn
     
     // 화면 전환 메서드
     func navigate(to route: Route) {
@@ -36,6 +36,11 @@ final class RootRouter {
 final class NavigationRouter<Route: Hashable>: Router {
     // 현재 네비게이션 스택의 경로
     var path: [Route] = []
+    
+    // 데이터 전달용 저장소 - 타겟 경로 길이를 키로 사용
+    private var popCallbacks: [Int: (Any) -> Void] = [:]
+    
+    private var popCallbacksOverData: [Int: (Any, Any) -> Void] = [:]
     
     // 현재 보여지는 뷰 (Router 프로토콜 준수용)
     var currentView: some View {
@@ -53,6 +58,40 @@ final class NavigationRouter<Route: Hashable>: Router {
     func pop() {
         guard !path.isEmpty else { return }
         path.removeLast()
+    }
+    
+    // 데이터와 함께 이전 화면으로 돌아가기
+    func pop<T, U>(withData data: T, addData: U) {
+        let targetRouteIndex = path.count - 1
+        print("🔄 Attempting to pop with data. Target route index: \(targetRouteIndex)")
+        print("🔄 Available callbacks: \(Array(popCallbacksOverData.keys))")
+        
+        // 저장된 콜백이 있으면 실행
+        if let callback = popCallbacksOverData[targetRouteIndex] {
+            print("✅ Found callback for target route index: \(targetRouteIndex)")
+            callback(data, addData)
+            popCallbacksOverData.removeValue(forKey: targetRouteIndex)
+        } else {
+            print("❌ No callback found for target route index: \(targetRouteIndex)")
+        }
+        pop()
+    }
+
+    // 데이터 수신 콜백 등록
+    func onPopData<T, U>(_ tType: T.Type, _ uType: U.Type, callback: @escaping (T, U) -> Void) {
+        let currentRouteIndex = path.count
+        print("📝 Registering callback for route index: \(currentRouteIndex), types: \(tType), \(uType)")
+        
+        popCallbacksOverData[currentRouteIndex] = { tData, uData in
+            print("🎯 Callback executed for route index: \(currentRouteIndex)")
+            if let tTypedData = tData as? T,
+               let uTypedData = uData as? U {
+                print("✅ Data types match: \(tType), \(uType)")
+                callback(tTypedData, uTypedData)
+            } else {
+                print("❌ Data type mismatch. Expected: (\(tType), \(uType)), Got: (\(type(of: tData)), \(type(of: uData)))")
+            }
+        }
     }
     
     // 루트 화면으로 돌아가기
@@ -110,5 +149,5 @@ enum MainTabRoute: Hashable {
 
 enum MakeTabRoute: Hashable {
     case make
-//    case applyFilter
+    case edit(originImage: UIImage)
 }
