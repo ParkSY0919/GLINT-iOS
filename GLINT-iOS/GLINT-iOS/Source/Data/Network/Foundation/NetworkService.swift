@@ -12,28 +12,43 @@ import Alamofire
 let defaultSession = Session()
 
 struct NetworkService<E: EndPoint>: NetworkServiceInterface {
-    /// 응답 O Response 핸들
-    private func handleResponse<T>(_ response: DataResponse<T, AFError>, endPoint: E) throws -> T {
-        GTLogger.shared.i("response: \n\(response)")
+    /// 응답 O 에러 핸들러
+    private func handleError<U: EndPoint>(_ error: Error, endPoint: U) throws -> Never {
+        GTLogger.shared.networkFailure("networkFailure", error: error)
         
-        switch response.result {
-        case .success(let value):
-            GTLogger.shared.networkSuccess("networkSuccess")
-            return value
-        case .failure(let error):
-            if let data = response.data {
-                let responseString = String(data: data, encoding: .utf8) ?? "응답 데이터를 읽을 수 없음"
-                GTLogger.shared.i("서버 응답 메시지: \(responseString)")
+        // 서버 응답 데이터 로깅
+        if let afError = error as? AFError {
+            switch afError {
+            case .responseSerializationFailed(let reason):
+                if case .decodingFailed(let decodingError) = reason {
+                    GTLogger.shared.i("디코딩 에러: \(decodingError)")
+                }
+            case .responseValidationFailed(let reason):
+                switch reason {
+                case .unacceptableStatusCode(let code):
+                    GTLogger.shared.i("서버 응답 상태 코드: \(code)")
+                case .dataFileNil:
+                    GTLogger.shared.i("응답 데이터가 없음")
+                default:
+                    break
+                }
+            default:
+                break
             }
-            GTLogger.shared.networkFailure("networkFailure", error: error)
             
             // 재시도 실패 시 원본 에러를 다시 던짐
-            if case let AFError.requestRetryFailed(retryError: retryError, originalError: _) = error {
+            if case let AFError.requestRetryFailed(retryError: retryError, originalError: _) = afError {
                 throw retryError
             }
-            // 그 외의 경우, EndPoint에 정의된 커스텀 에러로 변환하여 던짐
-            throw endPoint.throwError(error)
         }
+        
+        // 타임아웃 에러는 그대로 throw
+        if let urlError = error as? URLError, urlError.code == .timedOut {
+            throw error
+        }
+        
+        // 그 외의 경우 endPoint의 커스텀 에러로 변환
+        throw endPoint.throwError(error as? AFError ?? AFError.explicitlyCancelled)
     }
     
     private func handleNoResponse(_ response: DataResponse<Data, AFError>, endPoint: E) throws {
@@ -71,18 +86,21 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             print("🌐 CURL:", description)
         }
         
-        print("📝 Step 1: Request created")
-        
-        let dataResponse = try await withTimeout(seconds: 10) {
-            await request
-                .validate(statusCode: 200..<300)
-                .serializingDecodable(T.self, decoder: endPoint.decoder)
-                .response
+        do {
+            let value = try await withTimeout(seconds: 10) {
+                try await request
+                    .validate(statusCode: 200..<300)
+                    .serializingDecodable(T.self, decoder: endPoint.decoder)
+                    .value
+            }
+            
+            GTLogger.shared.networkSuccess("networkSuccess")
+            return value
+            
+        } catch {
+            // handleError를 호출하여 에러 처리
+            try handleError(error, endPoint: endPoint)
         }
-        
-        print("📝 Step 2: Response received")
-        
-        return try handleResponse(dataResponse, endPoint: endPoint)
     }
 
     // 타임아웃 헬퍼 함수
@@ -139,11 +157,20 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             interceptor: Interceptor(interceptors: [GTInterceptor(type: .multipart)])
         )
         
-        let response = await request
-            .validate(statusCode: 200..<300)
-            .serializingDecodable(T.self, decoder: endPoint.decoder)
-            .response
-        
-        return try handleResponse(response, endPoint: endPoint)
+        do {
+            let value = try await withTimeout(seconds: 10) {
+                try await request
+                    .validate(statusCode: 200..<300)
+                    .serializingDecodable(T.self, decoder: endPoint.decoder)
+                    .value
+            }
+            
+            GTLogger.shared.networkSuccess("networkSuccess")
+            return value
+            
+        } catch {
+            // handleError를 호출하여 에러 처리
+            try handleError(error, endPoint: endPoint)
+        }
     }
 }
