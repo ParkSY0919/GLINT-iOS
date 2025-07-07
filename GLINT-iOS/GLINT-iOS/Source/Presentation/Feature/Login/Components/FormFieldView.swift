@@ -32,18 +32,13 @@ struct FormFieldView: View {
     }
     
     let formCase: FormFieldCase
-    var isSecure: Bool = false
     var errorMessage: String? = nil
     @Binding var text: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             formLabelSection
-            if isSecure {
-                formFieldSection(SecureField(formCase.placeholder, text: $text))
-            } else {
-                formFieldSection(TextField(formCase.placeholder, text: $text))
-            }
+            formFieldSection($text)
             HStack {
                 Spacer()
                 if let errorMessage = errorMessage, !text.isEmpty {
@@ -61,13 +56,21 @@ private extension FormFieldView {
             .foregroundColor(.gray0)
     }
     
-    @ViewBuilder
-    func formFieldSection<Content: View>(_ content: Content) -> some View {
-        content
-            .padding()
-            .background(.gray60)
-            .cornerRadius(8)
-            .font(.textFieldFont)
+    func formFieldSection(_ text: Binding<String>) -> some View {
+        Group {
+            switch formCase {
+            case .email:
+                TextField(formCase.placeholder, text: text)
+                    .keyboardType(.emailAddress)
+            case .password:
+                SecureField(formCase.placeholder, text: text)
+                    .textContentType(.none)
+            }
+        }
+        .padding()
+        .background(.gray60)
+        .cornerRadius(8)
+        .font(.textFieldFont)
     }
     
     func errorMessageSection(error: String) -> some View {
