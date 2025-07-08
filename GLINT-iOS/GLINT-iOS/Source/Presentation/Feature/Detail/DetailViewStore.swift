@@ -20,7 +20,7 @@ struct DetailViewState {
     var navTitle: String = ""
     
     var isLiked: Bool? = false
-    var isLoading: Bool = true
+    var isLoading: Bool = false
     var errorMessage: String?
     var isPurchased: Bool = false
     var sliderPosition: CGFloat = 0.5
@@ -234,7 +234,14 @@ private extension DetailViewStore {
     /// 메시지 보내기 버튼 탭 처리
     func handleSendMessageTapped() {
         print(Strings.Detail.Log.messageButtonTapped)
-        // TODO: 메시지 화면으로 네비게이션
+        
+        // 작가 정보가 있으면 채팅 화면으로 이동
+        guard let userInfo = state.userInfoData else {
+            state.errorMessage = "작가 정보를 찾을 수 없습니다."
+            return
+        }
+        
+        router.push(.chat(otherUserId: userInfo.userID ?? "", otherUserName: userInfo.nick ?? ""))
     }
     
     /// 수정하기 버튼 탭 처리
