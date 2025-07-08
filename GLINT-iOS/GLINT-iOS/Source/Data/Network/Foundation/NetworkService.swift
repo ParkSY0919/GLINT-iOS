@@ -116,13 +116,19 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         )
         
         do {
-            // validate만 하고 결과 무시 (body 기다리지 않음)
-            _ = try await request
-                .validate(statusCode: 200..<300)
-                .serializingResponse(using: .data)
-                .value
-            
-            GTLogger.shared.networkSuccess("networkSuccess (Void Response)")
+            // response headers만 확인, body는 기다리지 않음
+            try await withCheckedThrowingContinuation { continuation in
+                request.response { response in
+                    if let statusCode = response.response?.statusCode, 200..<300 ~= statusCode {
+                        GTLogger.shared.networkSuccess("networkSuccess (Void Response) - Status: \(statusCode)")
+                        continuation.resume()
+                    } else {
+                        let statusCode = response.response?.statusCode ?? -1
+                        let error = AFError.responseValidationFailed(reason: .unacceptableStatusCode(code: statusCode))
+                        continuation.resume(throwing: error)
+                    }
+                }
+            }
             
         } catch {
             try handleError(error, endPoint: endPoint)
