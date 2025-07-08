@@ -27,6 +27,9 @@ final class TabBarViewModel {
     ) {
         self.mainViewStore = MainViewStore(useCase: mainViewUseCase, router: mainRouter)
         self.makeViewStore = MakeViewStore(useCase: makeViewUseCase, router: makeRouter)
+        
+        // 초기화 완료 후 tabBarViewModel 참조 설정
+        self.makeViewStore.setTabBarViewModel(self)
     }
     
     func selectTab(_ index: Int) {
@@ -37,8 +40,23 @@ final class TabBarViewModel {
     func resetTabToRoot(_ index: Int) {
         switch index {
         case 0: mainRouter.popToRoot()
-        case 2: makeRouter.popToRoot()
+        case 2: 
+            makeRouter.popToRoot()
+            makeViewStore.resetState() // Make 뷰 상태 초기화
         default: break
         }
+    }
+    
+    /// Make 탭에서 필터 생성 후 Main 탭의 detail 화면으로 이동
+    func navigateToDetailFromMake(filterId: String) {
+        // Main 탭으로 전환
+        selectedTab = 0
+        
+        // mainRouter를 통해 detail 화면으로 이동
+        mainRouter.push(.detail(id: filterId))
+        
+        // Make 탭을 루트로 리셋하고 상태 초기화
+        makeRouter.popToRoot()
+        makeViewStore.resetState()
     }
 }

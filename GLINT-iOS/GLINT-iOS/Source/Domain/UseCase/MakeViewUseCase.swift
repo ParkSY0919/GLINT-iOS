@@ -9,5 +9,5 @@ import Foundation
 
 struct MakeViewUseCase {
     var files: @Sendable (_ files: [Data]) async throws -> [String]
-    var createFilter: @Sendable (_ request: CreateFilterRequest) async throws -> String //FilterDetailResponse.title
+    var createFilter: @Sendable (_ request: CreateFilterRequest) async throws -> (title: String, filterID: String)
 }
