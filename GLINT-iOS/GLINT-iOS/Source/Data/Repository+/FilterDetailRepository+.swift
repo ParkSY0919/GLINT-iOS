@@ -14,6 +14,9 @@ extension FilterDetailRepository {
         return FilterDetailRepository(
             filterDetail: { id in
                 return try await provider.request(.filterDetail(filterId: id))
+            },
+            deleteFilter: { id in
+                return try await provider.requestVoid(.deleteFilter(filterID: id))
             }
         )
     }()

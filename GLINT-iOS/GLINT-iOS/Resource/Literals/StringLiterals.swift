@@ -90,6 +90,13 @@ extension Strings {
         static let like = "찜하기"
         static let bef = "Before"
         static let aft = "After"
+        static let actionSelect = "작업 선택"
+        static let edit = "수정하기"
+        static let delete = "삭제하기"
+        static let cancel = "취소"
+        static let deleteConfirm = "삭제 확인"
+        static let deleteMessage = "정말로 삭제하시겠습니까?"
+        static let confirm = "확인"
         
         // MARK: - Error Messages
         enum Error {
@@ -104,6 +111,8 @@ extension Strings {
             static let purchaseButtonTapped = "구매 버튼 탭됨"
             static let likeButtonTapped = "찜 버튼 탭됨"
             static let messageButtonTapped = "메시지 보내기 버튼 탭됨"
+            static let editButtonTapped = "수정하기 버튼 탭됨"
+            static let deleteButtonTapped = "삭제하기 버튼 탭됨"
             static let paymentFailed = "결제 실패"
             static let paymentSuccessStart = "결제 성공 후 추가 로직 실행 시작!"
         }

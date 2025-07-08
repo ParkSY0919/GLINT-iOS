@@ -72,8 +72,10 @@ extension LoginViewUseCase {
                 let response = try await repository.signInApple(request)
                 
                 GTLogger.i("Apple 로그인 응답: \(response)")
+                keychain.saveUserId(response.userID)
                 keychain.saveAccessToken(response.accessToken)
                 keychain.saveRefreshToken(response.refreshToken)
+                
                 return response
             },
             // 로그인-kakao

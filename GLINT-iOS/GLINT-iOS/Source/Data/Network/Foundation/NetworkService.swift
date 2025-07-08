@@ -5,6 +5,13 @@
 //  Created by 박신영 on 5/9/25.
 //
 
+//
+//  NetworkService.swift
+//  GLINT-iOS
+//
+//  Created by 박신영 on 5/9/25.
+//
+
 import Foundation
 
 import Alamofire
@@ -16,7 +23,6 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
     private func handleError<U: EndPoint>(_ error: Error, endPoint: U) throws -> Never {
         GTLogger.shared.networkFailure("networkFailure", error: error)
         
-        // 서버 응답 데이터 로깅
         if let afError = error as? AFError {
             switch afError {
             case .responseSerializationFailed(let reason):
@@ -51,26 +57,6 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         throw endPoint.throwError(error as? AFError ?? AFError.explicitlyCancelled)
     }
     
-    private func handleNoResponse(_ response: DataResponse<Data, AFError>, endPoint: E) throws {
-        GTLogger.shared.i("response: \n\(response)")
-        
-        switch response.result {
-        case .success:
-            if let afError = response.error,
-               case .responseSerializationFailed(.inputDataNilOrZeroLength) = afError,
-               response.response?.statusCode == 200 {
-                GTLogger.shared.networkSuccess("networkSuccess (Void Response)")
-                return
-            }
-            return
-        case .failure(let error):
-            if case let AFError.requestRetryFailed(retryError: retryError, originalError: _) = error {
-                throw retryError
-            }
-            throw endPoint.throwError(error)
-        }
-    }
-    
     //MARK: 응답값 O
     func request<T: ResponseData>(_ endPoint: E) async throws -> T {
         let type: InterceptorType = endPoint.path == "refresh" ? .refresh : .default
@@ -82,10 +68,6 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             interceptor: Interceptor(interceptors: [GTInterceptor(type: type)])
         )
         
-        request.cURLDescription { description in
-            print("🌐 CURL:", description)
-        }
-        
         do {
             let value = try await withTimeout(seconds: 10) {
                 try await request
@@ -95,6 +77,7 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             }
             
             GTLogger.shared.networkSuccess("networkSuccess")
+            print("response: \(value)")
             return value
             
         } catch {
@@ -123,15 +106,27 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
     
     //MARK: 응답값 X
     func requestVoid(_ endPoint: E) async throws {
-        GTLogger.shared.networkRequest("N/Start: noRes, noToken")
+        let type: InterceptorType = endPoint.path == "refresh" ? .refresh : .default
         
-        let response = await defaultSession.request(endPoint,
-                                                    interceptor: Interceptor(interceptors: [GTInterceptor(type: .default)]))
-            .validate(statusCode: 200..<300)
-            .serializingData()
-            .response
+        GTLogger.shared.networkRequest("🚀 NetworkStart (Void): \(endPoint.method.rawValue) \(endPoint.baseURL)\(endPoint.path)")
         
-        try handleNoResponse(response, endPoint: endPoint)
+        let request = defaultSession.request(
+            endPoint,
+            interceptor: Interceptor(interceptors: [GTInterceptor(type: type)])
+        )
+        
+        do {
+            // validate만 하고 결과 무시 (body 기다리지 않음)
+            _ = try await request
+                .validate(statusCode: 200..<300)
+                .serializingResponse(using: .data)
+                .value
+            
+            GTLogger.shared.networkSuccess("networkSuccess (Void Response)")
+            
+        } catch {
+            try handleError(error, endPoint: endPoint)
+        }
     }
     
     /// 멀티파트폼
@@ -139,6 +134,8 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         guard case .multipartData(let config) = endPoint.requestType else {
             throw GLError.typeError("Multipart 메서드에 잘못된 requestType이 전달됨")
         }
+        
+        GTLogger.shared.networkRequest("🚀 NetworkStart (Multipart): \(endPoint.method.rawValue) \(endPoint.baseURL)\(endPoint.path)")
         
         let request = defaultSession.upload(
             multipartFormData: { formData in
@@ -165,7 +162,7 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
                     .value
             }
             
-            GTLogger.shared.networkSuccess("networkSuccess")
+            GTLogger.shared.networkSuccess("networkSuccess (Multipart)")
             return value
             
         } catch {

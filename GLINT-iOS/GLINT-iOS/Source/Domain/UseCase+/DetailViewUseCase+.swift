@@ -9,6 +9,7 @@ import Foundation
 
 extension DetailViewUseCase {
     static let liveValue: DetailViewUseCase = {
+        let keychain: KeychainManager = .shared
         let filterRepo: FilterRepository = .liveValue
         let filterDetailRepo: FilterDetailRepository = .liveValue
         let purchaseRepo: PurchaseRepository = .liveValue
@@ -20,12 +21,17 @@ extension DetailViewUseCase {
                 let profile = response.creator.toProfileEntity()
                 let metadata = response.photoMetadata?.toEntity()
                 let presets = response.filterValues.toEntity()
+                let isMyPost = keychain.getUserId() == profile.userID
 
-                return (filter, profile, metadata, presets)
+                return (filter, profile, metadata, presets, isMyPost)
             },
             
             likeFilter: { filterID, likeStatus in
                 return try await filterRepo.likeFilter(filterID, likeStatus).likeStatus
+            },
+            
+            deleteFilter: { filterID in
+                return try await filterDetailRepo.deleteFilter(filterID)
             },
             
             createOrder: { filterID, filterPrice in

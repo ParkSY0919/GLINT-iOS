@@ -53,6 +53,8 @@ extension Images {
         ]
         static let like = Image(.like)
         static let likeFill = Image(.likeFill)
+        static let delete = Image(systemName: "trash")
+        static let list = Image(systemName: "list.bullet")
     }
     
     enum Make {

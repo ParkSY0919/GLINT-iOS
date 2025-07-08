@@ -48,9 +48,11 @@ struct DetailView: View {
         }
         .navigationSetup(
             title: store.state.navTitle,
+            backAction: { store.send(.backButtonTapped) },
+            likeAction: { store.send(.likeButtonTapped) },
             isLiked: store.state.isLiked,
-            onBackButtonTapped: { store.send(.backButtonTapped) },
-            onLikeButtonTapped: { store.send(.likeButtonTapped) }
+            editAction: { store.send(.editButtonTapped) },
+            deleteAction: { store.send(.deleteButtonTapped) }
         )
         .conditionalAlert(
             title: Strings.Detail.purchaseResult,
