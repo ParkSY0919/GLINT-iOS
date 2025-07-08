@@ -141,7 +141,6 @@ private extension MakeViewStore {
                 
                 guard let filterValues = state.filterValues else {
                     print(Strings.Make.Error.filterValuesFailed)
-//                    state.filterValues = state.filterValues!.setDefaultValues()
                     return
                 }
                 let request = CreateFilterRequest(
