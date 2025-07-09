@@ -2,7 +2,7 @@
 //  BlurFilter.swift
 //  GLINT-iOS
 //
-//  Created by AI Assistant on 1/19/25.
+//  Created by 박신영
 //
 
 import CoreImage

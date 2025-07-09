@@ -2,7 +2,7 @@
 //  ChatMessage.swift
 //  GLINT-iOS
 //
-//  Created by AI Assistant on 1/19/25.
+//  Created by 박신영 on 7/8/25.
 //
 
 import Foundation

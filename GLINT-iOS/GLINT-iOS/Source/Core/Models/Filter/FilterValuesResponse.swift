@@ -45,22 +45,3 @@ struct FilterValuesResponse: ResponseData {
         )
     }
 }
-
-//extension FilterValuesEntity {
-//    func toRequest() -> FilterValuesResponse {
-//        return .init(
-//            brightness: self.brightness,
-//            exposure: self.exposure,
-//            contrast: self.contrast,
-//            saturation: self.saturation,
-//            sharpness: self.sharpness,
-//            blur: self.blur,
-//            vignette: self.vignette,
-//            noiseReduction: self.noiseReduction,
-//            highlights: self.highlights,
-//            shadows: self.shadows,
-//            temperature: self.temperature,
-//            blackPoint: self.blackPoint
-//        )
-//    }
-//}
