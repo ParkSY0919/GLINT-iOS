@@ -13,6 +13,8 @@ struct MainTab: View {
     @Environment(\.detailViewUseCase)
     private var detailViewUseCase
     
+    // DetailViewStore 캐싱을 위한 딕셔너리
+    @State private var detailViewStores: [String: DetailViewStore] = [:]
     
     var body: some View {
         RouterNavigationStack(router: router) {
@@ -29,10 +31,21 @@ struct MainTab: View {
             MainView()
         case .detail(let id):
             DetailView(id: id)
-                .environment(DetailViewStore(useCase: detailViewUseCase, router: router))
+                .environment(getOrCreateDetailViewStore(for: id))
         case .chat(let otherUserId, let otherUserName):
             let chatStore = ChatViewStore(router: router, otherUserId: otherUserId, otherUserName: otherUserName)
             ChatView(otherUserId: otherUserId, otherUserName: otherUserName, store: chatStore)
         }
+    }
+    
+    // DetailViewStore를 ID별로 캐싱하는 메서드
+    private func getOrCreateDetailViewStore(for id: String) -> DetailViewStore {
+        if let existingStore = detailViewStores[id] {
+            return existingStore
+        }
+        
+        let newStore = DetailViewStore(useCase: detailViewUseCase, router: router)
+        detailViewStores[id] = newStore
+        return newStore
     }
 }

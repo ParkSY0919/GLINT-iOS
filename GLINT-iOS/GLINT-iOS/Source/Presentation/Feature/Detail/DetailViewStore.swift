@@ -108,8 +108,21 @@ final class DetailViewStore {
 
 @MainActor
 private extension DetailViewStore {
+    func isReturningFromChat() -> Bool {
+        // 네비게이션 스택에 chat route가 있는지 확인
+        return router.path.contains { route in
+            if case .chat = route { return true }
+            return false
+        }
+    }
+    
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared(id: String) {
+        // 같은 ID이고 ChatView에서 돌아온 경우라면 데이터 새로고침 건너뛰기
+        if filterId == id && state.filterData != nil && isReturningFromChat() {
+            return
+        }
+        
         filterId = id
         loadFilterDetail()
     }
