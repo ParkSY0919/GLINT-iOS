@@ -10,8 +10,7 @@ import SwiftUI
 struct ChatViewState {
     var messages: [ChatMessage] = []
     var newMessage: String = ""
-    var otherUserId: String = ""
-    var otherUserName: String = ""
+    var roomID: String = ""
     var isLoading: Bool = false
 }
 
@@ -28,10 +27,9 @@ final class ChatViewStore {
     private(set) var state = ChatViewState()
     private let router: NavigationRouter<MainTabRoute>
     
-    init(router: NavigationRouter<MainTabRoute>, otherUserId: String, otherUserName: String) {
+    init(router: NavigationRouter<MainTabRoute>, roomID: String) {
         self.router = router
-        self.state.otherUserId = otherUserId
-        self.state.otherUserName = otherUserName
+        self.state.roomID = roomID
         
         // 초기화 시점에 더미데이터 로드
         print("🔵 ChatViewStore 초기화 - 더미데이터 로드 시작")

@@ -11,12 +11,10 @@ struct ChatView: View {
     @State private var store: ChatViewStore
     @FocusState private var isTextFieldFocused: Bool
     
-    let otherUserId: String
-    let otherUserName: String
+    let roomID: String
     
-    init(otherUserId: String, otherUserName: String, store: ChatViewStore) {
-        self.otherUserId = otherUserId
-        self.otherUserName = otherUserName
+    init(roomID: String, store: ChatViewStore) {
+        self.roomID = roomID
         self._store = State(initialValue: store)
     }
     
@@ -29,7 +27,7 @@ struct ChatView: View {
             messageInputView
         }
         .navigationSetup(
-            title: store.state.otherUserName,
+            title: "케케미정",
             onBackButtonTapped: { store.send(.backButtonTapped) }
         )
         .onAppear {

@@ -32,9 +32,9 @@ struct MainTab: View {
         case .detail(let id):
             DetailView(id: id)
                 .environment(getOrCreateDetailViewStore(for: id))
-        case .chat(let otherUserId, let otherUserName):
-            let chatStore = ChatViewStore(router: router, otherUserId: otherUserId, otherUserName: otherUserName)
-            ChatView(otherUserId: otherUserId, otherUserName: otherUserName, store: chatStore)
+        case .chat(let roomID):
+            let chatStore = ChatViewStore(router: router, roomID: roomID)
+            ChatView(roomID: roomID, store: chatStore)
         }
     }
     

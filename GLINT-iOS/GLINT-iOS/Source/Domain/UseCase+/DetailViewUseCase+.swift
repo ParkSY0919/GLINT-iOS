@@ -13,6 +13,7 @@ extension DetailViewUseCase {
         let filterRepo: FilterRepository = .liveValue
         let filterDetailRepo: FilterDetailRepository = .liveValue
         let purchaseRepo: PurchaseRepository = .liveValue
+        let chatRepo: ChatRepository = .liveValue
         
         return DetailViewUseCase (
             filterDetail: { filterID in
@@ -53,6 +54,10 @@ extension DetailViewUseCase {
                 let request = PaymentInfoRequest(orderCode: orderCode)
                 let response = try await purchaseRepo.paymentInfo(request)
                 return (response.name, response.merchantUid)
+            },
+            
+            postChats: { userID in
+                return try await chatRepo.postChats(userID).roomID
             }
         )
     }()

@@ -249,12 +249,23 @@ private extension DetailViewStore {
         print(Strings.Detail.Log.messageButtonTapped)
         
         // 작가 정보가 있으면 채팅 화면으로 이동
-        guard let userInfo = state.userInfoData else {
+        guard let userID = state.userInfoData?.userID else {
             state.errorMessage = "작가 정보를 찾을 수 없습니다."
             return
         }
-        
-        router.push(.chat(otherUserId: userInfo.userID ?? "", otherUserName: userInfo.nick ?? ""))
+        Task {
+            do {
+                state.isLoading = true
+                state.errorMessage = nil
+                
+                let roomID = try await useCase.postChats(userID)
+                state.isLoading = false
+                router.push(.chat(roomID: roomID))
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+            }
+        }
     }
     
     /// 수정하기 버튼 탭 처리
