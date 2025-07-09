@@ -41,16 +41,15 @@ struct ChatMessageRow: View {
 
 private extension ChatMessageRow {
     var myMessageBubble: some View {
-        Text(message.content)
-            .font(.system(size: 16))
-            .foregroundColor(.black)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Color.yellow)
-            .clipShape(
-                ChatBubbleShape(isFromMe: true)
-            )
-            .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: .trailing)
+            Text(message.content)
+                .font(.system(size: 16))
+                .foregroundColor(.black)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color.yellow)
+                .clipShape(
+                    ChatBubbleShape(isFromMe: true)
+                )
     }
     
     var otherMessageBubble: some View {
@@ -63,7 +62,6 @@ private extension ChatMessageRow {
             .clipShape(
                 ChatBubbleShape(isFromMe: false)
             )
-            .frame(maxWidth: UIScreen.main.bounds.width * 0.7, alignment: .leading)
     }
     
     var timeView: some View {
