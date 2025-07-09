@@ -60,7 +60,7 @@ struct TabBarView: View {
                 items: TabBarItems.items
             )
             .opacity(tabBarVisibility.isVisible ? 1 : 0)
-            .offset(y: tabBarVisibility.isVisible ? 0 : 100)
+            .offset(y: tabBarVisibility.isVisible ? -30 : 100)
             .animation(.easeInOut(duration: 0.3), value: tabBarVisibility.isVisible)
         }
         .ignoresSafeArea(.all, edges: .bottom)
