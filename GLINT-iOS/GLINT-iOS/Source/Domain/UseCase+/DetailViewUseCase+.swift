@@ -56,8 +56,9 @@ extension DetailViewUseCase {
                 return (response.name, response.merchantUid)
             },
             
-            postChats: { userID in
-                return try await chatRepo.postChats(userID).roomID
+            createChatRoom: { userID in
+                let response = try await chatRepo.createChatRoom(userID)
+                return (response.roomID, response.participants[0].nick)
             }
         )
     }()

@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct ChatView: View {
-    @State private var store: ChatViewStore
-    @FocusState private var isTextFieldFocused: Bool
+    @Environment(ChatViewStore.self)
+    private var store
+    @FocusState
+    private var isTextFieldFocused: Bool
     
     let roomID: String
+    let nick: String
     
-    init(roomID: String, store: ChatViewStore) {
+    init(roomID: String, nick: String) {
         self.roomID = roomID
-        self._store = State(initialValue: store)
+        self.nick = nick
     }
     
     var body: some View {
@@ -27,14 +30,12 @@ struct ChatView: View {
             messageInputView
         }
         .navigationSetup(
-            title: "케케미정",
+            title: store.state.navTitle,
             onBackButtonTapped: { store.send(.backButtonTapped) }
         )
-        .onAppear {
-            print("🟢 ChatView: onAppear 호출됨")
-            print("🟢 store.state.messages 개수: \(store.state.messages.count)")
-            store.send(.viewAppeared)
-        }
+        .onViewDidLoad(perform: {
+            store.send(.viewAppeared(roomID, nick))
+        })
         .background(Color(red: 0.71, green: 0.84, blue: 0.89)) // 카카오톡 배경색
     }
 }

@@ -68,6 +68,10 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             interceptor: Interceptor(interceptors: [GTInterceptor(type: type)])
         )
         
+        request.cURLDescription { description in
+            print("🌐 CURL:", description)
+        }
+        
         do {
             let value = try await withTimeout(seconds: 10) {
                 try await request

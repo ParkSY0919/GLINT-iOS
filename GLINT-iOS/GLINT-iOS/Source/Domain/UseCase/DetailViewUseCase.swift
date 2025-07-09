@@ -21,5 +21,5 @@ struct DetailViewUseCase {
     var orderInfo: @Sendable () async throws -> OrderInfoResponse
     var paymentValidation: @Sendable (_ impUid: String) async throws -> String //orderCode 사용
     var paymentInfo: @Sendable (_ orderCode: String) async throws -> (String?, String) //name, merchantUid 사용
-    var postChats: @Sendable (_ userID: String) async throws -> String
+    var createChatRoom: @Sendable (_ userID: String) async throws -> (String, String)
 }

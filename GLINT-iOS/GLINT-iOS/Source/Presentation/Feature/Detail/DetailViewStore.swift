@@ -258,9 +258,9 @@ private extension DetailViewStore {
                 state.isLoading = true
                 state.errorMessage = nil
                 
-                let roomID = try await useCase.postChats(userID)
+                let (roomID, nick) = try await useCase.createChatRoom(userID)
                 state.isLoading = false
-                router.push(.chat(roomID: roomID))
+                router.push(.chat(roomID: roomID, nick: nick))
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription

@@ -12,13 +12,25 @@ extension ChatRepository {
         let provider = NetworkService<ChatEndPoint>()
         
         return ChatRepository(
-            postChats: { userID in
-                return try await provider.request(.postChats(userID: userID))
+            createChatRoom: { userID in
+                return try await provider.request(.createChatRoom(userID: userID))
             },
-            getChats: {
-                return try await provider.request(.getChats)
-            }
             
+            infoChatRooms: {
+                return try await provider.request(.infoChatRooms)
+            },
+            
+            chatRoomFileUpload: { roomID, files in
+                return try await provider.request(.filesUpload(roomID: roomID, files: files))
+            },
+            
+            getChatHistory: { roomID, next in
+                return try await provider.request(.getChatHistory(roomID: roomID, next: next))
+            },
+            
+            postChatMessage: { roomID, request in
+                return try await provider.request(.postChatMessage(roomID: roomID, request: request))
+            }
         )
     }()
 }

@@ -12,6 +12,8 @@ struct MainTab: View {
     private var router
     @Environment(\.detailViewUseCase)
     private var detailViewUseCase
+    @Environment(\.chatViewUseCase)
+    private var chatViewUseCase
     
     // DetailViewStore 캐싱을 위한 딕셔너리
     @State private var detailViewStores: [String: DetailViewStore] = [:]
@@ -32,9 +34,9 @@ struct MainTab: View {
         case .detail(let id):
             DetailView(id: id)
                 .environment(getOrCreateDetailViewStore(for: id))
-        case .chat(let roomID):
-            let chatStore = ChatViewStore(router: router, roomID: roomID)
-            ChatView(roomID: roomID, store: chatStore)
+        case .chat(let roomID, let nick):
+            ChatView(roomID: roomID, nick: nick)
+                .environment(ChatViewStore(useCase: chatViewUseCase, router: router))
         }
     }
     

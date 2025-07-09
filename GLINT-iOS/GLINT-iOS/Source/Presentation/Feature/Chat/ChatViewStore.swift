@@ -8,14 +8,17 @@
 import SwiftUI
 
 struct ChatViewState {
+    var roomID: String = ""
+    var next: String? = ""
+    var navTitle: String = ""
     var messages: [ChatMessage] = []
     var newMessage: String = ""
-    var roomID: String = ""
     var isLoading: Bool = false
+    var errorMessage: String?
 }
 
 enum ChatViewAction {
-    case viewAppeared
+    case viewAppeared(_ roomID: String, _ nick: String)
     case messageTextChanged(String)
     case sendButtonTapped
     case backButtonTapped
@@ -25,21 +28,18 @@ enum ChatViewAction {
 @Observable
 final class ChatViewStore {
     private(set) var state = ChatViewState()
+    private let useCase: ChatViewUseCase
     private let router: NavigationRouter<MainTabRoute>
     
-    init(router: NavigationRouter<MainTabRoute>, roomID: String) {
+    init(useCase: ChatViewUseCase, router: NavigationRouter<MainTabRoute>) {
+        self.useCase = useCase
         self.router = router
-        self.state.roomID = roomID
-        
-        // 초기화 시점에 더미데이터 로드
-        print("🔵 ChatViewStore 초기화 - 더미데이터 로드 시작")
-        loadDummyData()
     }
     
     func send(_ action: ChatViewAction) {
         switch action {
-        case .viewAppeared:
-            handleViewAppeared()
+        case .viewAppeared(let roomID, let nick):
+            handleViewAppeared(roomID, nick)
             
         case .messageTextChanged(let text):
             state.newMessage = text
@@ -63,14 +63,29 @@ final class ChatViewStore {
 }
 
 private extension ChatViewStore {
-    func handleViewAppeared() {
-        print("🔵 ChatViewStore: handleViewAppeared 호출됨")
-        print("🔵 현재 state.messages 개수: \(state.messages.count)")
-        
+    func handleViewAppeared(_ id: String, _ nick: String) {
         // 혹시 더미데이터가 로드되지 않았다면 다시 로드
         if state.messages.isEmpty {
             print("🔵 더미데이터가 비어있음, 다시 로드")
             loadDummyData()
+        }
+        state.roomID = id
+        state.navTitle = nick
+        loadRoomData()
+    }
+    
+    func loadRoomData() {
+        state.isLoading = true
+        state.errorMessage = nil
+        
+        Task {
+            do {
+                let response = try await useCase.getChatHistory(state.roomID, state.next ?? "")
+                print(response)
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+            }
         }
     }
     
@@ -86,10 +101,17 @@ private extension ChatViewStore {
         )
         
         state.messages.append(newMessage)
+        Task {
+            let r = try await useCase.postChatMessage(state.roomID, PostChatMessageRequest(content: "케케", files: nil))
+            print("response: \(r)")
+        }
+        
         state.newMessage = ""
         
         // 키보드 숨기기
         hideKeyboard()
+        
+        
     }
     
     func hideKeyboard() {
