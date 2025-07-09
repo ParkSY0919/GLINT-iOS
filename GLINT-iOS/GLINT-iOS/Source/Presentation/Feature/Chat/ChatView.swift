@@ -97,7 +97,7 @@ private extension ChatView {
                     RoundedRectangle(cornerRadius: 20)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 1)
                 )
-                .lineLimit(1...5)
+                .lineLimit(1...3)
                 
                 // 전송 버튼
                 Button {
