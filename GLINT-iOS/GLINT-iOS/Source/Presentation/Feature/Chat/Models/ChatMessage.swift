@@ -28,37 +28,22 @@ struct ChatMessage: Identifiable, Hashable {
 extension ChatMessage {
     /// 시간 포맷팅 (오전/오후 시:분)
     var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "a h:mm"
-        return formatter.string(from: timestamp)
+        return DateFormatterManager.shared.formatChatTime(timestamp)
     }
     
     /// 날짜 포맷팅 (YYYY년 MM월 DD일)
     var formattedDate: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyyy년 MM월 dd일"
-        return formatter.string(from: timestamp)
+        return DateFormatterManager.shared.formatChatDate(timestamp)
     }
     
     /// 같은 시간대 메시지인지 확인
     func isSameTimeAs(_ other: ChatMessage) -> Bool {
-        let calendar = Calendar.current
-        let components1 = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: self.timestamp)
-        let components2 = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: other.timestamp)
-        
-        return components1.year == components2.year &&
-               components1.month == components2.month &&
-               components1.day == components2.day &&
-               components1.hour == components2.hour &&
-               components1.minute == components2.minute
+        return DateFormatterManager.shared.isSameMinute(self.timestamp, other.timestamp)
     }
     
     /// 같은 날짜인지 확인
     func isSameDateAs(_ other: ChatMessage) -> Bool {
-        let calendar = Calendar.current
-        return calendar.isDate(self.timestamp, inSameDayAs: other.timestamp)
+        return DateFormatterManager.shared.isSameDay(self.timestamp, other.timestamp)
     }
 }
 
@@ -175,14 +160,6 @@ extension ChatMessage {
     
     // 오늘 특정 시간으로 Date 생성 헬퍼 메서드
     private static func createTimeForToday(hour: Int, minute: Int, second: Int) -> Date {
-        let calendar = Calendar.current
-        let today = Date()
-        
-        var components = calendar.dateComponents([.year, .month, .day], from: today)
-        components.hour = hour
-        components.minute = minute
-        components.second = second
-        
-        return calendar.date(from: components) ?? today
+        return DateFormatterManager.shared.createTimeForToday(hour: hour, minute: minute, second: second)
     }
 } 

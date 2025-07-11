@@ -145,7 +145,7 @@ struct RouterNavigationStack<Route: Hashable, RootContent: View, Destination: Vi
 enum MainTabRoute: Hashable {
     case home
     case detail(id: String)
-    case chat(roomID: String, nick: String)
+    case chat(roomID: String, nick: String, userID: String)
 }
 
 enum MakeTabRoute: Hashable {

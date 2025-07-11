@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 import Alamofire
 import Nuke
@@ -13,16 +14,39 @@ import NukeAlamofirePlugin
 
 @main
 struct GLINT_iOSApp: App {
+    @State private var cancellables = Set<AnyCancellable>()
+    
     init() {
         setupNavigationAppearance()
         setupImagePipeline()
         KeychainManager.shared.saveDeviceUUID()
+        
+        // 🔄 CoreData & WebSocket 초기화 추가
+        setupCoreDataAndWebSocket()
     }
     
     var body: some Scene {
         WindowGroup {
             RootView()
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                    // 백그라운드 진입 시 CoreData 저장
+                    CoreDataManager.shared.saveContext()
+                    print("📱 백그라운드 진입 - CoreData 저장 완료")
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
+                    // 앱 종료 시 CoreData 저장
+                    CoreDataManager.shared.saveContext()
+                    print("📱 앱 종료 - CoreData 저장 완료")
+                }
         }
+    }
+    
+    // MARK: - CoreData & WebSocket Setup
+    private func setupCoreDataAndWebSocket() {
+        // AppInitializer를 통한 초기화
+        AppInitManager.shared.setupCoreDataAndWebSocket()
+        
+        print("🚀 GLINT 앱 초기화 완료 - CoreData & WebSocket 준비됨")
     }
     
     private func setupNavigationAppearance() {
@@ -70,7 +94,5 @@ struct GLINT_iOSApp: App {
         }
 
         ImagePipeline.shared = pipeline
-        
-        GTLogger.shared.i("ImagePipeline configured with enhanced caching and GTInterceptor for token refresh functionality")
     }
 }

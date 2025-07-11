@@ -58,7 +58,7 @@ extension DetailViewUseCase {
             
             createChatRoom: { userID in
                 let response = try await chatRepo.createChatRoom(userID)
-                return (response.roomID, response.participants[0].nick)
+                return (response.roomID)
             }
         )
     }()

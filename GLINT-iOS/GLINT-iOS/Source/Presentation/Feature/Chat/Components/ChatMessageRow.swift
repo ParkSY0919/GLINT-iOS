@@ -10,6 +10,18 @@ import SwiftUI
 struct ChatMessageRow: View {
     let message: ChatMessage
     let showTime: Bool
+    let onRetryTapped: ((String) -> Void)?
+    let onDeleteTapped: ((String) -> Void)?
+    
+    init(message: ChatMessage, 
+         showTime: Bool, 
+         onRetryTapped: ((String) -> Void)? = nil, 
+         onDeleteTapped: ((String) -> Void)? = nil) {
+        self.message = message
+        self.showTime = showTime
+        self.onRetryTapped = onRetryTapped
+        self.onDeleteTapped = onDeleteTapped
+    }
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -36,20 +48,31 @@ struct ChatMessageRow: View {
                 Spacer()
             }
         }
+        .contextMenu {
+            if message.isFromMe {
+                Button("재전송", systemImage: "arrow.clockwise") {
+                    onRetryTapped?(message.id)
+                }
+                
+                Button("삭제", systemImage: "trash", role: .destructive) {
+                    onDeleteTapped?(message.id)
+                }
+            }
+        }
     }
 }
 
 private extension ChatMessageRow {
     var myMessageBubble: some View {
-            Text(message.content)
-                .font(.system(size: 16))
-                .foregroundColor(.black)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.yellow)
-                .clipShape(
-                    ChatBubbleShape(isFromMe: true)
-                )
+        Text(message.content)
+            .font(.system(size: 16))
+            .foregroundColor(.black)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.yellow)
+            .clipShape(
+                ChatBubbleShape(isFromMe: true)
+            )
     }
     
     var otherMessageBubble: some View {

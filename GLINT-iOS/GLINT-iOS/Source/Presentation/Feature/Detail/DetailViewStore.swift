@@ -258,9 +258,15 @@ private extension DetailViewStore {
                 state.isLoading = true
                 state.errorMessage = nil
                 
-                let (roomID, nick) = try await useCase.createChatRoom(userID)
+                let roomID = try await useCase.createChatRoom(userID)
+                
                 state.isLoading = false
-                router.push(.chat(roomID: roomID, nick: nick))
+                guard let nick = state.userInfoData?.nick,
+                      let userID = state.userInfoData?.userID else {
+                    print("Chat 전환 실패~")
+                    return
+                }
+                router.push(.chat(roomID: roomID, nick: nick, userID: userID))
             } catch {
                 state.isLoading = false
                 state.errorMessage = error.localizedDescription
