@@ -51,7 +51,7 @@ final class ChatViewStore {
     private let webSocketManager = WebSocketManager.shared
     private let keyChainManager = KeychainManager.shared
     
-    nonisolated private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     
     init(useCase: ChatViewUseCase, router: NavigationRouter<MainTabRoute>) {
         self.useCase = useCase
@@ -429,17 +429,15 @@ private extension ChatViewStore {
         }
     }
     
-    nonisolated private func setupRealtimeUpdates() async {
-        await MainActor.run {
-            Timer.publish(every: 1.0, on: .main, in: .common)
-                .autoconnect()
-                .sink { [weak self] _ in
-                    Task { @MainActor in
-                        self?.updateConnectionState()
-                    }
+    private func setupRealtimeUpdates() async {
+        Timer.publish(every: 1.0, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.updateConnectionState()
                 }
-                .store(in: &cancellables)
-        }
+            }
+            .store(in: &cancellables)
     }
     
     func updateConnectionState() {
