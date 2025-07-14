@@ -84,13 +84,13 @@ final class ChatViewStore {
             handleViewDisappeared()
             
         case .messageTextChanged(let text):
-            state.newMessage = text
+            handleMessageTextChanged(text)
             
         case .sendButtonTapped(let content):
             handleSendMessage(content)
             
         case .backButtonTapped:
-            router.pop()
+            handleBackButtonTapped()
             
         case .attachFileButtonTapped:
             handleAttachFile()
@@ -113,8 +113,10 @@ final class ChatViewStore {
     }
 }
 
-// MARK: - Private Methods
+// MARK: - Private Action Handlers
+@MainActor
 private extension ChatViewStore {
+    /// 뷰가 나타났을 때의 처리
     func handleViewAppeared(_ roomID: String, _ nick: String, _ userID: String) {
         state.roomID = roomID
         state.navTitle = nick
@@ -152,11 +154,18 @@ private extension ChatViewStore {
         syncMessagesFromServer()
     }
     
+    /// 뷰가 사라졌을 때의 처리
     func handleViewDisappeared() {
         // WebSocket 채팅방 떠나기
         webSocketManager.leaveChatRoom(state.roomID)
     }
     
+    /// 메시지 텍스트 변경 처리
+    func handleMessageTextChanged(_ text: String) {
+        state.newMessage = text
+    }
+    
+    /// 메시지 전송 처리
     func handleSendMessage(_ content: String) {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
@@ -205,17 +214,24 @@ private extension ChatViewStore {
         }
     }
     
+    /// 뒤로 가기 버튼 탭 처리
+    func handleBackButtonTapped() {
+        router.pop()
+    }
+    
+    /// 파일 첨부 버튼 탭 처리
     func handleAttachFile() {
         // 파일 선택 UI 표시 (실제 구현에서는 DocumentPicker나 ImagePicker 사용)
-//        ImagePicker
         print("📎 파일 첨부 버튼 클릭")
     }
     
+    /// 파일 선택 처리
     func handleFilesSelected(_ urls: [URL]) {
         state.selectedFiles = urls
         print("📁 선택된 파일: \(urls.count)개")
     }
     
+    /// 실패한 메시지 재전송 처리
     func handleRetryFailedMessage(_ chatId: String) {
         // 실패한 메시지 재전송
         coreDataManager.updateChatSendStatus(chatId: chatId, status: 0) // 전송 대기로 변경
@@ -223,18 +239,21 @@ private extension ChatViewStore {
         loadMessagesFromCoreData() // UI 업데이트
     }
     
+    /// 메시지 삭제 처리
     func handleDeleteMessage(_ chatId: String) {
         // 메시지 삭제 (로컬에서만)
         state.messages.removeAll { $0.id == chatId }
         // CoreData에서도 삭제하는 로직 추가 필요
     }
     
+    /// 캐시 정리 처리
     func handleClearCache() {
         coreDataManager.cleanupOldFiles()
         updateCacheSize()
         showToast("캐시가 정리되었습니다.")
     }
     
+    /// 메시지 새로고침 처리
     func handleRefreshMessages() {
         loadMessagesFromCoreData()
         syncMessagesFromServer()
@@ -242,7 +261,9 @@ private extension ChatViewStore {
 }
 
 // MARK: - CoreData Integration
+@MainActor
 private extension ChatViewStore {
+    /// CoreData에서 메시지 로드
     func loadMessagesFromCoreData() {
         let gtChats = coreDataManager.fetchChats(for: state.roomID, limit: 100)
         let chatMessages = ChatMessage.from(gtChats, currentUserId: state.myUserID)
@@ -253,6 +274,7 @@ private extension ChatViewStore {
         print("📱 CoreData에서 \(chatMessages.count)개 메시지 로드")
     }
     
+    /// 서버에서 메시지 동기화
     func syncMessagesFromServer() {
         state.isLoading = true
         state.errorMessage = nil
@@ -284,6 +306,7 @@ private extension ChatViewStore {
         }
     }
     
+    /// 서버 응답을 CoreData에 저장
     private func saveChatHistoryToCoreData(_ response: [ChatResponse]) async {
         print("📥 서버 응답 처리 시작: \(response.count)개 메시지")
         
@@ -345,13 +368,14 @@ private extension ChatViewStore {
         }
     }
     
+    /// 날짜 문자열을 Date 객체로 변환
     private func parseDate(from dateString: String) -> Date? {
         return DateFormatterManager.shared.parseISO8601Date(from: dateString)
     }
 }
 
-// MARK: - WebSocket Integration
 private extension ChatViewStore {
+    /// 알림 옵저버 설정
     func setupNotificationObservers() async {
         // 새 메시지 수신 알림
         NotificationCenter.default.addObserver(
@@ -378,6 +402,7 @@ private extension ChatViewStore {
                 return
             }
             
+            
             print("🔔 새 메시지 알림 수신:")
             print("   - 메시지 ID: \(chatId)")
             print("   - 보낸 사람: \(userId) (\(nickname))")
@@ -395,6 +420,7 @@ private extension ChatViewStore {
             print("   🔄 새로운 메시지, CoreData에서 다시 로드 중...")
             
             // CoreData에서 새로운 메시지 로드하여 화면에 추가
+            
             let beforeCount = self.state.messages.count
             self.loadMessagesFromCoreData()
             let afterCount = self.state.messages.count
@@ -429,6 +455,7 @@ private extension ChatViewStore {
         }
     }
     
+    /// 실시간 업데이트 설정
     private func setupRealtimeUpdates() async {
         Timer.publish(every: 1.0, on: .main, in: .common)
             .autoconnect()
@@ -440,13 +467,16 @@ private extension ChatViewStore {
             .store(in: &cancellables)
     }
     
+    /// 연결 상태 업데이트
     func updateConnectionState() {
         state.isConnected = webSocketManager.isConnected
     }
 }
 
 // MARK: - File Upload
+@MainActor
 private extension ChatViewStore {
+    /// 파일 업로드 처리
     func uploadFiles(chatId: String, fileURLs: [URL]) {
         state.isUploading = true
         state.uploadProgress = 0.0
@@ -479,6 +509,7 @@ private extension ChatViewStore {
         }
     }
     
+    /// 개별 파일 업로드
     private func uploadFile(_ fileURL: URL) async throws -> String {
         // 실제 파일 업로드 구현
         // URLSession을 사용한 multipart/form-data 업로드
@@ -488,7 +519,9 @@ private extension ChatViewStore {
 }
 
 // MARK: - Utility Methods
+@MainActor
 private extension ChatViewStore {
+    /// 캐시 크기 업데이트
     func updateCacheSize() {
         let sizeInBytes = coreDataManager.getCacheSize()
         let formatter = ByteCountFormatter()
@@ -497,11 +530,13 @@ private extension ChatViewStore {
         state.cacheSize = formatter.string(fromByteCount: sizeInBytes)
     }
     
+    /// 토스트 메시지 표시
     func showToast(_ message: String) {
         // Toast 메시지 표시 구현
         print("🍞 Toast: \(message)")
     }
     
+    /// 키보드 숨기기
     func hideKeyboard() {
         UIApplication.shared.sendAction(
             #selector(UIResponder.resignFirstResponder),
