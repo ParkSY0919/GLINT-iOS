@@ -24,6 +24,7 @@ struct MakeViewState {
     var errorMessage: String?
     var showCreateAlert: Bool = false
     var createFilterTitle: String?
+    var createFilterId: String?
 }
 
 enum MakeViewAction {
@@ -47,11 +48,25 @@ final class MakeViewStore {
     private(set) var state = MakeViewState()
     private let useCase: MakeViewUseCase
     private let router: NavigationRouter<MakeTabRoute>
+    private weak var tabBarViewModel: TabBarViewModel?
     
     init(useCase: MakeViewUseCase, router: NavigationRouter<MakeTabRoute>) {
         self.useCase = useCase
         self.router = router
+        self.tabBarViewModel = nil
         
+        setupEditCallback()
+    }
+    
+    /// TabBarViewModel 참조를 설정 (초기화 후 호출)
+    func setTabBarViewModel(_ tabBarViewModel: TabBarViewModel) {
+        self.tabBarViewModel = tabBarViewModel
+    }
+    
+    /// Make 뷰 상태를 초기화
+    func resetState() {
+        state = MakeViewState()
+        // 상태 초기화 후 edit 콜백을 다시 등록
         setupEditCallback()
     }
     
@@ -126,7 +141,6 @@ private extension MakeViewStore {
                 
                 guard let filterValues = state.filterValues else {
                     print(Strings.Make.Error.filterValuesFailed)
-                    state.filterValues = state.filterValues!.setDefaultValues()
                     return
                 }
                 let request = CreateFilterRequest(
@@ -141,7 +155,8 @@ private extension MakeViewStore {
                 
                 let result = try await useCase.createFilter(request)
                 print("result: \(result)")
-                state.createFilterTitle = result
+                state.createFilterTitle = result.title
+                state.createFilterId = result.filterID
                 state.showCreateAlert = true
                 
                 state.isLoading = false
@@ -161,5 +176,10 @@ private extension MakeViewStore {
     
     func handleCreateAlertDismissed() {
         state.showCreateAlert = false
+        
+        // 생성된 필터의 ID가 있으면 mainRouter를 통해 detailView로 이동
+        if let filterId = state.createFilterId {
+            tabBarViewModel?.navigateToDetailFromMake(filterId: filterId)
+        }
     }
 }

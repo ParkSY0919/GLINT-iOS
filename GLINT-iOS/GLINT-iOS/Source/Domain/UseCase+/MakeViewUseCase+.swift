@@ -13,12 +13,12 @@ extension MakeViewUseCase {
         
         return MakeViewUseCase(
             files: { files in
-                let response = try await filterRepo.fileUpload(files).files
+                let response = try await Array(filterRepo.fileUpload(files).files.reversed())
                 return response
             },
             createFilter: { request in
-                let response = try await filterRepo.createFilter(request).title
-                return response
+                let response = try await filterRepo.createFilter(request)
+                return (title: response.title, filterID: response.filterID)
             }
         )
     }()

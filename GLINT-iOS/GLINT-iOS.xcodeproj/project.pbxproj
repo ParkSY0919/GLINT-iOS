@@ -11,6 +11,7 @@
 		9E7976752DF9476100E27F77 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976742DF9476100E27F77 /* Nuke */; };
 		9E7976772DF9476100E27F77 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976762DF9476100E27F77 /* NukeUI */; };
 		9E79767A2DF9476D00E27F77 /* NukeAlamofirePlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */; };
+		9EF2C42B2E1FA1F6004F5A61 /* SocketIO in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF2C42A2E1FA1F6004F5A61 /* SocketIO */; };
 		9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 9EF71E002DCF71F50011A8E1 /* Alamofire */; };
 /* End PBXBuildFile section */
 
@@ -26,6 +27,7 @@
 
 /* Begin PBXFileReference section */
 		9E26F50C2DDD60CD00DA244C /* GLINT-iOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "GLINT-iOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9EF2C1EB2E1F89EB004F5A61 /* GLINT-iOS.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "GLINT-iOS.xcodeproj"; sourceTree = "<group>"; };
 		9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GLINT-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -72,12 +74,18 @@
 				9E7976722DF9475300E27F77 /* iamport-ios in Frameworks */,
 				9E7976772DF9476100E27F77 /* NukeUI in Frameworks */,
 				9E79767A2DF9476D00E27F77 /* NukeAlamofirePlugin in Frameworks */,
+				9EF2C42B2E1FA1F6004F5A61 /* SocketIO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		9EF2C1EC2E1F89EB004F5A61 /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
 		9EF71DDD2DCE4AF50011A8E1 = {
 			isa = PBXGroup;
 			children = (
@@ -144,6 +152,7 @@
 				9E7976742DF9476100E27F77 /* Nuke */,
 				9E7976762DF9476100E27F77 /* NukeUI */,
 				9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */,
+				9EF2C42A2E1FA1F6004F5A61 /* SocketIO */,
 			);
 			productName = "GLINT-iOS";
 			productReference = 9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */;
@@ -182,10 +191,17 @@
 				9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */,
 				9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */,
 				9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */,
+				9EF2C4292E1FA1F5004F5A61 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EF71DE72DCE4AF50011A8E1 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 9EF2C1EC2E1F89EB004F5A61 /* Products */;
+					ProjectRef = 9EF2C1EB2E1F89EB004F5A61 /* GLINT-iOS.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				9EF71DE52DCE4AF50011A8E1 /* GLINT-iOS */,
@@ -539,6 +555,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		9EF2C4292E1FA1F5004F5A61 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/socketio/socket.io-client-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 16.1.1;
+			};
+		};
 		9EF71DFF2DCF71F50011A8E1 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
@@ -569,6 +593,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */;
 			productName = NukeAlamofirePlugin;
+		};
+		9EF2C42A2E1FA1F6004F5A61 /* SocketIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9EF2C4292E1FA1F5004F5A61 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */;
+			productName = SocketIO;
 		};
 		9EF71E002DCF71F50011A8E1 /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;

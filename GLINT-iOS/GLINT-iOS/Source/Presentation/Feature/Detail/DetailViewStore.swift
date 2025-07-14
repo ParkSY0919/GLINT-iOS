@@ -14,17 +14,19 @@ struct DetailViewState {
     var userInfoData: ProfileEntity?
     var photoMetaData: PhotoMetadataEntity?
     var filterPresetsData: FilterValuesEntity?
+    var isMyPost: Bool?
     
     var address: String?
     var navTitle: String = ""
     
     var isLiked: Bool? = false
-    var isLoading: Bool = true
+    var isLoading: Bool = false
     var errorMessage: String?
     var isPurchased: Bool = false
     var sliderPosition: CGFloat = 0.5
     var showPaymentSheet: Bool = false
     var createOrderCode: String?
+    var showDeleteAlert: Bool = false
     var showPaymentAlert: Bool = false
     var purchaseInfo: (String?, String?)
 }
@@ -35,11 +37,14 @@ enum DetailViewAction {
     case backButtonTapped
     case sendMessageTapped
     case likeButtonTapped
+    case editButtonTapped
+    case deleteButtonTapped
     case retryButtonTapped
     case purchaseButtonTapped
     case paymentCompleted(IamportResponse?)
     case dismissPaymentSheet
     case paymentAlertDismissed
+    case deleteAlertDismissed
 }
 
 @MainActor
@@ -72,6 +77,12 @@ final class DetailViewStore {
         case .likeButtonTapped:
             handleLikeTapped()
             
+        case .editButtonTapped:
+            handleEditTapped()
+            
+        case .deleteButtonTapped:
+            handleDeleteTapped()
+            
         case .sendMessageTapped:
             handleSendMessageTapped()
             
@@ -88,14 +99,30 @@ final class DetailViewStore {
             
         case .paymentAlertDismissed:
             handlePaymentAlertDismissed()
+            
+        case .deleteAlertDismissed:
+            handleDeleteAlertDismissed()
         }
     }
 }
 
 @MainActor
 private extension DetailViewStore {
+    func isReturningFromChat() -> Bool {
+        // 네비게이션 스택에 chat route가 있는지 확인
+        return router.path.contains { route in
+            if case .chat = route { return true }
+            return false
+        }
+    }
+    
     /// 뷰가 나타났을 때의 처리
     func handleViewAppeared(id: String) {
+        // 같은 ID이고 ChatView에서 돌아온 경우라면 데이터 새로고침 건너뛰기
+        if filterId == id && state.filterData != nil && isReturningFromChat() {
+            return
+        }
+        
         filterId = id
         loadFilterDetail()
     }
@@ -192,10 +219,65 @@ private extension DetailViewStore {
         }
     }
     
+    ///삭제하기 버튼 탭
+    func handleDeleteTapped() {
+        print(Strings.Detail.Log.deleteButtonTapped)
+        
+        Task {
+            do {
+                state.isLoading = true
+                state.errorMessage = nil
+                
+                guard let filterID = state.filterData?.id, let isMyPost = state.isMyPost,
+                isMyPost == true else {
+                    state.isLoading = false
+                    state.errorMessage = Strings.Detail.Error.filterInfoNotFound
+                    return
+                }
+                print(try await useCase.deleteFilter(filterID)) //에러 안 뜨면 성공한 것.
+                state.isLoading = false
+                router.pop()
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
     /// 메시지 보내기 버튼 탭 처리
     func handleSendMessageTapped() {
         print(Strings.Detail.Log.messageButtonTapped)
-        // TODO: 메시지 화면으로 네비게이션
+        
+        // 작가 정보가 있으면 채팅 화면으로 이동
+        guard let userID = state.userInfoData?.userID else {
+            state.errorMessage = "작가 정보를 찾을 수 없습니다."
+            return
+        }
+        Task {
+            do {
+                state.isLoading = true
+                state.errorMessage = nil
+                
+                let roomID = try await useCase.createChatRoom(userID)
+                
+                state.isLoading = false
+                guard let nick = state.userInfoData?.nick,
+                      let userID = state.userInfoData?.userID else {
+                    print("Chat 전환 실패~")
+                    return
+                }
+                router.push(.chat(roomID: roomID, nick: nick, userID: userID))
+            } catch {
+                state.isLoading = false
+                state.errorMessage = error.localizedDescription
+            }
+        }
+    }
+    
+    /// 수정하기 버튼 탭 처리
+    func handleEditTapped() {
+        print(Strings.Detail.Log.editButtonTapped)
+        // TODO: 수정 화면으로 네비게이션
     }
     
     /// 재시도 버튼 탭 처리
@@ -212,13 +294,14 @@ private extension DetailViewStore {
         
         Task {
             do {
-                let (filter, profile, metadata, presets) = try await useCase.filterDetail(filterId)
+                let (filter, profile, metadata, presets, isMyPost) = try await useCase.filterDetail(filterId)
                 
                 state = await DetailViewState(
                     filterData: filter,
                     userInfoData: profile,
                     photoMetaData: metadata,
                     filterPresetsData: presets,
+                    isMyPost: isMyPost,
                     address: metadata?.getKoreanAddress(),
                     navTitle: filter.title ?? "",
                     isLiked: filter.isLiked ?? false,
@@ -234,6 +317,10 @@ private extension DetailViewStore {
     
     func handlePaymentAlertDismissed() {
         state.showPaymentAlert = false
+    }
+    
+    func handleDeleteAlertDismissed() {
+        state.showDeleteAlert = false
     }
 }
 

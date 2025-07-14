@@ -11,19 +11,20 @@ import Alamofire
 
 enum FilterDetailEndPoint {
     case filterDetail(filterId: String)
+    case deleteFilter(filterID: String)
 }
 
 extension FilterDetailEndPoint: EndPoint {
     var utilPath: String {
         switch self {
-        case .filterDetail:
+        case .filterDetail, .deleteFilter:
             return "v1/filters/"
         }
     }
     
     var path: String {
         switch self {
-        case .filterDetail(let filterId):
+        case .filterDetail(let filterId), .deleteFilter(let filterId):
             return utilPath + "\(filterId)"
         }
     }
@@ -32,12 +33,14 @@ extension FilterDetailEndPoint: EndPoint {
         switch self {
         case .filterDetail:
             return .get
+        case .deleteFilter:
+            return .delete
         }
     }
     
     var requestType: RequestType {
         switch self {
-        case .filterDetail:
+        case .filterDetail, .deleteFilter:
             return .none
         }
     }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23507" systemVersion="24E263" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="GTChat" representedClassName="GTChat" syncable="YES" codeGenerationType="class">
+        <attribute name="chatId" attributeType="String"/>
+        <attribute name="content" attributeType="String"/>
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dateSection" attributeType="String"/>
+        <attribute name="isRead" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="roomId" attributeType="String"/>
+        <attribute name="sendStatus" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timeDisplay" attributeType="String"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="files" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="GTChatFile" inverseName="chat" inverseEntity="GTChatFile"/>
+        <relationship name="room" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GTChatRoom"/>
+        <relationship name="sender" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GTUser" inverseName="chats" inverseEntity="GTUser"/>
+    </entity>
+    <entity name="GTChatFile" representedClassName="GTChatFile" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="fileId" attributeType="String"/>
+        <attribute name="fileName" attributeType="String"/>
+        <attribute name="fileSize" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="fileType" attributeType="String"/>
+        <attribute name="localPath" optional="YES" attributeType="String"/>
+        <attribute name="mimeType" optional="YES" attributeType="String"/>
+        <attribute name="serverPath" optional="YES" attributeType="String"/>
+        <attribute name="thumbnailPath" optional="YES" attributeType="String"/>
+        <attribute name="uploadProgress" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="uploadStatus" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="chat" maxCount="1" deletionRule="Nullify" destinationEntity="GTChat" inverseName="files" inverseEntity="GTChat"/>
+    </entity>
+    <entity name="GTChatRoom" representedClassName="GTChatRoom" syncable="YES" codeGenerationType="class">
+        <attribute name="lastMessage" optional="YES" attributeType="String"/>
+        <attribute name="lastMessageDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="roomId" attributeType="String"/>
+        <attribute name="unreadCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="GTUser" representedClassName="GTUser" syncable="YES" codeGenerationType="class">
+        <attribute name="isCurrentUser" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="nickname" attributeType="String"/>
+        <attribute name="profileImageUrl" optional="YES" attributeType="String"/>
+        <attribute name="userId" attributeType="String"/>
+        <relationship name="chats" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="GTChat" inverseName="sender" inverseEntity="GTChat"/>
+    </entity>
+</model>

@@ -117,6 +117,3 @@ struct TitlePictureSectionView: View {
         return containerWidth / aspectRatio
     }
 }
-
-
-

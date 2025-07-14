@@ -9,4 +9,5 @@ import Foundation
 
 struct FilterDetailRepository {
     var filterDetail: (_ filterId: String) async throws -> FilterDetailResponse
+    var deleteFilter: (_ filterId: String) async throws -> Void
 }

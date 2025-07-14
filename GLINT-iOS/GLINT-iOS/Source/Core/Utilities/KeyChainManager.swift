@@ -9,6 +9,7 @@ import SwiftUI
 
 enum KeychainKey: String, CaseIterable {
     case deviceId
+    case userId
     case accessToken
     case refreshToken
     case appleAuthorizationCode
@@ -138,6 +139,14 @@ extension KeychainManager {
 
 //MARK: Keychain 편의 함수
 extension KeychainManager {
+    func saveUserId(_ userId: String) {
+        save(userId, key: .userId)
+    }
+    
+    func getUserId() -> String? {
+        read(.userId)
+    }
+    
     func saveAccessToken(_ token: String) {
         save(token, key: .accessToken)
     }

@@ -14,7 +14,7 @@ struct LoginView: View {
     var body: some View {
         NavigationStack {
             contentView
-                .appScreenStyle(ignoresSafeArea: true)
+                .appScreenStyle(ignoresSafeArea: false)
                 .onViewDidLoad(perform: {
                     store.send(.viewAppeared)
                 })
@@ -27,19 +27,20 @@ private extension LoginView {
     var contentView: some View {
         ZStack {
             Color.gray100
-                .ignoresSafeArea(.all)
             
-            VStack(spacing: 20) {
-                formFieldsSection
-                signInSection
-                signUpSection
-                socialLoginSection
-            }
-            .padding()
-            .disabled(store.state.loginState == .loading)
-            
-            if store.state.loginState == .loading {
-                StateViewBuilder.loadingView()
+            ScrollView {
+                VStack(spacing: 20) {
+                    formFieldsSection
+                    signInSection
+                    signUpSection
+                    socialLoginSection
+                }
+                .padding()
+                .disabled(store.state.loginState == .loading)
+                
+                if store.state.loginState == .loading {
+                    StateViewBuilder.loadingView()
+                }
             }
         }
     }
@@ -55,15 +56,12 @@ private extension LoginView {
                     set: { store.send(.emailChanged($0)) }
                 )
             )
-            .keyboardType(.emailAddress)
-            .autocapitalization(.none)
             .onSubmit {
                 store.send(.emailSubmitted)
             }
             
             FormFieldView(
                 formCase: .password,
-                isSecure: true,
                 errorMessage: !store.state.password.isEmpty && !store.state.isPasswordValid
                 ? Strings.Login.Error.passwordValidation : nil,
                 text: Binding(

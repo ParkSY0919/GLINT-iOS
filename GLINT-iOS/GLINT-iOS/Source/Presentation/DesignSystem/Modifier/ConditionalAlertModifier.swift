@@ -7,22 +7,50 @@
 
 import SwiftUI
 
-struct ConditionalAlertModifier<MessageContent: View>: ViewModifier {
+struct ConditionalAlertModifier<Buttons: View, Message: View>: ViewModifier {
     let title: String
-    let buttonTitle: String
     @Binding var isPresented: Bool
-    let messageContent: () -> MessageContent
-    let onConfirm: (() -> Void)?
+    @ViewBuilder let buttons: () -> Buttons
+    @ViewBuilder let message: () -> Message
     
     func body(content: Content) -> some View {
         content
-            .alert(title, isPresented: $isPresented) {
+            .alert(title, isPresented: $isPresented, actions: buttons, message: message)
+    }
+}
+
+extension View {
+    // MARK: - Single Button Alert
+    func conditionalAlert(
+        title: String,
+        buttonTitle: String = "확인",
+        isPresented: Binding<Bool>,
+        onConfirm: @escaping () -> Void = {},
+        @ViewBuilder message: @escaping () -> some View
+    ) -> some View {
+        modifier(ConditionalAlertModifier(
+            title: title,
+            isPresented: isPresented,
+            buttons: {
                 Button(buttonTitle) {
-                    onConfirm?()
-                    isPresented = false
+                    onConfirm()
                 }
-            } message: {
-                messageContent()
-            }
+            },
+            message: message
+        ))
+    }
+    
+    func conditionalAlert<Buttons: View, Message: View>(
+        title: String,
+        isPresented: Binding<Bool>,
+        @ViewBuilder buttons: @escaping () -> Buttons,
+        @ViewBuilder message: @escaping () -> Message
+    ) -> some View {
+        modifier(ConditionalAlertModifier(
+            title: title,
+            isPresented: isPresented,
+            buttons: buttons,
+            message: message
+        ))
     }
 }

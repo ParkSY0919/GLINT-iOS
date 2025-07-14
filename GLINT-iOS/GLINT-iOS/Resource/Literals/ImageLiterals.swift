@@ -2,7 +2,7 @@
 //  ImageLiterals.swift
 //  GLINT-iOS
 //
-//  Created by 박신영 on 5/10/25.
+//  Created by 박신영
 //
 
 import SwiftUI
@@ -53,6 +53,8 @@ extension Images {
         ]
         static let like = Image(.like)
         static let likeFill = Image(.likeFill)
+        static let delete = Image(systemName: "trash")
+        static let list = Image(systemName: "list.bullet")
     }
     
     enum Make {

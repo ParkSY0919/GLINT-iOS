@@ -91,3 +91,16 @@ extension GLINTColor.Palette {
     }
     
 }
+
+extension Color {
+    static let glintPrimary = Color(red: 0.2, green: 0.6, blue: 1.0)
+    static let glintSecondary = Color(red: 0.85, green: 0.95, blue: 1.0)
+    static let glintAccent = Color(red: 1.0, green: 0.4, blue: 0.6)
+    static let glintBackground = Color(red: 0.97, green: 0.98, blue: 1.0)
+    static let glintCardBackground = Color.white
+    static let glintTextPrimary = Color(red: 0.1, green: 0.1, blue: 0.2)
+    static let glintTextSecondary = Color(red: 0.4, green: 0.4, blue: 0.5)
+    static let glintSuccess = Color(red: 0.2, green: 0.8, blue: 0.4)
+    static let glintWarning = Color(red: 1.0, green: 0.6, blue: 0.2)
+    static let glintError = Color(red: 1.0, green: 0.3, blue: 0.3)
+}
