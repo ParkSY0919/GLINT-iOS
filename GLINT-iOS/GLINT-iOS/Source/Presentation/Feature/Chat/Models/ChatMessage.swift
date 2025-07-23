@@ -14,14 +14,16 @@ struct ChatMessage: Identifiable, Hashable {
     let senderName: String
     let timestamp: Date
     let isFromMe: Bool
+    let images: [String] // 이미지 URL 배열 추가
     
-    init(id: String = UUID().uuidString, content: String, senderId: String, senderName: String, timestamp: Date, isFromMe: Bool) {
+    init(id: String = UUID().uuidString, content: String, senderId: String, senderName: String, timestamp: Date, isFromMe: Bool, images: [String] = []) {
         self.id = id
         self.content = content
         self.senderId = senderId
         self.senderName = senderName
         self.timestamp = timestamp
         self.isFromMe = isFromMe
+        self.images = images
     }
 }
 

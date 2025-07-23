@@ -18,13 +18,18 @@ struct ChatViewState {
     var errorMessage: String?
     var isConnected: Bool = false
     var unreadCount: Int = 0
-    var selectedFiles: [URL] = []
+    var selectedImages: [UIImage] = [] // UIImage 배열로 변경 (옵셔널 제거)
+    var showImagePicker: Bool = false
+    var showImageDetail: Bool = false // 이미지 상세보기 모달
+    var detailImages: [String] = [] // 상세보기할 이미지 URL들
+    var detailImageIndex: Int = 0 // 현재 선택된 이미지 인덱스
     var isUploading: Bool = false
     var uploadProgress: Double = 0.0
     var cacheSize: String = "0 MB"
     var relativeUserId: String = ""
     var myUserID: String = ""
     var myAccessToken: String = ""
+    var fileUploadResponse: [String]?
 }
 
 enum ChatViewAction {
@@ -34,7 +39,11 @@ enum ChatViewAction {
     case sendButtonTapped(String)
     case backButtonTapped
     case attachFileButtonTapped
-    case filesSelected([URL])
+    case imagesSelected([UIImage]) // 다중 이미지 선택으로 수정
+    case removeSelectedImage(Int)
+    case showImageDetail([String], Int) // 이미지 상세보기 표시
+    case hideImageDetail // 이미지 상세보기 닫기
+    // case filesSelected([URL]) 제거
     case retryFailedMessage(String)
     case deleteMessage(String)
     case clearCache
@@ -95,8 +104,17 @@ final class ChatViewStore {
         case .attachFileButtonTapped:
             handleAttachFile()
             
-        case .filesSelected(let urls):
-            handleFilesSelected(urls)
+        case .imagesSelected(let images):
+            handleImagesSelected(images)
+            
+        case .removeSelectedImage(let index):
+            handleRemoveSelectedImage(index)
+            
+        case .showImageDetail(let images, let index):
+            handleShowImageDetail(images, index)
+            
+        case .hideImageDetail:
+            handleHideImageDetail()
             
         case .retryFailedMessage(let chatId):
             handleRetryFailedMessage(chatId)
@@ -167,37 +185,85 @@ private extension ChatViewStore {
     
     /// 메시지 전송 처리
     func handleSendMessage(_ content: String) {
-        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        
         let messageContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 메시지 내용이 없고 이미지도 없으면 전송하지 않음
+        guard !messageContent.isEmpty || !state.selectedImages.isEmpty else { return }
         
         print("📤 메시지 전송 시작:")
         print("   - 내용: \(messageContent)")
+        print("   - 이미지 개수: \(state.selectedImages.count)")
         print("   - 방 ID: \(state.roomID)")
         print("   - 내 사용자 ID: \(state.myUserID)")
         
-        // 파일이 첨부된 경우
-        let fileURLs = state.selectedFiles.isEmpty ? nil : state.selectedFiles
+        // 선택된 이미지들을 Data로 변환
+        let selectedImages = state.selectedImages
         
         Task {
             do {
                 state.isLoading = true
                 
-                // 서버에 메시지 전송
-                let response = try await useCase.postChatMessage(state.roomID, PostChatMessageRequest(content: messageContent, files: nil))
+                // 이미지가 있는 경우 Data로 변환
+                var imageDataArray: [Data] = []
+                if !selectedImages.isEmpty {
+                    do {
+                        imageDataArray = try ImageConverter.convertToData(
+                            images: selectedImages.map(Optional.some),
+                            compressionQuality: 0.8
+                        )
+                        print("📸 이미지 변환 완료: \(imageDataArray.count)개")
+                        
+                        state.fileUploadResponse = try await useCase.chatRoomFileUpload(state.roomID, imageDataArray)
+                        print("files: \(state.fileUploadResponse)")
+                        
+                    } catch {
+                        print("❌ 이미지 변환 실패: \(error)")
+                        await MainActor.run {
+                            state.isLoading = false
+                            state.errorMessage = "이미지 변환 중 오류가 발생했습니다."
+                        }
+                        return
+                    }
+                }
+                
+                // 서버에 메시지 전송 (이미지 포함)
+                let finalContent = messageContent.isEmpty && !state.selectedImages.isEmpty ? "📷 사진" : messageContent
+                let response = try await useCase.postChatMessage(
+                    state.roomID, 
+                    PostChatMessageRequest(
+                        content: finalContent, 
+                        files: state.fileUploadResponse
+                    )
+                )
                 print("✅ 서버 메시지 전송 성공: \(response)")
+                
+                // 🔥 서버 전송 성공 후 즉시 로컬에 저장
+//                await MainActor.run {
+//                    let _ = coreDataManager.createChatFromServer(
+//                        chatId: response.chatID,
+//                        content: response.content,
+//                        roomId: response.roomID,
+//                        userId: response.sender.userID,
+//                        timestamp: parseDate(from: response.createdAt) ?? Date(),
+//                        files: state.fileUploadResponse
+//                    )
+//                    
+//                    // CoreData에서 메시지 다시 로드하여 UI 업데이트
+//                    loadMessagesFromCoreData()
+//                    print("💾 내가 보낸 메시지를 로컬에 저장 완료")
+//                }
                 
                 // 전송 성공 시에만 UI 초기화
                 await MainActor.run {
                     state.newMessage = ""
-                    state.selectedFiles = []
+                    state.selectedImages = [] // 선택된 이미지들 초기화
                     state.isLoading = false
                 }
                 
-                // 파일 업로드 (별도 처리)
-                if let fileURLs = fileURLs {
-                    uploadFiles(chatId: state.roomID, fileURLs: fileURLs)
-                }
+                // 이미지 업로드 처리 (별도)
+//                if !selectedImages.isEmpty {
+//                    uploadImages(chatId: state.roomID, images: selectedImages)
+//                }
                 
                 // 키보드 숨기기
                 await MainActor.run {
@@ -221,14 +287,49 @@ private extension ChatViewStore {
     
     /// 파일 첨부 버튼 탭 처리
     func handleAttachFile() {
-        // 파일 선택 UI 표시 (실제 구현에서는 DocumentPicker나 ImagePicker 사용)
-        print("📎 파일 첨부 버튼 클릭")
+        // 최대 5개까지만 선택 가능하도록 제한
+        guard state.selectedImages.count < 5 else {
+            print("📎 최대 5개의 이미지만 선택할 수 있습니다.")
+            return
+        }
+        state.showImagePicker = true
+        print("📎 이미지 선택기 열기")
     }
     
-    /// 파일 선택 처리
-    func handleFilesSelected(_ urls: [URL]) {
-        state.selectedFiles = urls
-        print("📁 선택된 파일: \(urls.count)개")
+    /// 이미지 선택 처리
+    func handleImagesSelected(_ images: [UIImage]) {
+        // 최대 5개까지만 추가
+        guard state.selectedImages.count + images.count <= 5 else {
+            print("📎 최대 5개의 이미지만 선택할 수 있습니다.")
+            return
+        }
+        
+        state.selectedImages.append(contentsOf: images)
+        state.showImagePicker = false
+        print("📁 이미지 선택됨: 총 \(state.selectedImages.count)개")
+    }
+    
+    /// 선택된 이미지 제거 처리
+    func handleRemoveSelectedImage(_ index: Int) {
+        guard index >= 0 && index < state.selectedImages.count else { return }
+        state.selectedImages.remove(at: index)
+        print("📁 이미지 제거됨: 총 \(state.selectedImages.count)개")
+    }
+    
+    /// 이미지 상세보기 표시 처리
+    func handleShowImageDetail(_ images: [String], _ index: Int) {
+        state.detailImages = images
+        state.detailImageIndex = index
+        state.showImageDetail = true
+        print("📸 이미지 상세보기 모달 표시: 이미지 \(index)번")
+    }
+    
+    /// 이미지 상세보기 닫기 처리
+    func handleHideImageDetail() {
+        state.showImageDetail = false
+        state.detailImages = []
+        state.detailImageIndex = 0
+        print("📸 이미지 상세보기 모달 닫기")
     }
     
     /// 실패한 메시지 재전송 처리
@@ -369,7 +470,7 @@ private extension ChatViewStore {
     }
     
     /// 날짜 문자열을 Date 객체로 변환
-    private func parseDate(from dateString: String) -> Date? {
+    func parseDate(from dateString: String) -> Date? {
         return DateFormatterManager.shared.parseISO8601Date(from: dateString)
     }
 }
@@ -476,29 +577,29 @@ private extension ChatViewStore {
 // MARK: - File Upload
 @MainActor
 private extension ChatViewStore {
-    /// 파일 업로드 처리
-    func uploadFiles(chatId: String, fileURLs: [URL]) {
+    /// 이미지 업로드 처리
+    /// 현재 사용 안함
+    func uploadImages(chatId: String, images: [UIImage]) {
         state.isUploading = true
         state.uploadProgress = 0.0
         
         Task {
-            for (index, fileURL) in fileURLs.enumerated() {
+            for (index, image) in images.enumerated() {
                 do {
-                    // 실제 파일 업로드 로직
-                    // 추후 return 값 사용
-                    let _ = try await uploadFile(fileURL)
+                    // 실제 이미지 업로드 로직
+                    let _ = try await uploadImage(image)
                     
                     // 진행률 업데이트
-                    let progress = Float(index + 1) / Float(fileURLs.count)
+                    let progress = Float(index + 1) / Float(images.count)
                     await MainActor.run {
                         state.uploadProgress = Double(progress)
                     }
                     
                     // CoreData 업데이트
-                    // coreDataManager.updateFileServerPath(fileId: fileId, serverPath: uploadedPath)
+                    // coreDataManager.updateImageServerPath(imageId: imageId, serverPath: uploadedPath)
                     
                 } catch {
-                    print("❌ 파일 업로드 실패: \(error)")
+                    print("❌ 이미지 업로드 실패: \(error)")
                 }
             }
             
@@ -509,12 +610,17 @@ private extension ChatViewStore {
         }
     }
     
-    /// 개별 파일 업로드
-    private func uploadFile(_ fileURL: URL) async throws -> String {
-        // 실제 파일 업로드 구현
-        // URLSession을 사용한 multipart/form-data 업로드
+    /// 개별 이미지 업로드
+    private func uploadImage(_ image: UIImage) async throws -> String {
+        // 실제 이미지 업로드 구현
+        // UIImage를 Data로 변환 후 multipart/form-data 업로드
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            throw NSError(domain: "ImageUploadError", code: -1, userInfo: [NSLocalizedDescriptionKey: "이미지 데이터 변환 실패"])
+        }
+        
+        // 시뮬레이션: 실제로는 서버에 업로드
         try await Task.sleep(nanoseconds: 2_000_000_000) // 2초 시뮬레이션
-        return "https://server.com/files/\(UUID().uuidString)"
+        return "https://server.com/images/\(UUID().uuidString).jpg"
     }
 }
 

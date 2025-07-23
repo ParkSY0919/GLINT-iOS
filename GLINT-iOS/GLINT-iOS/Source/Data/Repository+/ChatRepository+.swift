@@ -21,7 +21,7 @@ extension ChatRepository {
             },
             
             chatRoomFileUpload: { roomID, files in
-                return try await provider.request(.filesUpload(roomID: roomID, files: files))
+                return try await provider.requestMultipart(.filesUpload(roomID: roomID, files: files))
             },
             
             getChatHistory: { roomID, next in

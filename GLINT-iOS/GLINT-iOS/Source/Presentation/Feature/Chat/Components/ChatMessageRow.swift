@@ -13,6 +13,7 @@ struct ModernChatMessageRow: View {
     let showTime: Bool
     let onRetryTapped: (String) -> Void
     let onDeleteTapped: (String) -> Void
+    let onImageTapped: ([String], Int) -> Void // 새로 추가
     
     @State private var showContextMenu = false
     
@@ -27,12 +28,12 @@ struct ModernChatMessageRow: View {
                     if showTime {
                         timeView
                     }
-                    myMessageBubble
+                    myMessageContent
                 }
             } else {
                 // 상대방 메시지: 왼쪽 정렬
                 HStack(alignment: .bottom, spacing: 4) {
-                    otherMessageBubble
+                    otherMessageContent
                     if showTime {
                         timeView
                     }
@@ -58,6 +59,38 @@ struct ModernChatMessageRow: View {
 
 // MARK: - Private Views
 private extension ModernChatMessageRow {
+    var myMessageContent: some View {
+        VStack(alignment: .trailing, spacing: 6) {
+            // 이미지들 (있는 경우)
+            if !message.images.isEmpty {
+                ChatImageLayoutView(imageUrls: message.images) { index in
+                    onImageTapped(message.images, index)
+                }
+            }
+            
+            // 텍스트 메시지 (있는 경우)
+            if !message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                myMessageBubble
+            }
+        }
+    }
+    
+    var otherMessageContent: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // 이미지들 (있는 경우)
+            if !message.images.isEmpty {
+                ChatImageLayoutView(imageUrls: message.images) { index in
+                    onImageTapped(message.images, index)
+                }
+            }
+            
+            // 텍스트 메시지 (있는 경우)
+            if !message.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                otherMessageBubble
+            }
+        }
+    }
+    
     var myMessageBubble: some View {
         Text(message.content)
             .font(.system(size: 16, weight: .regular))
@@ -131,28 +164,29 @@ struct ModernChatBubbleShape: Shape {
 }
 
 // MARK: - Legacy ChatMessageRow (호환성을 위해 유지)
-struct ChatMessageRow: View {
-    let message: ChatMessage
-    let showTime: Bool
-    let onRetryTapped: ((String) -> Void)?
-    let onDeleteTapped: ((String) -> Void)?
-    
-    init(message: ChatMessage, 
-         showTime: Bool, 
-         onRetryTapped: ((String) -> Void)? = nil, 
-         onDeleteTapped: ((String) -> Void)? = nil) {
-        self.message = message
-        self.showTime = showTime
-        self.onRetryTapped = onRetryTapped
-        self.onDeleteTapped = onDeleteTapped
-    }
-    
-    var body: some View {
-        ModernChatMessageRow(
-            message: message,
-            showTime: showTime,
-            onRetryTapped: onRetryTapped ?? { _ in },
-            onDeleteTapped: onDeleteTapped ?? { _ in }
-        )
-    }
-} 
+//struct ChatMessageRow: View {
+//    let message: ChatMessage
+//    let showTime: Bool
+//    let onRetryTapped: ((String) -> Void)?
+//    let onDeleteTapped: ((String) -> Void)?
+//    let onImageTapped: ([String], Int) -> Void?
+//    
+//    init(message: ChatMessage, 
+//         showTime: Bool, 
+//         onRetryTapped: ((String) -> Void)? = nil, 
+//         onDeleteTapped: ((String) -> Void)? = nil) {
+//        self.message = message
+//        self.showTime = showTime
+//        self.onRetryTapped = onRetryTapped
+//        self.onDeleteTapped = onDeleteTapped
+//    }
+//    
+//    var body: some View {
+//        ModernChatMessageRow(
+//            message: message,
+//            showTime: showTime,
+//            onRetryTapped: onRetryTapped ?? { _ in },
+//            onDeleteTapped: onDeleteTapped ?? { _ in }, onImageTapped: onImageTapped
+//        )
+//    }
+//} 
