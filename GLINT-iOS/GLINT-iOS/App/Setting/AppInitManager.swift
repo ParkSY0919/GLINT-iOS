@@ -13,22 +13,27 @@ final class AppInitManager {
     
     private init() {}
     
-    /// 앱 초기화 시 CoreData와 WebSocket 설정
-    func setupCoreDataAndWebSocket() {
+    /// 앱 초기화 시 CoreData와 WebSocket 설정 (FCM 제외)
+    func setupCoreDataAndWebSocketWithoutFCM() {
         // CoreData 초기화
         setupCoreData()
         
         // WebSocket 관리자 초기화
         setupWebSocket()
         
-        // FCM 초기화
-        setupFCM()
-        
         // 백그라운드 작업 설정
 //        setupBackgroundTasks()
         
         // 캐시 정리 스케줄링
         scheduleCacheCleanup()
+    }
+    
+    /// 앱 초기화 시 CoreData와 WebSocket 설정 (기존 함수 - 호환성 유지)
+    func setupCoreDataAndWebSocket() {
+        setupCoreDataAndWebSocketWithoutFCM()
+        
+        // FCM 초기화 (APNS 토큰 준비 후 별도 호출 권장)
+        setupFCM()
     }
     
     private func setupCoreData() {
@@ -64,20 +69,20 @@ final class AppInitManager {
         print("🔌 WebSocket 초기화 완료")
     }
     
-    private func setupFCM() {
+    func setupFCM() {
         // FCMManager 초기화 및 설정
         let fcmManager = FCMManager.shared
         fcmManager.configure()
+        
+        // APNS 토큰 설정 후 FCM 토큰 요청
+        fcmManager.requestFCMTokenAfterAPNS()
         
         // 푸시 알림 권한 요청 (약간의 지연 후 요청)
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             fcmManager.requestNotificationPermission()
         }
         
-        // 채팅 관련 토픽 구독 (사용자 로그인 후 처리)
-        if let userId = KeychainManager.shared.getUserId() {
-            fcmManager.subscribeToTopic("user_\(userId)")
-        }
+        // 토픽 구독은 FCM 토큰 설정 후 자동으로 처리됨
         
         print("🔥 FCM 초기화 완료")
     }

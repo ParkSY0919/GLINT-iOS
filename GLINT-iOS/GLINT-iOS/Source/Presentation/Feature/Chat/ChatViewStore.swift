@@ -237,6 +237,10 @@ private extension ChatViewStore {
                 )
                 print("✅ 서버 메시지 전송 성공: \(response)")
                 
+                //MARK: 메세지 전송 성공했으니 Push 시작
+                //추후 psy -> myNick 으로 수정
+                _ = try await useCase.chatPushNoti([state.relativeUserId], "psy", state.newMessage)
+                
                 // 🔥 서버 전송 성공 후 즉시 로컬에 저장
 //                await MainActor.run {
 //                    let _ = coreDataManager.createChatFromServer(

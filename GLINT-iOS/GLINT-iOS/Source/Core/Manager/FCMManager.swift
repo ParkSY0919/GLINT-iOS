@@ -35,10 +35,14 @@ final class FCMManager: NSObject, ObservableObject {
         // UNUserNotificationCenter delegate 설정
         UNUserNotificationCenter.current().delegate = self
         
-        // FCM 토큰 요청
+        // FCM 토큰은 APNS 토큰 설정 후에 요청 (즉시 요청하지 않음)
+        print("🔥 Firebase FCM 기본 설정 완료 (토큰 요청 대기 중)")
+    }
+    
+    /// APNS 토큰 설정 후 FCM 토큰 요청
+    func requestFCMTokenAfterAPNS() {
         requestFCMToken()
-        
-        print("🔥 Firebase FCM 초기화 완료")
+        print("🔥 APNS 토큰 설정 후 FCM 토큰 요청 시작")
     }
     
     // MARK: - 푸시 알림 권한 요청
@@ -87,6 +91,17 @@ final class FCMManager: NSObject, ObservableObject {
         KeychainManager.shared.saveFCMToken(token)
         // 서버에 토큰 전송 (필요 시)
 //        sendTokenToServer(token)
+        
+        // FCM 토큰 설정 완료 후 사용자 토픽 자동 구독
+        subscribeToUserTopicIfNeeded()
+    }
+    
+    /// 사용자 로그인 상태에 따른 토픽 자동 구독
+    private func subscribeToUserTopicIfNeeded() {
+        if let userId = KeychainManager.shared.getUserId() {
+            subscribeToTopic("user_\(userId)")
+            print("🔥 FCM 토큰 설정 완료 - 사용자 토픽 자동 구독: user_\(userId)")
+        }
     }
     
     func sendTokenToServer(_ token: String) {

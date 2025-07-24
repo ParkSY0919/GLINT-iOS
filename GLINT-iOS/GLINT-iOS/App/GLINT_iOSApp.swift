@@ -11,25 +11,36 @@ import Combine
 import Alamofire
 import Nuke
 import NukeAlamofirePlugin
+import FirebaseMessaging
 
 // AppDelegate 클래스 추가
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        application.registerForRemoteNotifications()
         print("🚀 AppDelegate - didFinishLaunchingWithOptions")
         
-        // AppInitializer를 통한 초기화
-        AppInitManager.shared.setupCoreDataAndWebSocket()
+        // AppInitializer를 통한 초기화 (FCM 제외)
+        AppInitManager.shared.setupCoreDataAndWebSocketWithoutFCM()
+        
+        // APNS 등록 (FCM은 APNS 토큰 설정 후에 초기화)
+        application.registerForRemoteNotifications()
         
         print("🚀 GLINT 앱 초기화 완료 - CoreData & WebSocket 준비됨")
         return true
     }
     
     // 원격 푸시 알림 등록 성공
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWitheviceToken deviceToken: Data) {
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         print("📱 APNS 디바이스 토큰 등록 성공")
-        // FCM에 APNS 토큰 설정
-        // Firebase Messaging에서 자동으로 처리되므로 별도 구현 불필요
+        
+        // APNS 토큰을 Firebase Messaging에 설정
+        Messaging.messaging().apnsToken = deviceToken
+        print("🔥 APNS 토큰 Firebase에 설정 완료")
+        
+        // 이제 FCM 초기화 진행
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            AppInitManager.shared.setupFCM()
+            print("🔥 FCM 초기화 완료 (APNS 토큰 설정 후)")
+        }
     }
     
     // 원격 푸시 알림 등록 실패
