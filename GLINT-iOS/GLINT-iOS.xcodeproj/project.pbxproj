@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E4703C42E31E19E0000CF24 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E4703C32E31E19E0000CF24 /* FirebaseAnalytics */; };
+		9E4703C62E31E19E0000CF24 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9E4703C52E31E19E0000CF24 /* FirebaseCore */; };
+		9E4703C82E31E19E0000CF24 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 9E4703C72E31E19E0000CF24 /* FirebaseCrashlytics */; };
+		9E4703CA2E31E19E0000CF24 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 9E4703C92E31E19E0000CF24 /* FirebaseMessaging */; };
 		9E7976722DF9475300E27F77 /* iamport-ios in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976712DF9475300E27F77 /* iamport-ios */; };
 		9E7976752DF9476100E27F77 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976742DF9476100E27F77 /* Nuke */; };
 		9E7976772DF9476100E27F77 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = 9E7976762DF9476100E27F77 /* NukeUI */; };
@@ -69,11 +73,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9E4703C42E31E19E0000CF24 /* FirebaseAnalytics in Frameworks */,
 				9E7976752DF9476100E27F77 /* Nuke in Frameworks */,
+				9E4703CA2E31E19E0000CF24 /* FirebaseMessaging in Frameworks */,
 				9EF71E012DCF71F50011A8E1 /* Alamofire in Frameworks */,
 				9E7976722DF9475300E27F77 /* iamport-ios in Frameworks */,
 				9E7976772DF9476100E27F77 /* NukeUI in Frameworks */,
 				9E79767A2DF9476D00E27F77 /* NukeAlamofirePlugin in Frameworks */,
+				9E4703C82E31E19E0000CF24 /* FirebaseCrashlytics in Frameworks */,
+				9E4703C62E31E19E0000CF24 /* FirebaseCore in Frameworks */,
 				9EF2C42B2E1FA1F6004F5A61 /* SocketIO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -153,6 +161,10 @@
 				9E7976762DF9476100E27F77 /* NukeUI */,
 				9E7976792DF9476D00E27F77 /* NukeAlamofirePlugin */,
 				9EF2C42A2E1FA1F6004F5A61 /* SocketIO */,
+				9E4703C32E31E19E0000CF24 /* FirebaseAnalytics */,
+				9E4703C52E31E19E0000CF24 /* FirebaseCore */,
+				9E4703C72E31E19E0000CF24 /* FirebaseCrashlytics */,
+				9E4703C92E31E19E0000CF24 /* FirebaseMessaging */,
 			);
 			productName = "GLINT-iOS";
 			productReference = 9EF71DE62DCE4AF50011A8E1 /* GLINT-iOS.app */;
@@ -192,6 +204,7 @@
 				9E7976732DF9476100E27F77 /* XCRemoteSwiftPackageReference "Nuke" */,
 				9E7976782DF9476D00E27F77 /* XCRemoteSwiftPackageReference "Nuke-Alamofire-Plugin" */,
 				9EF2C4292E1FA1F5004F5A61 /* XCRemoteSwiftPackageReference "socket.io-client-swift" */,
+				9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9EF71DE72DCE4AF50011A8E1 /* Products */;
@@ -531,6 +544,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.0.0;
+			};
+		};
 		9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/iamport/iamport-ios.git";
@@ -574,6 +595,26 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		9E4703C32E31E19E0000CF24 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		9E4703C52E31E19E0000CF24 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		9E4703C72E31E19E0000CF24 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		9E4703C92E31E19E0000CF24 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9E4703C22E31E19E0000CF24 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
 		9E7976712DF9475300E27F77 /* iamport-ios */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 9E7976702DF9475300E27F77 /* XCRemoteSwiftPackageReference "iamport-ios" */;
