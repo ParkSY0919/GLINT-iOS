@@ -12,17 +12,51 @@ import Alamofire
 import Nuke
 import NukeAlamofirePlugin
 
+// AppDelegate 클래스 추가
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        application.registerForRemoteNotifications()
+        print("🚀 AppDelegate - didFinishLaunchingWithOptions")
+        
+        // AppInitializer를 통한 초기화
+        AppInitManager.shared.setupCoreDataAndWebSocket()
+        
+        print("🚀 GLINT 앱 초기화 완료 - CoreData & WebSocket 준비됨")
+        return true
+    }
+    
+    // 원격 푸시 알림 등록 성공
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWitheviceToken deviceToken: Data) {
+        print("📱 APNS 디바이스 토큰 등록 성공")
+        // FCM에 APNS 토큰 설정
+        // Firebase Messaging에서 자동으로 처리되므로 별도 구현 불필요
+    }
+    
+    // 원격 푸시 알림 등록 실패
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("❌ APNS 디바이스 토큰 등록 실패: \(error)")
+    }
+    
+    // 백그라운드에서 푸시 알림 수신
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        print("📱 백그라운드 푸시 알림 수신: \(userInfo)")
+        
+        // FCMManager를 통한 알림 처리
+        FCMManager.shared.handleRemoteNotification(userInfo)
+        
+        completionHandler(.newData)
+    }
+}
+
 @main
 struct GLINT_iOSApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var cancellables = Set<AnyCancellable>()
     
     init() {
         setupNavigationAppearance()
         setupImagePipeline()
         KeychainManager.shared.saveDeviceUUID()
-        
-        // 🔄 CoreData & WebSocket 초기화 추가
-        setupCoreDataAndWebSocket()
     }
     
     var body: some Scene {
@@ -39,14 +73,6 @@ struct GLINT_iOSApp: App {
                     print("📱 앱 종료 - CoreData 저장 완료")
                 }
         }
-    }
-    
-    // MARK: - CoreData & WebSocket Setup
-    private func setupCoreDataAndWebSocket() {
-        // AppInitializer를 통한 초기화
-        AppInitManager.shared.setupCoreDataAndWebSocket()
-        
-        print("🚀 GLINT 앱 초기화 완료 - CoreData & WebSocket 준비됨")
     }
     
     private func setupNavigationAppearance() {

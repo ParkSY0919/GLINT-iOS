@@ -21,6 +21,9 @@ final class AppInitManager {
         // WebSocket 관리자 초기화
         setupWebSocket()
         
+        // FCM 초기화
+        setupFCM()
+        
         // 백그라운드 작업 설정
 //        setupBackgroundTasks()
         
@@ -59,6 +62,24 @@ final class AppInitManager {
         }
         
         print("🔌 WebSocket 초기화 완료")
+    }
+    
+    private func setupFCM() {
+        // FCMManager 초기화 및 설정
+        let fcmManager = FCMManager.shared
+        fcmManager.configure()
+        
+        // 푸시 알림 권한 요청 (약간의 지연 후 요청)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            fcmManager.requestNotificationPermission()
+        }
+        
+        // 채팅 관련 토픽 구독 (사용자 로그인 후 처리)
+        if let userId = KeychainManager.shared.getUserId() {
+            fcmManager.subscribeToTopic("user_\(userId)")
+        }
+        
+        print("🔥 FCM 초기화 완료")
     }
     
     private func setupBackgroundTasks() {

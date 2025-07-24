@@ -13,6 +13,7 @@ enum KeychainKey: String, CaseIterable {
     case accessToken
     case refreshToken
     case appleAuthorizationCode
+    case fcmToken
     
     var account: String { rawValue }
 }
@@ -207,5 +208,20 @@ extension KeychainManager {
             saveDeviceUUID()
             return newDeviceId
         }
+    }
+    
+    // FCM 토큰 관련
+    func saveFCMToken(_ token: String) {
+        save(token, key: .fcmToken)
+        GTLogger.shared.token(.fcmToken, success: true, details: "FCM 토큰 저장 완료")
+    }
+    
+    func getFCMToken() -> String? {
+        return read(.fcmToken)
+    }
+    
+    func deleteFCMToken() {
+        delete(.fcmToken)
+        GTLogger.shared.token(.fcmToken, success: true, details: "FCM 토큰 삭제 완료")
     }
 }

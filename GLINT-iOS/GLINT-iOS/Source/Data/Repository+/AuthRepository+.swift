@@ -30,6 +30,9 @@ extension AuthRepository {
                 let request = request.toKakaoRequest()
                 let response: SignInResponse = try await provider.request(.signInForKakao(request))
                 return response
+            },
+            deviceTokenUpdate: { deviceToken in
+                return try await provider.requestVoid(.deviceToken(token: deviceToken))
             }
         )
     }()

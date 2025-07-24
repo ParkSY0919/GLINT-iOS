@@ -13,4 +13,5 @@ struct AuthRepository {
     var signIn: (_ request: SignInRequest) async throws -> SignInResponse
     var signInApple: (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
     var signInKakao: (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
+    var deviceTokenUpdate: (_ deviceToken: String) async throws -> Void
 }

@@ -19,6 +19,7 @@ extension LoginViewUseCase {
     static let liveValue: LoginViewUseCase = {
         let repository: AuthRepository = .value
         let keychain: KeychainManager = .shared
+        let fcm: FCMManager = .shared
         let manager = LoginManager()
         
         func getDeviceTokenOrThrow() throws -> String {
@@ -84,6 +85,12 @@ extension LoginViewUseCase {
                 let response = try await repository.signInKakao(request)
                 GTLogger.i("Kakao 로그인 응답: \(response)")
                 return response
+            },
+            deviceTokenUpdate: { deviceToken in
+                let response: Void = try await repository.deviceTokenUpdate(deviceToken)
+                print("deviceTokenUpdate 결과: \(response)")
+                let token = keychain.getFCMToken() ?? ""
+                fcm.sendTokenToServer(token)
             }
         )
     }()
