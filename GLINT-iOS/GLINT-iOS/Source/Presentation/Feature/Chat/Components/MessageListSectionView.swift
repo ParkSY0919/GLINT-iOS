@@ -13,6 +13,7 @@ struct MessageListSectionView: View {
     let cacheSize: String
     let onRetryMessage: (String) -> Void
     let onDeleteMessage: (String) -> Void
+    let onImageTapped: ([String], Int) -> Void // 새로 추가
     let onClearCache: () -> Void
     let onRefresh: () -> Void
     
@@ -38,7 +39,8 @@ struct MessageListSectionView: View {
                                 message: message,
                                 showTime: isLastInTimeGroup,
                                 onRetryTapped: onRetryMessage,
-                                onDeleteTapped: onDeleteMessage
+                                onDeleteTapped: onDeleteMessage,
+                                onImageTapped: onImageTapped
                             )
                             .padding(.horizontal, 16)
                             .padding(.vertical, 2)

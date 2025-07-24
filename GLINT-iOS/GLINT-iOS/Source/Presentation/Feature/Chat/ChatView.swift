@@ -57,7 +57,28 @@ struct ChatView: View {
         }
         .animation(.bouncy(duration: 0.6), value: store.state.isConnected)
         .animation(.smooth(duration: 0.4), value: store.state.isUploading)
-        .animation(.smooth(duration: 0.3), value: !store.state.selectedFiles.isEmpty)
+        .animation(.smooth(duration: 0.3), value: !store.state.selectedImages.isEmpty)
+        .sheet(isPresented: Binding(
+            get: { store.state.showImagePicker },
+            set: { _ in }
+        )) {
+            ImagePicker { images in
+                store.send(.imagesSelected(images))
+            }
+        }
+        .fullScreenCover(isPresented: Binding(
+            get: { store.state.showImageDetail },
+            set: { isPresented in
+                if !isPresented {
+                    store.send(.hideImageDetail)
+                }
+            }
+        )) {
+            ChatImageDetailView(
+                imageUrls: store.state.detailImages,
+                initialIndex: store.state.detailImageIndex
+            )
+        }
     }
 }
 
@@ -90,6 +111,9 @@ private extension ChatView {
                     onDeleteMessage: { chatId in
                         store.send(.deleteMessage(chatId))
                     },
+                    onImageTapped: { images, index in
+                        store.send(.showImageDetail(images, index))
+                    },
                     onClearCache: {
                         store.send(.clearCache)
                     },
@@ -103,15 +127,6 @@ private extension ChatView {
                     uploadProgress: store.state.uploadProgress
                 )
                 
-                SelectedFilesSectionView(
-                    selectedFiles: store.state.selectedFiles,
-                    onRemoveFile: { index in
-                        var files = store.state.selectedFiles
-                        files.remove(at: index)
-                        store.send(.filesSelected(files))
-                    }
-                )
-                
                 TypingIndicatorSectionView(
                     showTypingIndicator: showTypingIndicator,
                     nick: nick
@@ -121,7 +136,7 @@ private extension ChatView {
                     newMessage: store.state.newMessage,
                     isConnected: store.state.isConnected,
                     isUploading: store.state.isUploading,
-                    selectedFiles: store.state.selectedFiles,
+                    selectedImages: store.state.selectedImages,
                     onMessageChanged: { message in
                         store.send(.messageTextChanged(message))
                     },
@@ -130,6 +145,9 @@ private extension ChatView {
                     },
                     onAttachFile: {
                         store.send(.attachFileButtonTapped)
+                    },
+                    onRemoveImage: { index in
+                        store.send(.removeSelectedImage(index))
                     }
                 )
             }

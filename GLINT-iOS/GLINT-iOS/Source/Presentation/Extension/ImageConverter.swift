@@ -43,4 +43,19 @@ struct ImageConverter {
         
         return [originalData, filteredData]
     }
+    
+    static func convertToData(
+        images: [UIImage?],
+        compressionQuality: Double = 0.7
+    ) throws -> [Data] {
+        var result = [Data]()
+        for i in images {
+            guard let originalData = i?.jpegData(compressionQuality: compressionQuality) else {
+                throw ImageConversionError.originalImageConversionFailed
+            }
+            result.append(originalData)
+        }
+        
+        return result
+    }
 }

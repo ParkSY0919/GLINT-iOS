@@ -8,22 +8,79 @@
 import SwiftUI
 import PhotosUI
 
+// MARK: - ImagePicker Mode
+enum ImagePickerMode {
+    case single(onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void)
+    case multiple(maxCount: Int, onImagesSelected: ([UIImage]) -> Void)
+}
+
 struct ImagePicker: UIViewControllerRepresentable {
-    let onImageSelected: (UIImage, PhotoMetadataEntity?) -> Void
+    let mode: ImagePickerMode
     @Environment(\.dismiss) private var dismiss
     
-    func makeUIViewController(context: Context) -> PHPickerViewController {
+    // Chat용 다중 선택 초기화
+    init(maxSelectionCount: Int = 5, onImagesSelected: @escaping ([UIImage]) -> Void) {
+        self.mode = .multiple(maxCount: maxSelectionCount, onImagesSelected: onImagesSelected)
+    }
+    
+    // Make용 단일 선택 초기화
+    init(onImageSelected: @escaping (UIImage, PhotoMetadataEntity?) -> Void) {
+        self.mode = .single(onImageSelected: onImageSelected)
+    }
+    
+    func makeUIViewController(context: Context) -> UINavigationController {
         var configuration = PHPickerConfiguration()
         configuration.filter = .images
-        configuration.selectionLimit = 1
-        configuration.preferredAssetRepresentationMode = .current // 원본 이미지 우선
+        configuration.preferredAssetRepresentationMode = .current
+        
+        // Mode에 따른 설정
+        switch mode {
+        case .single:
+            configuration.selectionLimit = 1
+        case .multiple(let maxCount, _):
+            configuration.selectionLimit = maxCount
+        }
         
         let picker = PHPickerViewController(configuration: configuration)
         picker.delegate = context.coordinator
-        return picker
+        
+        // Mode에 따른 UI 구성
+        switch mode {
+        case .single:
+            // Make용: 기본 PHPickerViewController 반환 (자동 dismiss)
+            let navController = UINavigationController(rootViewController: picker)
+            picker.navigationItem.title = "사진 선택"
+            return navController
+            
+        case .multiple(let maxCount, _):
+            // Chat용: 확인 버튼이 있는 NavigationController
+            let navController = UINavigationController(rootViewController: picker)
+            
+            let confirmButton = UIBarButtonItem(
+                title: "확인",
+                style: .done,
+                target: context.coordinator,
+                action: #selector(context.coordinator.confirmSelection)
+            )
+            confirmButton.isEnabled = false
+            
+            let cancelButton = UIBarButtonItem(
+                title: "취소",
+                style: .plain,
+                target: context.coordinator,
+                action: #selector(context.coordinator.cancelSelection)
+            )
+            
+            picker.navigationItem.rightBarButtonItem = confirmButton
+            picker.navigationItem.leftBarButtonItem = cancelButton
+            picker.navigationItem.title = "사진 선택 (최대 \(maxCount)개)"
+            
+            context.coordinator.confirmButton = confirmButton
+            return navController
+        }
     }
     
-    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -31,38 +88,91 @@ struct ImagePicker: UIViewControllerRepresentable {
     
     final class Coordinator: PHPickerViewControllerDelegate {
         let parent: ImagePicker
+        var confirmButton: UIBarButtonItem?
+        private var selectedImages: [UIImage] = []
+        private var selectedResults: [PHPickerResult] = []
         
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
         
-        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        @objc func confirmSelection() {
+            if case .multiple(_, let onImagesSelected) = parent.mode {
+                onImagesSelected(selectedImages)
+            }
             parent.dismiss()
-            
-            guard let result = results.first else { return }
-            
-            Task {
-                await processSelectedImage(result)
+        }
+        
+        @objc func cancelSelection() {
+            parent.dismiss()
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            switch parent.mode {
+            case .single(let onImageSelected):
+                // Make용: 단일 이미지 선택 + 메타데이터 추출
+                parent.dismiss()
+                guard let result = results.first else { return }
+                
+                Task {
+                    await processSingleImage(result, onImageSelected: onImageSelected)
+                }
+                
+            case .multiple(let maxCount, _):
+                // Chat용: 다중 이미지 선택
+                selectedResults = results
+                confirmButton?.isEnabled = !results.isEmpty
+                
+                let selectedCount = results.count
+                picker.navigationItem.title = "사진 선택됨 (\(selectedCount)/\(maxCount))"
+                
+                loadSelectedImages(from: results)
             }
         }
         
-        
-        @MainActor  //image 추출
-        private func processSelectedImage(_ result: PHPickerResult) async {
+        // MARK: - Single Image Processing (Make용)
+        @MainActor
+        private func processSingleImage(_ result: PHPickerResult, onImageSelected: @escaping (UIImage, PhotoMetadataEntity?) -> Void) async {
             do {
-                // 1. 이미지 로드
                 let image = try await loadImage(from: result)
-                
-                // 2. 메타데이터 추출
                 let metadata = await extractMetadata(from: result)
-                
-                // 3. 결과 전달
-                parent.onImageSelected(image, metadata)
-                
+                onImageSelected(image, metadata)
             } catch {
                 print("이미지 처리 중 오류 발생: \(error)")
-                let image = UIImage(systemName: "x.mark") ?? UIImage()
-                parent.onImageSelected(image, nil)
+                let fallbackImage = UIImage(systemName: "photo") ?? UIImage()
+                onImageSelected(fallbackImage, nil)
+            }
+        }
+        
+        // MARK: - Multiple Images Processing (Chat용)
+        private func loadSelectedImages(from results: [PHPickerResult]) {
+            selectedImages.removeAll()
+            
+            let dispatchGroup = DispatchGroup()
+            var loadedImages: [(Int, UIImage)] = []
+            
+            for (index, result) in results.enumerated() {
+                dispatchGroup.enter()
+                
+                Task {
+                    do {
+                        let image = try await loadImage(from: result)
+                        await MainActor.run {
+                            loadedImages.append((index, image))
+                            dispatchGroup.leave()
+                        }
+                    } catch {
+                        print("이미지 로드 실패: \(error)")
+                        await MainActor.run {
+                            dispatchGroup.leave()
+                        }
+                    }
+                }
+            }
+            
+            dispatchGroup.notify(queue: .main) {
+                loadedImages.sort { $0.0 < $1.0 }
+                self.selectedImages = loadedImages.map { $0.1 }
             }
         }
         
@@ -85,25 +195,22 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
         }
         
-        // MARK: - 메타데이터 추출
+        // MARK: - 메타데이터 추출 (Make용)
         private func extractMetadata(from result: PHPickerResult) async -> PhotoMetadataEntity? {
-            // PHAsset
+            // PHAsset에서 추출 시도
             if let assetIdentifier = result.assetIdentifier {
                 if let metadata = await extractFromPHAsset(identifier: assetIdentifier) {
                     return metadata
                 }
             }
             
-            // 파일 다이렉트
+            // 파일에서 직접 추출
             return await extractFromFile(result: result)
         }
         
-        // MARK: - PHAsset을 통한 메타데이터 추출
         private func extractFromPHAsset(identifier: String) async -> PhotoMetadataEntity? {
             let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
-            guard let asset = fetchResult.firstObject else {
-                return nil
-            }
+            guard let asset = fetchResult.firstObject else { return nil }
             
             return await withCheckedContinuation { continuation in
                 let options = PHImageRequestOptions()
@@ -123,7 +230,6 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
         }
         
-        // MARK: - 파일에서 직접 메타데이터 추출
         private func extractFromFile(result: PHPickerResult) async -> PhotoMetadataEntity? {
             return await withCheckedContinuation { continuation in
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
@@ -143,30 +249,24 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
         }
         
-        // MARK: - EXIF 데이터 추출 및 변환 (동기 함수 - 변경 없음)
         private func extractEXIFData(from imageData: Data, asset: PHAsset?) -> PhotoMetadataEntity? {
             guard let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
                   let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [String: Any] else {
                 return nil
             }
             
-            // 각 딕셔너리 추출
             let exifData = properties[kCGImagePropertyExifDictionary as String] as? [String: Any] ?? [:]
             let tiffData = properties[kCGImagePropertyTIFFDictionary as String] as? [String: Any] ?? [:]
             let gpsData = properties[kCGImagePropertyGPSDictionary as String] as? [String: Any] ?? [:]
             
-            // 기존 추출
             let phoneInfo = extractPhoneInfo(from: tiffData)
             let (lensType, focalLength, aperture, iso) = extractPhotoMetaData(exifData: exifData, properties: properties)
             let (latitude, longitude) = extractGPSInfo(from: gpsData, asset: asset)
-            
-            // 추가 추출
             let shutterSpeed = extractShutterSpeed(from: exifData)
             let fileSize = imageData.count
             let format = extractFileFormat(from: properties)
             let dateTime = extractDateTime(from: exifData)
             
-            // 픽셀 크기
             let pixelWidth = properties[kCGImagePropertyPixelWidth as String] as? Int ?? 0
             let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int ?? 0
             
@@ -195,14 +295,11 @@ struct ImagePicker: UIViewControllerRepresentable {
                     fileSize: fileSize
                 )
             )
-            
         }
         
+        // MARK: - Helper Methods
         private func extractPhoneInfo(from tiffData: [String: Any]) -> String {
-            // 카메라 제조사
             let make = tiffData[kCGImagePropertyTIFFMake as String] as? String ?? ""
-            
-            // 카메라 모델
             let model = tiffData[kCGImagePropertyTIFFModel as String] as? String ?? ""
             
             if make != "" && model != "" {
@@ -212,47 +309,32 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
         }
         
-        
-        // MARK: - 촬영 정보 추출
         private func extractPhotoMetaData(exifData: [String: Any], properties: [String: Any]) -> (String, Float, Float, Int) {
-            // 렌즈 정보
             var lensType = "카메라 정보 없음"
-            var focalLengh: Float = 0
+            var focalLength: Float = 0
             var aperture: Float = 0
             var iso: Int = 0
             
-            if let focalLength = exifData[kCGImagePropertyExifFocalLength as String] as? Double {
-                lensType = determineCameraTypeByFocalLength(focalLength)
+            if let focalLengthValue = exifData[kCGImagePropertyExifFocalLength as String] as? Double {
+                lensType = determineCameraTypeByFocalLength(focalLengthValue)
             }
             
-            // 초점거리mm, 조리개𝒇, ISO
             if let focalLengthData = exifData[kCGImagePropertyExifFocalLength as String] as? Float,
                let apertureData = exifData[kCGImagePropertyExifFNumber as String] as? Float,
                let isoData = exifData[kCGImagePropertyExifISOSpeedRatings as String] as? [Int],
                let isoValue = isoData.first {
-                focalLengh = focalLengthData
+                focalLength = focalLengthData
                 aperture = apertureData
                 iso = isoValue
             }
             
-            return (lensType, focalLengh, aperture, iso)
+            return (lensType, focalLength, aperture, iso)
         }
         
-        private func extractMegaPixels(fileSize: Int, properties: [String: Any]) -> String {
-            guard let pixelWidth = properties[kCGImagePropertyPixelWidth as String] as? Int,
-                  let pixelHeight = properties[kCGImagePropertyPixelHeight as String] as? Int else {
-                return "정보 없음"
-            }
-            guard let mp = MegapixelCalculator.calculateMPString(width: pixelWidth, height: pixelHeight, fileSize: 0) else { return "정보 없음" }
-            return mp
-        }
-        
-        // MARK: - GPS 정보 추출
         private func extractGPSInfo(from gpsData: [String: Any], asset: PHAsset?) -> (Float, Float) {
             var latitude: Float = 0.0
             var longitude: Float = 0.0
             
-            // EXIF GPS 데이터에서 추출
             if !gpsData.isEmpty {
                 if let lat = gpsData[kCGImagePropertyGPSLatitude as String] as? Float,
                    let latRef = gpsData[kCGImagePropertyGPSLatitudeRef as String] as? String,
@@ -262,9 +344,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                     latitude = latRef == "S" ? -lat : lat
                     longitude = lonRef == "W" ? -lon : lon
                 }
-            }
-            // PHAsset의 location에서 추출
-            else if let asset = asset, let location = asset.location {
+            } else if let asset = asset, let location = asset.location {
                 latitude = Float(location.coordinate.latitude)
                 longitude = Float(location.coordinate.longitude)
             }
@@ -273,15 +353,14 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         private func determineCameraTypeByFocalLength(_ focalLength: Double) -> String {
-            // iPhone 실제 센서 초점거리 기준
             switch focalLength {
-            case 0..<2.0:       // iPhone 초광각 (약 1.5mm)
+            case 0..<2.0:
                 return "초광각 카메라"
-            case 2.0..<5.0:     // iPhone 와이드 (약 4.2mm)
+            case 2.0..<5.0:
                 return "와이드 카메라"
-            case 5.0..<10.0:    // iPhone 망원 (약 6-9mm)
+            case 5.0..<10.0:
                 return "망원 카메라"
-            case 10.0...:       // 고배율 망원
+            case 10.0...:
                 return "망원 카메라"
             default:
                 return "와이드 카메라"
@@ -289,31 +368,22 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         private func extractFileFormat(from properties: [String: Any]) -> String {
-            // ColorModel로 포맷 추정
             if let colorModel = properties[kCGImagePropertyColorModel as String] as? String {
-                // RGB = JPEG, Gray = 흑백 등
                 return colorModel == "RGB" ? "JPEG" : "Unknown"
             }
-            
-            // 또는 UTType으로 확인
-            // 이미지 파일의 확장자나 타입으로 판단
-            return "JPEG"  // 대부분의 사진은 JPEG
+            return "JPEG"
         }
         
         private func extractShutterSpeed(from exifData: [String: Any]) -> String {
-            // 노출 시간 (초 단위)
             if let exposureTime = exifData[kCGImagePropertyExifExposureTime as String] as? Double {
                 if exposureTime < 1.0 {
-                    // 1초 미만일 때는 분수로 표시 (예: 1/125)
                     let denominator = Int(1.0 / exposureTime)
                     return "1/\(denominator) sec"
                 } else {
-                    // 1초 이상일 때
                     return "\(exposureTime) sec"
                 }
             }
             
-            // ExposureTime이 없으면 ShutterSpeedValue로 시도
             if let shutterSpeedValue = exifData[kCGImagePropertyExifShutterSpeedValue as String] as? Double {
                 let exposureTime = pow(2, -shutterSpeedValue)
                 let denominator = Int(1.0 / exposureTime)
@@ -324,24 +394,18 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
         
         private func extractDateTime(from exifData: [String: Any]) -> String {
-            // 촬영 날짜 (DateTimeOriginal)
             if let dateTimeOriginal = exifData[kCGImagePropertyExifDateTimeOriginal as String] as? String {
-                // EXIF 날짜 형식: "2024:01:20 15:30:00"
                 return convertExifDateToISO8601(dateTimeOriginal)
             }
             
-            // DateTimeOriginal이 없으면 DateTimeDigitized 시도
             if let dateTimeDigitized = exifData[kCGImagePropertyExifDateTimeDigitized as String] as? String {
                 return convertExifDateToISO8601(dateTimeDigitized)
             }
             
-            // 그것도 없으면 현재 시간
             return ISO8601DateFormatter().string(from: Date())
         }
-
-        // EXIF 날짜를 ISO8601 형식으로 변환
+        
         private func convertExifDateToISO8601(_ exifDate: String) -> String {
-            // "2024:01:20 15:30:00" → "2024-01-20T15:30:00Z"
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
             formatter.timeZone = TimeZone(secondsFromGMT: 0)

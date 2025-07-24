@@ -18,6 +18,24 @@ extension ChatMessage {
         self.senderName = gtChat.sender?.nickname ?? "Unknown"
         self.timestamp = gtChat.createdAt ?? Date()
         self.isFromMe = gtChat.sender?.userId == currentUserId
+        
+        // 이미지 URL들 추출
+        if let files = gtChat.files as? Set<GTChatFile> {
+            self.images = files.compactMap { file in
+                // 이미지 파일만 필터링 (확장자 또는 MIME 타입으로 구분)
+                if let serverPath = file.serverPath,
+                   let fileName = file.fileName,
+                   (fileName.lowercased().hasSuffix(".jpg") || 
+                    fileName.lowercased().hasSuffix(".jpeg") || 
+                    fileName.lowercased().hasSuffix(".png") || 
+                    fileName.lowercased().hasSuffix(".gif")) {
+                    return serverPath
+                }
+                return nil
+            }.sorted() // 정렬하여 일관된 순서 보장
+        } else {
+            self.images = []
+        }
     }
     
     /// GTChat 배열을 ChatMessage 배열로 변환

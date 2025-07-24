@@ -74,14 +74,57 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         
         do {
             let value = try await withTimeout(seconds: 10) {
-                try await request
-                    .validate(statusCode: 200..<300)
-                    .serializingDecodable(T.self, decoder: endPoint.decoder)
-                    .value
+                // 먼저 응답 데이터와 상태코드를 가져옴
+                let response = try await request.serializingData().response
+                
+                // 응답 상태코드 확인
+                if let statusCode = response.response?.statusCode {
+                    print("📊 Status Code: \(statusCode)")
+                    
+                    // 에러 상태코드인 경우
+                    if !(200..<300).contains(statusCode) {
+                        // 에러 응답 내용을 문자열로 출력
+                        if let data = response.data,
+                           let errorBodyString = String(data: data, encoding: .utf8) {
+                            print("❌ Server Error Response:")
+                            print("   Status Code: \(statusCode)")
+                            print("   Body: \(errorBodyString)")
+                            
+                            // JSON 파싱 시도해서 더 읽기 쉽게 출력
+                            if let json = try? JSONSerialization.jsonObject(with: data, options: []),
+                               let prettyData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted),
+                               let prettyString = String(data: prettyData, encoding: .utf8) {
+                                print("   Formatted JSON:")
+                                print(prettyString)
+                            }
+                        }
+                        
+                        // 상태코드 에러 throw
+                        throw AFError.responseValidationFailed(reason: .unacceptableStatusCode(code: statusCode))
+                    }
+                }
+                
+                // 성공 상태코드인 경우 디코딩 진행
+                guard let data = response.data else {
+                    throw AFError.responseSerializationFailed(reason: .inputFileNil)
+                }
+                
+                do {
+                    let decodedValue = try endPoint.decoder.decode(T.self, from: data)
+                    return decodedValue
+                } catch {
+                    // 디코딩 실패 시 원본 데이터도 출력
+                    print("❌ Decoding Error:")
+                    print("   Error: \(error)")
+                    if let rawString = String(data: data, encoding: .utf8) {
+                        print("   Raw Response: \(rawString)")
+                    }
+                    throw error
+                }
             }
             
             GTLogger.shared.networkSuccess("networkSuccess")
-            print("response: \(value)")
+            print("✅ Success Response: \(value)")
             return value
             
         } catch {

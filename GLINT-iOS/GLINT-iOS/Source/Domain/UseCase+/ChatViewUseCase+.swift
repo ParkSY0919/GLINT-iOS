@@ -20,7 +20,7 @@ extension ChatViewUseCase {
             },
             getChatHistory: { roomID, next in
                 return try await chatRepo.getChatHistory(roomID, next).data
-              },
+            },
             postChatMessage: { roomID, request in
                 return try await chatRepo.postChatMessage(roomID, request)
             }

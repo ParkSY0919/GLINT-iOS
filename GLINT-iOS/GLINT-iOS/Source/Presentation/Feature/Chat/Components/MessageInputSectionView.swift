@@ -11,15 +11,21 @@ struct MessageInputSectionView: View {
     let newMessage: String
     let isConnected: Bool
     let isUploading: Bool
-    let selectedFiles: [URL]
+    let selectedImages: [UIImage]
     let onMessageChanged: (String) -> Void
     let onSendMessage: () -> Void
     let onAttachFile: () -> Void
+    let onRemoveImage: (Int) -> Void
     
     @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         VStack(spacing: 0) {
+            // 선택된 이미지들 표시
+            if !selectedImages.isEmpty {
+                selectedImagesView
+            }
+            
             // 상단 구분선
             Rectangle()
                 .frame(height: 0.5)
@@ -152,6 +158,41 @@ private extension MessageInputSectionView {
     var isSendButtonDisabled: Bool {
         return isUploading || 
                (newMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && 
-                selectedFiles.isEmpty)
+                selectedImages.isEmpty)
+    }
+    
+    var selectedImagesView: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(selectedImages.indices, id: \.self) { index in
+                    ZStack(alignment: .topTrailing) {
+                        // 이미지
+                        Image(uiImage: selectedImages[index])
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                        
+                        // X 버튼
+                        Button {
+                            onRemoveImage(index)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundStyle(.white)
+                                .background(
+                                    Circle()
+                                        .fill(.black.opacity(0.6))
+                                        .frame(width: 20, height: 20)
+                                )
+                        }
+                        .offset(x: 6, y: -6)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .frame(height: 100)
+        .background(Color.glintBackground.opacity(0.5))
     }
 } 
