@@ -63,6 +63,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct GLINT_iOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @State private var cancellables = Set<AnyCancellable>()
+    @State private var showLaunchView = true
     
     init() {
         setupNavigationAppearance()
@@ -72,17 +73,31 @@ struct GLINT_iOSApp: App {
     
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
-                    // 백그라운드 진입 시 CoreData 저장
-                    CoreDataManager.shared.saveContext()
-                    print("📱 백그라운드 진입 - CoreData 저장 완료")
+            ZStack {
+                if showLaunchView {
+                    LaunchView()
+                        .onAppear {
+                            // 2초 후 메인 화면으로 전환
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                                withAnimation(.easeInOut(duration: 0.5)) {
+                                    showLaunchView = false
+                                }
+                            }
+                        }
+                } else {
+                    RootView()
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                            // 백그라운드 진입 시 CoreData 저장
+                            CoreDataManager.shared.saveContext()
+                            print("📱 백그라운드 진입 - CoreData 저장 완료")
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
+                            // 앱 종료 시 CoreData 저장
+                            CoreDataManager.shared.saveContext()
+                            print("📱 앱 종료 - CoreData 저장 완료")
+                        }
                 }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
-                    // 앱 종료 시 CoreData 저장
-                    CoreDataManager.shared.saveContext()
-                    print("📱 앱 종료 - CoreData 저장 완료")
-                }
+            }
         }
     }
     

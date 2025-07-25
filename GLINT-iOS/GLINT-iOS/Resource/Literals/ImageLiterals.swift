@@ -12,6 +12,9 @@ typealias Images = ImageLiterals
 enum ImageLiterals {}
 
 extension Images {
+    enum Launch {
+        static let screen = Image(.launch)
+    }
     
     enum TabBar {
         static let home = Image(.home)
