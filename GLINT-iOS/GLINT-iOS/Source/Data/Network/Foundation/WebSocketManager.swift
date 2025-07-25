@@ -335,10 +335,7 @@ extension WebSocketManager {
         processOfflineMessages()
         
         // 연결 성공 알림
-        NotificationCenter.default.post(
-            name: .webSocketConnected,
-            object: nil
-        )
+        ChatNotificationHelper.postWebSocketConnected()
     }
     
     private func onDisconnected() {
@@ -351,10 +348,7 @@ extension WebSocketManager {
         }
         
         // 연결 해제 알림
-        NotificationCenter.default.post(
-            name: .webSocketDisconnected,
-            object: nil
-        )
+        ChatNotificationHelper.postWebSocketDisconnected()
     }
     
     private func handleChatMessage(_ data: [Any]) {
@@ -426,18 +420,14 @@ extension WebSocketManager {
         
         // UI 업데이트 알림
         DispatchQueue.main.async {
-            NotificationCenter.default.post(
-                name: .newMessageReceived,
-                object: nil,
-                userInfo: [
-                    "roomId": roomId,
-                    "chatId": chatId,
-                    "content": content,
-                    "userId": userId,
-                    "nickname": nickname,
-                    "timestamp": timestamp,
-                    "isMyMessage": isMyMessage
-                ]
+            ChatNotificationHelper.postNewMessage(
+                roomId: roomId,
+                chatId: chatId,
+                content: content,
+                userId: userId,
+                nickname: nickname,
+                timestamp: timestamp,
+                isMyMessage: isMyMessage
             )
         }
         
@@ -546,14 +536,14 @@ extension WebSocketManager {
         NotificationCenter.default.addObserver(
             observer,
             selector: selector,
-            name: .webSocketConnected,
+            name: .chatWebSocketConnected,
             object: nil
         )
         
         NotificationCenter.default.addObserver(
             observer,
             selector: selector,
-            name: .webSocketDisconnected,
+            name: .chatWebSocketDisconnected,
             object: nil
         )
     }
@@ -594,21 +584,9 @@ extension WebSocketManager {
         // let chatRepo = ChatRepository.liveValue
         // let messages = try await chatRepo.getChatHistory(roomId, "")
         
-        // 동기화 완료 후 NotificationCenter로 알림
-        DispatchQueue.main.async {
-            NotificationCenter.default.post(
-                name: .chatRoomSynced,
-                object: nil,
-                userInfo: ["roomId": roomId]
-            )
-        }
+        // 동기화는 내부적으로 처리하고 별도 알림 없이 완료
+        print("🌐 서버와 채팅방 동기화 완료: \(roomId)")
     }
 }
 
-// MARK: - Notification Names
-extension Notification.Name {
-    static let webSocketConnected = Notification.Name("webSocketConnected")
-    static let webSocketDisconnected = Notification.Name("webSocketDisconnected")
-    static let newMessageReceived = Notification.Name("newMessageReceived")
-    static let chatRoomSynced = Notification.Name("chatRoomSynced")
-}
+// MARK: - Notification Names are now managed in ChatNotifications.swift

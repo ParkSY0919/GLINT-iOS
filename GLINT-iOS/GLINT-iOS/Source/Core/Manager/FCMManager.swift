@@ -234,17 +234,10 @@ extension FCMManager: UNUserNotificationCenterDelegate {
         if let roomId = userInfo["roomId"] as? String {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 // TODO: NavigationRouter를 통해 채팅방 이동
-                NotificationCenter.default.post(
-                    name: .navigateToChatRoom,
-                    object: nil,
-                    userInfo: ["roomId": roomId]
-                )
+                ChatNotificationHelper.postNavigateToRoom(roomId)
             }
         }
     }
 }
 
-// MARK: - Notification Names
-extension Notification.Name {
-    static let navigateToChatRoom = Notification.Name("navigateToChatRoom")
-} 
+// MARK: - Notification Names are now managed in ChatNotifications.swift 

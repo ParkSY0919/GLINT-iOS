@@ -53,9 +53,6 @@ final class AppInitManager {
     }
     
     private func setupWebSocket() {
-        // WebSocketManager 초기화
-        let webSocketManager = WebSocketManager.shared
-        
         // 앱이 활성화될 때 오프라인 메시지 처리
         NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
