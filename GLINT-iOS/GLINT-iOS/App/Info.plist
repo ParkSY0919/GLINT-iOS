@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 	<key>BASE_URL</key>
 	<string>$(BASE_URL)</string>
 	<key>CFBundleURLTypes</key>
@@ -71,14 +73,12 @@
 		<string>HakgyoansimMulgyeolOTFB.otf</string>
 		<string>HakgyoansimMulgyeolR.ttf</string>
 	</array>
-    <!-- 푸시 알림 권한 -->
-    <key>NSUserNotificationUsageDescription</key>
-    <string>새로운 메시지 알림을 받기 위해 푸시 알림 권한이 필요합니다.</string>
-    <!-- 백그라운드 모드 -->
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>background-processing</string>
-        <string>remote-notification</string>
-    </array>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>새로운 메시지 알림을 받기 위해 푸시 알림 권한이 필요합니다.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

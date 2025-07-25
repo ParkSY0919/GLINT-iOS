@@ -226,6 +226,7 @@ extension FCMManager: UNUserNotificationCenterDelegate {
         completionHandler()
     }
     
+    //FIX - 보완 필요
     private func handleNotificationTap(userInfo: [AnyHashable: Any]) {
         print("👆 푸시 알림 탭됨: \(userInfo)")
         
