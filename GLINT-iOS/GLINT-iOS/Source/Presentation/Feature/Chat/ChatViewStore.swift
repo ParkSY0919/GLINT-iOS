@@ -72,13 +72,6 @@ final class ChatViewStore {
     }
     
     deinit {
-        Task {
-            await removeAllObservers()
-        }
-    }
-    
-    /// 모든 Observer 안전하게 제거
-    private func removeAllObservers() {
         // 등록된 모든 observer 제거
         for observer in notificationObservers {
             NotificationCenter.default.removeObserver(observer)
@@ -470,8 +463,6 @@ private extension ChatViewStore {
 private extension ChatViewStore {
     /// 알림 옵저버 설정
     func setupNotificationObservers() async {
-        // 기존 observer들 정리 (중복 등록 방지)
-        removeAllObservers()
         
         // 새 메시지 수신 알림
         let newMessageObserver = NotificationCenter.default.addObserver(
