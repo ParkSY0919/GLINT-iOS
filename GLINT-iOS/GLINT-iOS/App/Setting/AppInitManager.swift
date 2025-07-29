@@ -24,8 +24,8 @@ final class AppInitManager {
         // 백그라운드 작업 설정
 //        setupBackgroundTasks()
         
-        // 캐시 정리 스케줄링
-        scheduleCacheCleanup()
+        // 앱 시작 시 오래된 캐시 정리
+        cleanupOldCacheOnStartup()
     }
     
     /// 앱 초기화 시 CoreData와 WebSocket 설정 (기존 함수 - 호환성 유지)
@@ -87,18 +87,20 @@ final class AppInitManager {
     private func setupBackgroundTasks() {
         // 백그라운드에서 할 수 있는 작업들 등록
         // 추후 BGTaskScheduler 사용
-        print("⏰ 백그라운드 작업 설정 완료")
+//        print("⏰ 백그라운드 작업 설정 완료")
     }
     
-    private func scheduleCacheCleanup() {
-        // 매일 자정에 30일 이상 된 캐시 정리
-        let timer = Timer.scheduledTimer(withTimeInterval: 24 * 60 * 60, repeats: true) { _ in
+    private func cleanupOldCacheOnStartup() {
+        // 앱 시작 시 30일 이상 된 캐시 즉시 정리
+        print("🧹 앱 시작 시 오래된 캐시 정리 시작...")
+        
+        // 백그라운드에서 캐시 정리 수행 (메인 스레드 블로킹 방지)
+        Task.detached(priority: .utility) {
             CoreDataManager.shared.cleanupOldFiles(olderThan: 30)
+            
+            await MainActor.run {
+                print("🧹 오래된 캐시 정리 완료")
+            }
         }
-        
-        // 메모리 관리를 위해 RunLoop에 추가
-        RunLoop.main.add(timer, forMode: .common)
-        
-        print("🧹 캐시 정리 스케줄링 완료")
     }
 }
