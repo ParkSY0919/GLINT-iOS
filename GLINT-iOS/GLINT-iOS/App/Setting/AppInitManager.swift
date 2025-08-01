@@ -18,12 +18,6 @@ final class AppInitManager {
         // CoreData 초기화
         setupCoreData()
         
-        // WebSocket 관리자 초기화
-        setupWebSocket()
-        
-        // 백그라운드 작업 설정
-//        setupBackgroundTasks()
-        
         // 앱 시작 시 오래된 캐시 정리
         cleanupOldCacheOnStartup()
     }
@@ -37,7 +31,7 @@ final class AppInitManager {
     }
     
     private func setupCoreData() {
-        // CoreDataManager 초기화 (싱글톤이므로 접근만 해도 초기화됨)
+        // CoreDataManager 초기화
         let coreDataManager = CoreDataManager.shared
         
         // 앱 종료 시 CoreData 저장
@@ -50,20 +44,6 @@ final class AppInitManager {
         }
         
         print("📱 CoreData 초기화 완료")
-    }
-    
-    private func setupWebSocket() {
-        // 앱이 활성화될 때 오프라인 메시지 처리
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didBecomeActiveNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            // 오프라인 데이터 처리
-            CoreDataManager.shared.processOfflineData()
-        }
-        
-        print("🔌 WebSocket 초기화 완료")
     }
     
     func setupFCM() {
@@ -80,7 +60,6 @@ final class AppInitManager {
         }
         
         // 토픽 구독은 FCM 토큰 설정 후 자동으로 처리됨
-        
         print("🔥 FCM 초기화 완료")
     }
     

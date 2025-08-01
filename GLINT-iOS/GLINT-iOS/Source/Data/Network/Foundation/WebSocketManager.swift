@@ -420,14 +420,18 @@ extension WebSocketManager {
         
         // UI 업데이트 알림
         DispatchQueue.main.async {
-            ChatNotificationHelper.postNewMessage(
-                roomId: roomId,
-                chatId: chatId,
-                content: content,
-                userId: userId,
-                nickname: nickname,
-                timestamp: timestamp,
-                isMyMessage: isMyMessage
+            NotificationCenter.default.post(
+                name: .chatNewMessageReceived,
+                object: nil,
+                userInfo: [
+                    "roomId": roomId,
+                    "chatId": chatId,
+                    "content": content,
+                    "userId": userId,
+                    "nickname": nickname,
+                    "timestamp": timestamp,
+                    "isMyMessage": isMyMessage
+                ]
             )
         }
         
@@ -448,7 +452,7 @@ extension WebSocketManager {
             return
         }
         
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0) // Exponential backoff
+        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0)
         reconnectAttempts += 1
         
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
@@ -588,5 +592,3 @@ extension WebSocketManager {
         print("🌐 서버와 채팅방 동기화 완료: \(roomId)")
     }
 }
-
-// MARK: - Notification Names are now managed in ChatNotifications.swift

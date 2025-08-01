@@ -356,6 +356,7 @@ extension CoreDataManager {
         return chatFile
     }
     
+    //TODO: 함수 활용하기
     func updateFileUploadProgress(fileId: String, progress: Float) {
         let request: NSFetchRequest<GTChatFile> = GTChatFile.fetchRequest()
         request.predicate = NSPredicate(format: "fileId == %@", fileId)
@@ -568,36 +569,5 @@ extension CoreDataManager {
     private func isVideoFile(_ fileExtension: String) -> Bool {
         let videoExtensions = ["mp4", "mov", "avi", "mkv", "wmv"]
         return videoExtensions.contains(fileExtension.lowercased())
-    }
-}
-
-// MARK: - Offline Support
-extension CoreDataManager {
-    func processOfflineData() {
-        backgroundContext.perform {
-            // 미전송 채팅 처리
-            let pendingChats = self.fetchPendingChats()
-            for chat in pendingChats {
-                self.retrySendChat(chat)
-            }
-            
-            // 미완료 파일 업로드 처리
-            let pendingFiles = self.fetchPendingFiles()
-            for file in pendingFiles {
-                self.retryFileUpload(file)
-            }
-        }
-    }
-    
-    private func retrySendChat(_ chat: GTChat) {
-        // 실제 네트워크 전송 로직 구현
-        // 성공 시 sendStatus 업데이트
-        print("Retrying chat send: \(chat.chatId ?? "")")
-    }
-    
-    private func retryFileUpload(_ file: GTChatFile) {
-        // 실제 파일 업로드 로직 구현
-        // 진행률 업데이트를 위해 updateFileUploadProgress 호출
-        print("Retrying file upload: \(file.fileId ?? "")")
     }
 }

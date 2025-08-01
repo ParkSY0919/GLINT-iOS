@@ -321,7 +321,6 @@ private extension ChatViewStore {
     func handleRetryFailedMessage(_ chatId: String) {
         // 실패한 메시지 재전송
         coreDataManager.updateChatSendStatus(chatId: chatId, status: 0) // 전송 대기로 변경
-        coreDataManager.processOfflineData() // 오프라인 데이터 처리
         loadMessagesFromCoreData() // UI 업데이트
     }
     
