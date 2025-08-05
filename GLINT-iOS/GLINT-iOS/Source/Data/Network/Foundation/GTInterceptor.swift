@@ -6,7 +6,6 @@
 //
 
 import Foundation
-
 import Alamofire
 
 enum InterceptorType {
@@ -16,9 +15,23 @@ enum InterceptorType {
     case refresh
 }
 
+// 요청 정보를 저장하는 구조체
+private struct PendingRequest {
+    let request: Request
+    let session: Session
+    let completion: (RetryResult) -> Void
+    let originalToken: String?
+}
+
 final class GTInterceptor: RequestInterceptor {
     private let type: InterceptorType
     private let keychain = KeychainManager.shared
+    
+    // 토큰 갱신 관련 동기화
+    private static let requestQueue = DispatchQueue(label: "GTInterceptor.requestQueue", attributes: .concurrent)
+    private static var isRefreshing = false
+    private static var pendingRequests: [PendingRequest] = []
+    private static let refreshGroup = DispatchGroup()
     
     init(type: InterceptorType) {
         self.type = type
@@ -52,21 +65,145 @@ final class GTInterceptor: RequestInterceptor {
         dueTo error: Error,
         completion: @escaping (RetryResult) -> Void
     ) {
-        if let response = request.task?.response as? HTTPURLResponse {
-            let statusCode = response.statusCode
-            if statusCode == 401 || statusCode == 403 || statusCode == 419 {
-                refreshToken { [weak self] result in
-                    switch result {
-                    case .success:
-                        GTLogger.shared.networkSuccess("Token refresh successful")
-                        completion(.retry)
-                    case .failure(let refreshError):
-                        GTLogger.shared.networkFailure("Token refresh failed", error: refreshError)
-                        self?.keychain.deleteAllTokens()
-                        completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
-                    }
+        guard let response = request.task?.response as? HTTPURLResponse else {
+            completion(.doNotRetry)
+            return
+        }
+        
+        let statusCode = response.statusCode
+        
+        // 토큰 관련 에러 처리
+        if statusCode == 401 || statusCode == 403 || statusCode == 419 {
+            handleTokenError(request: request, session: session, completion: completion)
+        } else {
+            completion(.doNotRetry)
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func handleTokenError(
+        request: Request,
+        session: Session,
+        completion: @escaping (RetryResult) -> Void
+    ) {
+        let currentToken = keychain.getAccessToken()
+        
+        Self.requestQueue.async(flags: .barrier) {
+            // 이미 토큰 갱신 중이면 대기 큐에 추가
+            if Self.isRefreshing {
+                let pendingRequest = PendingRequest(
+                    request: request,
+                    session: session,
+                    completion: completion,
+                    originalToken: currentToken
+                )
+                Self.pendingRequests.append(pendingRequest)
+                GTLogger.shared.networkRequest("🔄 Request added to pending queue. Queue size: \(Self.pendingRequests.count)")
+                return
+            }
+            
+            // 토큰 갱신 시작
+            Self.isRefreshing = true
+            Self.refreshGroup.enter()
+            
+            DispatchQueue.main.async {
+                self.performTokenRefresh { [weak self] result in
+                    self?.handleRefreshResult(
+                        result: result,
+                        originalRequest: request,
+                        originalCompletion: completion,
+                        originalToken: currentToken
+                    )
                 }
             }
+        }
+    }
+    
+    private func handleRefreshResult(
+        result: Result<Void, Error>,
+        originalRequest: Request,
+        originalCompletion: @escaping (RetryResult) -> Void,
+        originalToken: String?
+    ) {
+        Self.requestQueue.async(flags: .barrier) {
+            defer {
+                Self.isRefreshing = false
+                Self.refreshGroup.leave()
+            }
+            
+            switch result {
+            case .success:
+                let newToken = self.keychain.getAccessToken()
+                GTLogger.shared.networkSuccess("🔄 Token refresh successful. Processing \(Self.pendingRequests.count) pending requests")
+                
+                // 원본 요청 재시도
+                originalCompletion(.retry)
+                
+                // 대기 중인 요청들 처리
+                self.processPendingRequests(newToken: newToken)
+                
+            case .failure(let error):
+                GTLogger.shared.networkFailure("❌ Token refresh failed", error: error)
+                
+                // 모든 요청 실패 처리 및 로그아웃
+                self.handleRefreshFailure(
+                    originalCompletion: originalCompletion,
+                    error: error
+                )
+            }
+        }
+    }
+    
+    private func processPendingRequests(newToken: String?) {
+        for pendingRequest in Self.pendingRequests {
+            // 토큰 불일치 검사
+            if let originalToken = pendingRequest.originalToken,
+               let currentToken = newToken,
+               originalToken != currentToken {
+                
+                // 토큰이 다르면 해당 요청은 새로운 토큰으로 재시도
+                GTLogger.shared.networkRequest("🔄 Token mismatch detected. Retrying with new token")
+                pendingRequest.completion(.retry)
+            } else if pendingRequest.originalToken == nil && newToken != nil {
+                // 원래 토큰이 없었지만 새로 생성된 경우
+                pendingRequest.completion(.retry)
+            } else {
+                // 토큰 상태가 일치하지 않는 경우 - 보안상 로그아웃
+                GTLogger.e("🚨 Token state inconsistency detected. Forcing logout")
+                self.forceLogout()
+                pendingRequest.completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
+                return
+            }
+        }
+        
+        Self.pendingRequests.removeAll()
+    }
+    
+    private func handleRefreshFailure(
+        originalCompletion: @escaping (RetryResult) -> Void,
+        error: Error
+    ) {
+        // 모든 대기 요청 실패 처리
+        for pendingRequest in Self.pendingRequests {
+            pendingRequest.completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
+        }
+        Self.pendingRequests.removeAll()
+        
+        // 원본 요청도 실패 처리
+        originalCompletion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
+        
+        // 로그아웃 처리
+        forceLogout()
+    }
+    
+    private func forceLogout() {
+        GTLogger.e("🚨 Token state inconsistency detected. Forcing logout")
+        keychain.deleteAllTokens()
+        
+        // 메인 스레드에서 로그아웃 처리
+        DispatchQueue.main.async {
+            NotificationCenter.default.post(name: .authTokenExpired, object: nil)
         }
     }
     
@@ -86,7 +223,7 @@ final class GTInterceptor: RequestInterceptor {
         return publicEndpoints.contains(path)
     }
     
-    private func refreshToken(completion: @escaping (Result<Void, Error>) -> Void) {
+    private func performTokenRefresh(completion: @escaping (Result<Void, Error>) -> Void) {
         let networkService = NetworkService<AuthEndPoint>()
         let endpoint = AuthEndPoint.refreshToken
         
@@ -111,3 +248,9 @@ final class GTInterceptor: RequestInterceptor {
         }
     }
 }
+
+// MARK: - Notification Names Extension
+extension Notification.Name {
+    static let authTokenExpired = Notification.Name("authTokenExpired")
+}
+

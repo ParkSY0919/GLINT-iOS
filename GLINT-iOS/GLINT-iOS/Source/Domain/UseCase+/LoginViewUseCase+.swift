@@ -84,6 +84,10 @@ extension LoginViewUseCase {
                 let response = try await repository.signInKakao(request)
                 GTLogger.i("Kakao 로그인 응답: \(response)")
                 return response
+            },
+            deviceTokenUpdate: { deviceToken in
+                let response: Void = try await repository.deviceTokenUpdate(deviceToken)
+                print("deviceTokenUpdate 결과: \(response)")
             }
         )
     }()

@@ -40,10 +40,14 @@ final class LoginViewStore {
     private(set) var state = LoginViewState()
     private let useCase: LoginViewUseCase
     private weak var rootRouter: RootRouter?
+    private let keychainManger: KeychainManager
+    private let fcmManager: FCMManager
     
     init(useCase: LoginViewUseCase, rootRouter: RootRouter) {
         self.useCase = useCase
         self.rootRouter = rootRouter
+        self.keychainManger = .shared
+        self.fcmManager = .shared
     }
     
     func send(_ action: LoginViewAction) {
@@ -202,6 +206,9 @@ private extension LoginViewStore {
         do {
             _ = try await useCase.signInApple()
             state.loginState = .success
+            let token = keychainManger.getFCMToken() ?? ""
+            try await useCase.deviceTokenUpdate(token)
+            fcmManager.sendTokenToServer(token)
             // Store에서 네비게이션 처리
             handleLoginSuccess()
         } catch {

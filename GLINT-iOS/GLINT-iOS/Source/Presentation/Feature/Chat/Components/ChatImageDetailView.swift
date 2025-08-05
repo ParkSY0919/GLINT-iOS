@@ -44,6 +44,7 @@ struct ChatImageDetailView: View {
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 .animation(.easeInOut, value: currentIndex)
+                .allowsHitTesting(scale <= 1.0) // 줌 상태가 아닐 때만 스와이프 허용
                 
                 Spacer()
                 
@@ -58,6 +59,7 @@ struct ChatImageDetailView: View {
             withAnimation(.easeInOut(duration: 0.3)) {
                 if scale == 1.0 {
                     scale = 2.0
+                    offset = limitOffsetToBounds(offset, scale: 2.0)
                 } else {
                     scale = 1.0
                     offset = .zero
@@ -82,7 +84,12 @@ struct ChatImageDetailView: View {
                     } else if scale > 5.0 {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             scale = 5.0
+                            // scale 변경 후 offset도 경계 내로 조정
+                            offset = limitOffsetToBounds(offset, scale: 5.0)
                         }
+                    } else {
+                        // scale 변경 후 offset을 경계 내로 조정
+                        offset = limitOffsetToBounds(offset, scale: scale)
                     }
                 }
         )
@@ -91,10 +98,13 @@ struct ChatImageDetailView: View {
             DragGesture()
                 .onChanged { value in
                     if scale > 1.0 {
-                        offset = CGSize(
+                        let newOffset = CGSize(
                             width: lastOffset.width + value.translation.width,
                             height: lastOffset.height + value.translation.height
                         )
+                        
+                        // 이미지 경계 내로 offset 제한
+                        offset = limitOffsetToBounds(newOffset, scale: scale)
                     }
                 }
                 .onEnded { value in
@@ -173,5 +183,31 @@ private extension ChatImageDetailView {
                 .clipped()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    /// 이미지가 화면 경계를 벗어나지 않도록 offset 제한
+    private func limitOffsetToBounds(_ proposedOffset: CGSize, scale: CGFloat) -> CGSize {
+        // 화면 크기
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+        
+        // 확대된 이미지가 화면보다 클 때만 제한 적용
+        if scale <= 1.0 {
+            return .zero
+        }
+        
+        // 확대된 이미지의 여유 공간 계산 (이미지가 화면보다 큰 부분)
+        let scaledExcessWidth = (screenWidth * (scale - 1)) / 2
+        let scaledExcessHeight = (screenHeight * (scale - 1)) / 2
+        
+        // offset 제한 범위
+        let maxOffsetX = scaledExcessWidth
+        let maxOffsetY = scaledExcessHeight
+        
+        // 제한된 offset 반환
+        return CGSize(
+            width: max(-maxOffsetX, min(maxOffsetX, proposedOffset.width)),
+            height: max(-maxOffsetY, min(maxOffsetY, proposedOffset.height))
+        )
     }
 } 

@@ -17,12 +17,13 @@ enum AuthEndPoint {
     case signInForApple(SignInAppleRequest)
     case signInForKakao(SignInKakaoRequest)
     case refreshToken
+    case deviceToken(token: String)
 }
 
 extension AuthEndPoint: EndPoint {
     var utilPath: String {
         switch self {
-        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao:
+        case .checkEmailValidation, .signUp, .signIn, .signInForApple, .signInForKakao, .deviceToken:
             return "v1/users/"
         case .refreshToken:
             return "v1/auth/"
@@ -37,6 +38,7 @@ extension AuthEndPoint: EndPoint {
         case .signInForApple: utilPath + "login/apple"
         case .signInForKakao: utilPath + "login/kakao"
         case .refreshToken: utilPath + "refresh"
+        case .deviceToken: utilPath + "deviceToken"
         }
     }
     
@@ -46,6 +48,8 @@ extension AuthEndPoint: EndPoint {
             return .post
         case .refreshToken:
             return .get
+        case .deviceToken:
+            return .put
         }
     }
     
@@ -63,6 +67,8 @@ extension AuthEndPoint: EndPoint {
             return .bodyEncodable(reuqest)
         case .refreshToken:
             return .none
+        case .deviceToken(let token):
+            return .bodyEncodable(["deviceToken": token])
         }
     }
     

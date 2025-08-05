@@ -12,4 +12,5 @@ struct ChatViewUseCase {
     var chatRoomFileUpload: @Sendable (_ roomID: String, _ files: [Data]) async throws -> [String]
     var getChatHistory: @Sendable (_ roomID: String, _ next: String) async throws -> [ChatResponse]
     var postChatMessage: @Sendable (_ roomID: String, _ request: PostChatMessageRequest) async throws -> ChatResponse
+    var chatPushNoti: @Sendable (_ userIds: [String], _ title: String, _ body: String) async throws -> Void
 }

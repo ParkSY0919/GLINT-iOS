@@ -13,4 +13,5 @@ struct LoginViewUseCase {
     var signIn: @Sendable (_ email: String, _ password: String) async throws -> SignInResponse
     var signInApple: @Sendable () async throws -> SignInResponse
     var signInKakao: @Sendable (_ request: SocialLoginEntity.Request) async throws -> SignInResponse
+    var deviceTokenUpdate: (_ deviceToken: String) async throws -> Void
 }

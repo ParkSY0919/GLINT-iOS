@@ -24,33 +24,4 @@ extension FilterPropertyType {
         case .blackPoint: return Image(.blackPoint)
         }
     }
-    
-    var color: Color {
-        switch category {
-        case .exposure: return .orange
-        case .color: return .blue
-        case .detail: return .green
-        case .effect: return .purple
-        }
-    }
 }
-
-extension FilterCategory {
-    var icon: String {
-        switch self {
-        case .exposure: return "sun.max"
-        case .color: return "paintpalette"
-        case .detail: return "diamond"
-        case .effect: return "sparkles"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .exposure: return .orange
-        case .color: return .blue
-        case .detail: return .green
-        case .effect: return .purple
-        }
-    }
-} 

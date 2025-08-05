@@ -10,6 +10,7 @@ import Foundation
 extension ChatViewUseCase {
     static let liveValue: ChatViewUseCase = {
         let chatRepo: ChatRepository = .liveValue
+        let notiRepo: NotificationRepository = .liveValue
         
         return ChatViewUseCase(
             infoChatRooms: {
@@ -23,6 +24,10 @@ extension ChatViewUseCase {
             },
             postChatMessage: { roomID, request in
                 return try await chatRepo.postChatMessage(roomID, request)
+            },
+            chatPushNoti: { userIds, title, body in
+                let request = PushRequest(userIds: userIds, title: title, body: body)
+                return try await notiRepo.push(request)
             }
         )
     }()

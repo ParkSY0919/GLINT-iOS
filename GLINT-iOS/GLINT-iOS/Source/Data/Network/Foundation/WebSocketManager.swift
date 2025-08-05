@@ -335,10 +335,7 @@ extension WebSocketManager {
         processOfflineMessages()
         
         // 연결 성공 알림
-        NotificationCenter.default.post(
-            name: .webSocketConnected,
-            object: nil
-        )
+        ChatNotificationHelper.postWebSocketConnected()
     }
     
     private func onDisconnected() {
@@ -351,10 +348,7 @@ extension WebSocketManager {
         }
         
         // 연결 해제 알림
-        NotificationCenter.default.post(
-            name: .webSocketDisconnected,
-            object: nil
-        )
+        ChatNotificationHelper.postWebSocketDisconnected()
     }
     
     private func handleChatMessage(_ data: [Any]) {
@@ -427,7 +421,7 @@ extension WebSocketManager {
         // UI 업데이트 알림
         DispatchQueue.main.async {
             NotificationCenter.default.post(
-                name: .newMessageReceived,
+                name: .chatNewMessageReceived,
                 object: nil,
                 userInfo: [
                     "roomId": roomId,
@@ -458,7 +452,7 @@ extension WebSocketManager {
             return
         }
         
-        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0) // Exponential backoff
+        let delay = min(pow(2.0, Double(reconnectAttempts)), 30.0)
         reconnectAttempts += 1
         
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
@@ -546,22 +540,55 @@ extension WebSocketManager {
         NotificationCenter.default.addObserver(
             observer,
             selector: selector,
-            name: .webSocketConnected,
+            name: .chatWebSocketConnected,
             object: nil
         )
         
         NotificationCenter.default.addObserver(
             observer,
             selector: selector,
-            name: .webSocketDisconnected,
+            name: .chatWebSocketDisconnected,
             object: nil
         )
     }
-}
-
-// MARK: - Notification Names
-extension Notification.Name {
-    static let webSocketConnected = Notification.Name("webSocketConnected")
-    static let webSocketDisconnected = Notification.Name("webSocketDisconnected")
-    static let newMessageReceived = Notification.Name("newMessageReceived")
+    
+    /// FCM 푸시 알림을 통해 특정 채팅방 동기화
+    func syncChatRoom(roomId: String) {
+        print("💬 FCM을 통한 채팅방 동기화 요청: \(roomId)")
+        
+        // 현재 해당 채팅방에 있지 않은 경우에만 동기화
+        guard currentRoomID != roomId else {
+            print("📱 현재 채팅방과 동일 - 동기화 건너뜀")
+            return
+        }
+        
+        // WebSocket이 연결된 상태에서 실시간 데이터 요청
+        if isConnected {
+            socket?.emit("sync_room", ["roomId": roomId])
+            print("🔄 WebSocket을 통한 채팅방 동기화 요청 전송: \(roomId)")
+        }
+        
+        // CoreData에서 해당 채팅방의 최신 데이터 확인
+        let localMessages = coreDataManager.fetchChats(for: roomId, limit: 50)
+        print("📱 로컬 메시지 개수: \(localMessages.count)")
+        
+        // 서버와 동기화 (필요시 REST API 호출)
+        Task {
+            await performServerSync(for: roomId)
+        }
+    }
+    
+    /// 서버와 채팅방 동기화 (REST API)
+    private func performServerSync(for roomId: String) async {
+        // TODO: ChatViewUseCase를 통한 서버 동기화
+        print("🌐 서버와 채팅방 동기화 시작: \(roomId)")
+        
+        // 실제 구현에서는 ChatRepository를 통해 최신 메시지 가져오기
+        // 예시: 
+        // let chatRepo = ChatRepository.liveValue
+        // let messages = try await chatRepo.getChatHistory(roomId, "")
+        
+        // 동기화는 내부적으로 처리하고 별도 알림 없이 완료
+        print("🌐 서버와 채팅방 동기화 완료: \(roomId)")
+    }
 }

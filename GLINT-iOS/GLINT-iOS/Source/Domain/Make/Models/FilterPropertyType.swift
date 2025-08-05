@@ -84,28 +84,4 @@ enum FilterPropertyType: String, CaseIterable {
             return 0.01  // -1~1 범위에서 0.01씩
         }
     }
-    
-    var category: FilterCategory {
-        switch self {
-        case .brightness, .exposure, .highlights, .shadows:
-            return .exposure
-        case .contrast, .saturation, .temperature:
-            return .color
-        case .sharpness, .blur, .noiseReduction:
-            return .detail
-        case .vignette, .blackPoint:
-            return .effect
-        }
-    }
 }
-
-enum FilterCategory: String, CaseIterable {
-    case exposure = "노출"
-    case color = "색상"
-    case detail = "디테일"
-    case effect = "효과"
-    
-    var displayName: String {
-        return self.rawValue
-    }
-} 

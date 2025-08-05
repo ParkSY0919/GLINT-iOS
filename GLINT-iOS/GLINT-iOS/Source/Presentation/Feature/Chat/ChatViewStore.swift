@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import Combine
+//import Combine
 
 struct ChatViewState {
     var roomID: String = ""
@@ -43,7 +43,6 @@ enum ChatViewAction {
     case removeSelectedImage(Int)
     case showImageDetail([String], Int) // 이미지 상세보기 표시
     case hideImageDetail // 이미지 상세보기 닫기
-    // case filesSelected([URL]) 제거
     case retryFailedMessage(String)
     case deleteMessage(String)
     case clearCache
@@ -60,7 +59,7 @@ final class ChatViewStore {
     private let webSocketManager = WebSocketManager.shared
     private let keyChainManager = KeychainManager.shared
     
-    @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var notificationObservers: [NSObjectProtocol] = []
     
     init(useCase: ChatViewUseCase, router: NavigationRouter<MainTabRoute>) {
         self.useCase = useCase
@@ -73,15 +72,23 @@ final class ChatViewStore {
     }
     
     deinit {
-        cancellables.removeAll()
+        // 등록된 모든 observer 제거
+        for observer in notificationObservers {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        notificationObservers.removeAll()
+        //위에서 놓쳤을 경우를 대비
         NotificationCenter.default.removeObserver(self)
+        
+        print("📱 ChatViewStore: 모든 Observer 제거 완료 (\(notificationObservers.count)개 정리)")
     }
     
+    /// 비동기 초기화
     private func setupAsync() async {
         state.myUserID = keyChainManager.getUserId() ?? ""
         print("state.myUserID: \(state.myUserID)")
         await setupNotificationObservers()
-        await setupRealtimeUpdates()
+//        await setupRealtimeUpdates()
     }
     
     func send(_ action: ChatViewAction) {
@@ -214,8 +221,6 @@ private extension ChatViewStore {
                         print("📸 이미지 변환 완료: \(imageDataArray.count)개")
                         
                         state.fileUploadResponse = try await useCase.chatRoomFileUpload(state.roomID, imageDataArray)
-                        print("files: \(state.fileUploadResponse)")
-                        
                     } catch {
                         print("❌ 이미지 변환 실패: \(error)")
                         await MainActor.run {
@@ -236,22 +241,7 @@ private extension ChatViewStore {
                     )
                 )
                 print("✅ 서버 메시지 전송 성공: \(response)")
-                
-                // 🔥 서버 전송 성공 후 즉시 로컬에 저장
-//                await MainActor.run {
-//                    let _ = coreDataManager.createChatFromServer(
-//                        chatId: response.chatID,
-//                        content: response.content,
-//                        roomId: response.roomID,
-//                        userId: response.sender.userID,
-//                        timestamp: parseDate(from: response.createdAt) ?? Date(),
-//                        files: state.fileUploadResponse
-//                    )
-//                    
-//                    // CoreData에서 메시지 다시 로드하여 UI 업데이트
-//                    loadMessagesFromCoreData()
-//                    print("💾 내가 보낸 메시지를 로컬에 저장 완료")
-//                }
+
                 
                 // 전송 성공 시에만 UI 초기화
                 await MainActor.run {
@@ -259,11 +249,6 @@ private extension ChatViewStore {
                     state.selectedImages = [] // 선택된 이미지들 초기화
                     state.isLoading = false
                 }
-                
-                // 이미지 업로드 처리 (별도)
-//                if !selectedImages.isEmpty {
-//                    uploadImages(chatId: state.roomID, images: selectedImages)
-//                }
                 
                 // 키보드 숨기기
                 await MainActor.run {
@@ -336,7 +321,6 @@ private extension ChatViewStore {
     func handleRetryFailedMessage(_ chatId: String) {
         // 실패한 메시지 재전송
         coreDataManager.updateChatSendStatus(chatId: chatId, status: 0) // 전송 대기로 변경
-        coreDataManager.processOfflineData() // 오프라인 데이터 처리
         loadMessagesFromCoreData() // UI 업데이트
     }
     
@@ -453,12 +437,12 @@ private extension ChatViewStore {
                     newMessagesCount += 1
                     
                     if isMyMessage {
-                        print("   ✅ 내가 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
+                        print("✅ 내가 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
                     } else {
-                        print("   ✅ 상대방이 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
+                        print("✅ 상대방이 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
                     }
                 } else {
-                    print("   ⚠️ 이미 존재하는 메시지, 건너뜀: \(chatResponse.chatID)")
+                    print("⚠️ 이미 존재하는 메시지, 건너뜀: \(chatResponse.chatID)")
                 }
             }
             
@@ -478,9 +462,10 @@ private extension ChatViewStore {
 private extension ChatViewStore {
     /// 알림 옵저버 설정
     func setupNotificationObservers() async {
+        
         // 새 메시지 수신 알림
-        NotificationCenter.default.addObserver(
-            forName: .newMessageReceived,
+        let newMessageObserver = NotificationCenter.default.addObserver(
+            forName: .chatNewMessageReceived,
             object: nil,
             queue: .main
         ) { [weak self] notification in
@@ -497,7 +482,7 @@ private extension ChatViewStore {
                   let content = userInfo["content"] as? String,
                   let userId = userInfo["userId"] as? String,
                   let nickname = userInfo["nickname"] as? String,
-                  let timestamp = userInfo["timestamp"] as? TimeInterval,
+                  let _ = userInfo["timestamp"] as? TimeInterval,
                   let isMyMessage = userInfo["isMyMessage"] as? Bool else {
                 print("❌ Invalid message notification data")
                 return
@@ -535,37 +520,28 @@ private extension ChatViewStore {
                 print("   ✅ 상대방 메시지가 화면에 추가됨: \(content)")
             }
         }
+        notificationObservers.append(newMessageObserver)
         
-        // 연결 상태 변경 알림
-        NotificationCenter.default.addObserver(
-            forName: .webSocketConnected,
+        // WebSocket 연결 상태 변경 알림
+        let webSocketConnectedObserver = NotificationCenter.default.addObserver(
+            forName: .chatWebSocketConnected,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.updateConnectionState()
             print("🔗 WebSocket 연결됨")
         }
+        notificationObservers.append(webSocketConnectedObserver)
         
-        NotificationCenter.default.addObserver(
-            forName: .webSocketDisconnected,
+        let webSocketDisconnectedObserver = NotificationCenter.default.addObserver(
+            forName: .chatWebSocketDisconnected,
             object: nil,
             queue: .main
         ) { [weak self] _ in
             self?.updateConnectionState()
             print("🔗 WebSocket 연결 해제됨")
         }
-    }
-    
-    /// 실시간 업데이트 설정
-    private func setupRealtimeUpdates() async {
-        Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.updateConnectionState()
-                }
-            }
-            .store(in: &cancellables)
+        notificationObservers.append(webSocketDisconnectedObserver)
     }
     
     /// 연결 상태 업데이트
@@ -574,55 +550,6 @@ private extension ChatViewStore {
     }
 }
 
-// MARK: - File Upload
-@MainActor
-private extension ChatViewStore {
-    /// 이미지 업로드 처리
-    /// 현재 사용 안함
-    func uploadImages(chatId: String, images: [UIImage]) {
-        state.isUploading = true
-        state.uploadProgress = 0.0
-        
-        Task {
-            for (index, image) in images.enumerated() {
-                do {
-                    // 실제 이미지 업로드 로직
-                    let _ = try await uploadImage(image)
-                    
-                    // 진행률 업데이트
-                    let progress = Float(index + 1) / Float(images.count)
-                    await MainActor.run {
-                        state.uploadProgress = Double(progress)
-                    }
-                    
-                    // CoreData 업데이트
-                    // coreDataManager.updateImageServerPath(imageId: imageId, serverPath: uploadedPath)
-                    
-                } catch {
-                    print("❌ 이미지 업로드 실패: \(error)")
-                }
-            }
-            
-            await MainActor.run {
-                state.isUploading = false
-                state.uploadProgress = 0.0
-            }
-        }
-    }
-    
-    /// 개별 이미지 업로드
-    private func uploadImage(_ image: UIImage) async throws -> String {
-        // 실제 이미지 업로드 구현
-        // UIImage를 Data로 변환 후 multipart/form-data 업로드
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw NSError(domain: "ImageUploadError", code: -1, userInfo: [NSLocalizedDescriptionKey: "이미지 데이터 변환 실패"])
-        }
-        
-        // 시뮬레이션: 실제로는 서버에 업로드
-        try await Task.sleep(nanoseconds: 2_000_000_000) // 2초 시뮬레이션
-        return "https://server.com/images/\(UUID().uuidString).jpg"
-    }
-}
 
 // MARK: - Utility Methods
 @MainActor
