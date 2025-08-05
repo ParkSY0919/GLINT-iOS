@@ -22,6 +22,10 @@ struct RootView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: rootRouter.currentRoute)
+        .onReceive(NotificationCenter.default.publisher(for: .authTokenExpired)) { _ in
+            GTLogger.shared.d("logout")
+            rootRouter.navigate(to: .signIn)
+        }
     }
 }
 

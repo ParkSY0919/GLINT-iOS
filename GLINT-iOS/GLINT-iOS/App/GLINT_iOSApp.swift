@@ -124,11 +124,11 @@ struct GLINT_iOSApp: App {
         
         // ImageCache 설정 강화
         let imageCache = ImageCache()
-        imageCache.countLimit = 200 // 이미지 개수 제한
-        imageCache.costLimit = 200 * 1024 * 1024 // 200MB 메모리 제한
+        imageCache.countLimit = 30 // 이미지 개수 제한
+        imageCache.costLimit = 50 * 1024 * 1024 // 50MB 메모리 제한
         
         let dataCache = try! DataCache(name: "com.yourapp.nuke")
-        dataCache.sizeLimit = 1024 * 1024 * 500 // 500MB
+        dataCache.sizeLimit = 1024 * 1024 * 200 // 200MB
         
         // Nuke ImagePipeline 설정
         let pipeline = ImagePipeline {
@@ -136,7 +136,6 @@ struct GLINT_iOSApp: App {
             $0.dataCache = dataCache
             $0.imageCache = ImageCache.shared
             $0.dataCachePolicy = .automatic
-//            $0.dataCachePolicy = .storeAll // 모든 데이터 캐시
             $0.isRateLimiterEnabled = true
             $0.isTaskCoalescingEnabled = true
             
@@ -148,3 +147,4 @@ struct GLINT_iOSApp: App {
         ImagePipeline.shared = pipeline
     }
 }
+
