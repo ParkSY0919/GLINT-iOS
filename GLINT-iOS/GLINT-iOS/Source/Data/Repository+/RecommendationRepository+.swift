@@ -23,6 +23,9 @@ extension RecommendationRepository {
             // 핫 트렌드
             hotTrend: {
                 return try await provider.request(.hotTrend)
+            },
+            bannerList: {
+                return try await provider.request(.banner)
             }
         )
     }()

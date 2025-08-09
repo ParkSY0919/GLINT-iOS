@@ -12,6 +12,7 @@ struct MainViewState {
     var hotTrendsData: [FilterEntity]?
     var todayArtistUser: ProfileEntity?
     var todayArtistFilter: [FilterEntity]?
+    var bannerList: [BannerResponse]?
     var isLoading: Bool = true
     var errorMessage: String?
 }
@@ -92,12 +93,14 @@ private extension MainViewStore {
         
         Task {
             do {
-                let (f, h, aProfile, aFilter) = try await useCase.loadMainViewState()
+                let (f, h, aProfile, aFilter, b) = try await useCase.loadMainViewState()
+                print(b, "@@")
                 state = MainViewState(
                     todayFilterData: f,
                     hotTrendsData: h,
                     todayArtistUser: aProfile,
                     todayArtistFilter: aFilter,
+                    bannerList: b,
                     isLoading: false,
                     errorMessage: nil
                 )
@@ -114,6 +117,7 @@ private extension MainViewStore {
         state.todayArtistUser != nil &&
         state.todayArtistFilter != nil &&
         state.hotTrendsData != nil &&
+        state.bannerList != nil &&
         state.errorMessage == nil
     }
 }
