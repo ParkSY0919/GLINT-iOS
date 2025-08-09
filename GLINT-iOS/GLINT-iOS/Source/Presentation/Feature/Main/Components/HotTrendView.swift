@@ -13,7 +13,7 @@ import NukeUI
 struct HotTrendView: View {
     let filterEntities: [FilterEntity]?
     let onHotTrendTapped: (String) -> Void
-    private let imagePrefetcher = ImagePrefetcher()
+//    private let imagePrefetcher = ImagePrefetcher()
     
     @State
     private var centralTrendID: String?

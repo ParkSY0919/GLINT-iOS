@@ -12,7 +12,7 @@ struct MainViewState {
     var hotTrendsData: [FilterEntity]?
     var todayArtistUser: ProfileEntity?
     var todayArtistFilter: [FilterEntity]?
-    var bannerList: [BannerResponse]?
+    var bannerList: [BannerEntity]?
     var isLoading: Bool = true
     var errorMessage: String?
 }
@@ -100,7 +100,7 @@ private extension MainViewStore {
                     hotTrendsData: h,
                     todayArtistUser: aProfile,
                     todayArtistFilter: aFilter,
-                    bannerList: b,
+                    bannerList: b.compactMap { $0.toEntity() },
                     isLoading: false,
                     errorMessage: nil
                 )

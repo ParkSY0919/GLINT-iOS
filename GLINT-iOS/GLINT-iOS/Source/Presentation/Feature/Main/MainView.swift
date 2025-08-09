@@ -76,7 +76,7 @@ private extension MainView {
     }
     
     var bannerSection: some View {
-        return BannerView()
+        return BannerView(bannerEntities: store.state.bannerList)
             .padding(.top, 20)
     }
     
