@@ -11,6 +11,7 @@ import Nuke
 
 struct BannerView: View {
     let bannerEntities: [BannerEntity]?
+    let onBannerTapped: () -> Void
     private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
     private let imagePrefetcher = ImagePrefetcher()
     
@@ -108,7 +109,7 @@ struct BannerView: View {
     
     // handleBannerTap이 PayloadResponse를 받도록 수정
     func handleBannerTap(payload: PayloadResponse) {
-        // TODO: payload의 type과 value를 사용하여 실제 동작 구현
         print("\(Strings.Main.Log.bannerTapped) - Type: \(payload.type), Value: \(payload.value)")
+        onBannerTapped()
     }
 }

@@ -24,6 +24,7 @@ enum MainViewAction {
     case todayArtistTapped(id: String)
     case categoryTapped(category: FilterCategoryItem)
     case retryButtonTapped
+    case attendanceTapped
 }
 
 @MainActor
@@ -57,6 +58,9 @@ final class MainViewStore {
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
+            
+        case .attendanceTapped:
+            handleAttendanceTapped()
         }
     }
 }
@@ -119,5 +123,10 @@ private extension MainViewStore {
         state.hotTrendsData != nil &&
         state.bannerList != nil &&
         state.errorMessage == nil
+    }
+    
+    /// 출석 화면으로 이동
+    func handleAttendanceTapped() {
+        router.push(.attendance)
     }
 }
