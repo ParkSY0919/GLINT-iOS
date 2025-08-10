@@ -8,8 +8,9 @@
 import Foundation
 
 struct MainViewUseCase {
-    var todayAuthor: @Sendable () async throws -> TodayAuthorResponse
-    var todayFilter: @Sendable () async throws -> TodayFilterResponse
-    var hotTrend: @Sendable () async throws -> HotTrendResponse
-    var loadMainViewState: @Sendable () async throws -> (FilterEntity, [FilterEntity], ProfileEntity, [FilterEntity])
+//    var todayAuthor: @Sendable () async throws -> TodayAuthorResponse
+//    var todayFilter: @Sendable () async throws -> TodayFilterResponse
+//    var hotTrend: @Sendable () async throws -> HotTrendResponse
+//    var bannerList: @Sendable () async throws -> BannerListResponse
+    var loadMainViewState: @Sendable () async throws -> (FilterEntity, [FilterEntity], ProfileEntity, [FilterEntity], [BannerResponse])
 }

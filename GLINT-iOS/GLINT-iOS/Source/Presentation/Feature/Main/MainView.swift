@@ -76,8 +76,10 @@ private extension MainView {
     }
     
     var bannerSection: some View {
-        return BannerView()
-            .padding(.top, 20)
+        BannerView(bannerEntities: store.state.bannerList) {
+            store.send(.attendanceTapped)
+        }
+        .padding(.top, 20)
     }
     
     var hotTrendSection: some View {

@@ -11,13 +11,40 @@ import CoreData
 // MARK: - CoreData Mapping
 extension ChatMessage {
     /// CoreData GTChat 엔티티에서 ChatMessage로 변환
-    init(from gtChat: GTChat, currentUserId: String) {
+    init(from gtChat: GTChat, currentUserNickname: String) {
+        let senderId = (gtChat.sender?.userId ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let senderName = (gtChat.sender?.nickname ?? "Unknown").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 키체인에서 현재 사용자 닉네임 가져오기 (1순위)
+        let keychain = KeychainManager.shared
+        let myNickFromKeychain = (keychain.getNickname() ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 파라미터로 받은 닉네임 (2순위, 폴백용)
+        let paramNickname = currentUserNickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // 실제 비교에 사용할 현재 사용자 닉네임 결정
+        let actualMyNickname = !myNickFromKeychain.isEmpty ? myNickFromKeychain : paramNickname
+        
         self.id = gtChat.chatId ?? UUID().uuidString
         self.content = gtChat.content ?? ""
-        self.senderId = gtChat.sender?.userId ?? ""
-        self.senderName = gtChat.sender?.nickname ?? "Unknown"
+        self.senderId = senderId
+        self.senderName = senderName
         self.timestamp = gtChat.createdAt ?? Date()
-        self.isFromMe = gtChat.sender?.userId == currentUserId
+        self.isFromMe = actualMyNickname == actualMyNickname
+        
+        // 상세 디버깅 로그
+        print("💬 ChatMessage 생성:")
+        print("   - 메시지 ID: \(self.id)")
+        print("   - 발신자 ID: '\(senderId)'")
+        print("   - 발신자 닉네임: '\(senderName)'")
+        print("   - 키체인 닉네임: '\(myNickFromKeychain)'")
+        print("   - 파라미터 닉네임: '\(paramNickname)'")
+        print("   - 실제 사용 닉네임: '\(actualMyNickname)'")
+        print("   - 닉네임 비교: '\(senderName)' == '\(actualMyNickname)' → \(senderName == actualMyNickname)")
+        print("   - isFromMe: \(self.isFromMe)")
+        print("   - 메시지 내용: \(self.content)")
+        print("   - GTChat sender.isCurrentUser: \(gtChat.sender?.isCurrentUser ?? false)")
+        print("   ---")
         
         // 이미지 URL들 추출
         if let files = gtChat.files as? Set<GTChatFile> {
@@ -39,8 +66,8 @@ extension ChatMessage {
     }
     
     /// GTChat 배열을 ChatMessage 배열로 변환
-    static func from(_ gtChats: [GTChat], currentUserId: String) -> [ChatMessage] {
-        return gtChats.map { ChatMessage(from: $0, currentUserId: currentUserId) }
+    static func from(_ gtChats: [GTChat], currentUserNickname: String) -> [ChatMessage] {
+        return gtChats.map { ChatMessage(from: $0, currentUserNickname: currentUserNickname) }
     }
 }
 

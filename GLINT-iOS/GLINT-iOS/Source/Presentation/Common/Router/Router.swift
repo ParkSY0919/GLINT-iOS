@@ -146,6 +146,7 @@ enum MainTabRoute: Hashable {
     case home
     case detail(id: String)
     case chat(roomID: String, nick: String, userID: String)
+    case attendance
 }
 
 enum MakeTabRoute: Hashable {

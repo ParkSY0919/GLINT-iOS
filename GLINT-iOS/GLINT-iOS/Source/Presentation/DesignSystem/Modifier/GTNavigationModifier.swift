@@ -15,7 +15,6 @@ struct GTNavigationSetupModifier: ViewModifier {
     let uploadAction: (() -> Void)?
     let editAction: (() -> Void)?
     let deleteAction: (() -> Void)?
-    
     @State private var showActionSheet = false
     @State private var showDeleteAlert = false
     

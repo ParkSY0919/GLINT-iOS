@@ -41,24 +41,21 @@ struct TodayFilterView: View {
 
 private extension TodayFilterView {
     func backgroundSection(_ filterURL: String) -> some View {
-        LazyImage(url: URL(string: filterURL)) { state in
-            lazyImageTransform(state) { image in
-                GeometryReader { proxy in
-                    let global = proxy.frame(in: .global)
-                    let width = global.width
-                    
-                    image
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: width, height: 555)
-                        .clipped()
-                        .overlay {
-                            LinearGradient(
-                                gradient: backgroundGradient,
-                                startPoint: .center,
-                                endPoint: .bottom
-                            )
-                        }
-                }
+        GTLazyImageView(urlString: filterURL) { image in
+            GeometryReader { proxy in
+                let global = proxy.frame(in: .global)
+                let width = global.width
+                image
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: width, height: 555)
+                    .clipped()
+                    .overlay {
+                        LinearGradient(
+                            gradient: backgroundGradient,
+                            startPoint: .center,
+                            endPoint: .bottom
+                        )
+                    }
             }
         }
     }
@@ -101,8 +98,8 @@ private extension TodayFilterView {
         CategoryButtonsView(onTapCategory: { category in
             self.onTapCategory(category)
         })
-            .padding(.top, 30)
-            .frame(maxWidth: .infinity)
+        .padding(.top, 30)
+        .frame(maxWidth: .infinity)
     }
     
     func tryButtonSection(_ filterID: String) -> some View {

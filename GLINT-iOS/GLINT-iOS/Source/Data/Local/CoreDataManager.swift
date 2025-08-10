@@ -186,7 +186,25 @@ extension CoreDataManager {
         
         // 관계 설정
         chat.room = fetchOrCreateChatRoom(roomId: roomId)
-        chat.sender = fetchUser(userId: userId)
+        
+        // 현재 사용자의 정확한 닉네임으로 sender 설정
+        let keychain = KeychainManager.shared
+        let currentUserNickname = keychain.getNickname() ?? "Unknown"
+        chat.sender = fetchOrCreateUser(
+            userId: userId,
+            nickname: currentUserNickname,
+            profileImageUrl: nil,
+            isCurrentUser: true
+        )
+        
+        // 디버깅 로그
+        print("🔨 createLocalChat:")
+        print("   - 메시지 ID: \(chat.chatId ?? "nil")")
+        print("   - 사용자 ID: '\(userId)'")
+        print("   - 현재 사용자 닉네임: '\(currentUserNickname)'")
+        print("   - 내용: \(content)")
+        print("   - sender.nickname: '\(chat.sender?.nickname ?? "nil")'")
+        print("   - sender.isCurrentUser: \(chat.sender?.isCurrentUser ?? false)")
         
         // 파일 첨부 처리
         if let fileURLs = fileURLs {
@@ -213,6 +231,99 @@ extension CoreDataManager {
             print("Fetch chats error: \(error)")
             return []
         }
+    }
+    
+    // MARK: - 커서 기반 메시지 조회
+    
+    /// 커서 기반으로 메시지 조회 (무한스크롤용)
+    func fetchChatsWithCursor(for roomId: String, beforeTimestamp: Date?, limit: Int = 20) -> [GTChat] {
+        let request: NSFetchRequest<GTChat> = GTChat.fetchRequest()
+        
+        if let beforeTimestamp = beforeTimestamp {
+            // 특정 시간 이전의 메시지만 조회
+            request.predicate = NSPredicate(format: "roomId == %@ AND createdAt < %@", roomId, beforeTimestamp as NSDate)
+        } else {
+            // 첫 번째 로드 시 (최신 메시지들)
+            request.predicate = NSPredicate(format: "roomId == %@", roomId)
+        }
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        request.fetchLimit = limit
+        
+        do {
+            let chats = try context.fetch(request)
+            print("📱 커서 기반 메시지 조회: \(chats.count)개, 이전 시간: \(beforeTimestamp?.description ?? "없음")")
+            return chats
+        } catch {
+            print("❌ 커서 기반 메시지 조회 실패: \(error)")
+            return []
+        }
+    }
+    
+    /// 특정 방의 최신 메시지 시간 조회
+    func getLatestMessageTimestamp(for roomId: String) -> Date? {
+        let request: NSFetchRequest<GTChat> = GTChat.fetchRequest()
+        request.predicate = NSPredicate(format: "roomId == %@", roomId)
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
+        request.fetchLimit = 1
+        
+        do {
+            let chats = try context.fetch(request)
+            return chats.first?.createdAt
+        } catch {
+            print("❌ 최신 메시지 시간 조회 실패: \(error)")
+            return nil
+        }
+    }
+    
+    /// 새 메시지만 필터링하여 저장 (중복 제거)
+    func saveNewMessagesFromServer(_ responses: [ChatResponse], roomId: String, currentUserNickname: String? = nil) -> Int {
+        var newMessagesCount = 0
+        
+        // 기존 메시지 ID 수집
+        let request: NSFetchRequest<GTChat> = GTChat.fetchRequest()
+        request.predicate = NSPredicate(format: "roomId == %@", roomId)
+        request.propertiesToFetch = ["chatId"]
+        
+        do {
+            let existingChats = try context.fetch(request)
+            let existingChatIds = Set(existingChats.compactMap { $0.chatId })
+            
+            // 새 메시지만 저장
+            for response in responses {
+                if !existingChatIds.contains(response.chatID) {
+                    let timestamp = parseDate(from: response.createdAt) ?? Date()
+                    
+                    let _ = createChatFromServer(
+                        chatId: response.chatID,
+                        content: response.content,
+                        roomId: response.roomID,
+                        userId: response.sender.userID,
+                        senderNickname: response.sender.nick,
+                        timestamp: timestamp,
+                        files: response.files.isEmpty ? nil : response.files,
+                        currentUserNickname: currentUserNickname
+                    )
+                    
+                    newMessagesCount += 1
+                }
+            }
+            
+            if newMessagesCount > 0 {
+                saveContext()
+                print("💾 새 메시지 저장 완료: \(newMessagesCount)개")
+            }
+            
+        } catch {
+            print("❌ 새 메시지 저장 실패: \(error)")
+        }
+        
+        return newMessagesCount
+    }
+    
+    /// 날짜 문자열 파싱 헬퍼
+    private func parseDate(from dateString: String) -> Date? {
+        return DateFormatterManager.shared.parseISO8601Date(from: dateString)
     }
     
     func updateChatSendStatus(chatId: String, status: Int16) {
@@ -250,8 +361,10 @@ extension CoreDataManager {
         content: String,
         roomId: String,
         userId: String,
+        senderNickname: String,
         timestamp: Date,
-        files: [String]? = nil
+        files: [String]? = nil,
+        currentUserNickname: String? = nil
     ) -> GTChat {
         // 중복 체크
         let existingChat = fetchChat(by: chatId)
@@ -281,8 +394,20 @@ extension CoreDataManager {
         // 채팅방 연결
         chat.room = fetchOrCreateChatRoom(roomId: roomId)
         
-        // 사용자 연결
-        chat.sender = fetchOrCreateUser(userId: userId, nickname: "사용자 \(userId)", profileImageUrl: nil, isCurrentUser: false)
+        // 사용자 연결 (발신자 구분 포함)
+        // 서버에서 받은 실제 닉네임 사용
+        let isCurrentUser = (currentUserNickname != nil) ? (senderNickname == currentUserNickname!) : false
+        chat.sender = fetchOrCreateUser(userId: userId, nickname: senderNickname, profileImageUrl: nil, isCurrentUser: isCurrentUser)
+        
+        // 디버깅 로그
+        print("📤 createChatFromServer:")
+        print("   - 메시지 ID: \(chatId)")
+        print("   - 발신자 ID: '\(userId)'")
+        print("   - 발신자 닉네임: '\(senderNickname)'")
+        print("   - 현재 사용자 닉네임: '\(currentUserNickname ?? "nil")'")
+        print("   - 닉네임 비교 결과: \(senderNickname == (currentUserNickname ?? ""))")
+        print("   - isCurrentUser: \(isCurrentUser)")
+        print("   - 내용: \(content)")
         
         // 파일 정보가 있다면 처리
         if let fileList = files, !fileList.isEmpty {

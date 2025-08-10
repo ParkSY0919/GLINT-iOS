@@ -12,6 +12,7 @@ struct MainViewState {
     var hotTrendsData: [FilterEntity]?
     var todayArtistUser: ProfileEntity?
     var todayArtistFilter: [FilterEntity]?
+    var bannerList: [BannerEntity]?
     var isLoading: Bool = true
     var errorMessage: String?
 }
@@ -23,6 +24,7 @@ enum MainViewAction {
     case todayArtistTapped(id: String)
     case categoryTapped(category: FilterCategoryItem)
     case retryButtonTapped
+    case attendanceTapped
 }
 
 @MainActor
@@ -56,6 +58,9 @@ final class MainViewStore {
             
         case .retryButtonTapped:
             handleRetryButtonTapped()
+            
+        case .attendanceTapped:
+            handleAttendanceTapped()
         }
     }
 }
@@ -92,12 +97,14 @@ private extension MainViewStore {
         
         Task {
             do {
-                let (f, h, aProfile, aFilter) = try await useCase.loadMainViewState()
+                let (f, h, aProfile, aFilter, b) = try await useCase.loadMainViewState()
+                print(b, "@@")
                 state = MainViewState(
                     todayFilterData: f,
                     hotTrendsData: h,
                     todayArtistUser: aProfile,
                     todayArtistFilter: aFilter,
+                    bannerList: b.compactMap { $0.toEntity() },
                     isLoading: false,
                     errorMessage: nil
                 )
@@ -114,6 +121,12 @@ private extension MainViewStore {
         state.todayArtistUser != nil &&
         state.todayArtistFilter != nil &&
         state.hotTrendsData != nil &&
+        state.bannerList != nil &&
         state.errorMessage == nil
+    }
+    
+    /// 출석 화면으로 이동
+    func handleAttendanceTapped() {
+        router.push(.attendance)
     }
 }

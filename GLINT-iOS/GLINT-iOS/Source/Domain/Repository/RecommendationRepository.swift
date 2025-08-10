@@ -11,4 +11,5 @@ struct RecommendationRepository {
     var todayAuthor: () async throws -> TodayAuthorResponse
     var todayFilter: () async throws -> TodayFilterResponse
     var hotTrend: () async throws -> HotTrendResponse
+    var bannerList: () async throws -> BannerListResponse
 }

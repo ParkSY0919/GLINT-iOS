@@ -37,6 +37,8 @@ struct MainTab: View {
         case .chat(let roomID, let nick, let userID):
             ChatView(roomID: roomID, nick: nick, userID: userID)
                 .environment(ChatViewStore(useCase: chatViewUseCase, router: router))
+        case .attendance:
+            AttendanceView()
         }
     }
     

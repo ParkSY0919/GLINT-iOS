@@ -389,14 +389,14 @@ extension WebSocketManager {
         // 메시지 시간 생성
         let messageDate = Date(timeIntervalSince1970: timestamp)
         
-        // 현재 사용자 ID 가져오기
-        let currentUserId = getCurrentUserId()
-        let isMyMessage = userId == currentUserId
+        // 현재 사용자 닉네임 가져오기 (nickname 기반 비교로 변경)
+        let currentUserNickname = getCurrentUserNickname()
+        let isMyMessage = nickname == currentUserNickname
         
         print("🔍 WebSocket 메시지 분석:")
         print("   - 채팅 ID: \(chatId)")
         print("   - 보낸 사람: \(userId) (\(nickname))")
-        print("   - 현재 사용자: \(currentUserId)")
+        print("   - 현재 사용자 닉네임: \(currentUserNickname)")
         print("   - 내 메시지 여부: \(isMyMessage)")
         print("   - 내용: \(content)")
         
@@ -406,8 +406,10 @@ extension WebSocketManager {
             content: content,
             roomId: roomId,
             userId: userId,
+            senderNickname: nickname,
             timestamp: messageDate,
-            files: files
+            files: files,
+            currentUserNickname: currentUserNickname
         )
         
         // 사용자 정보 업데이트
@@ -518,6 +520,11 @@ extension WebSocketManager {
     private func getCurrentUserId() -> String {
         // 실제 구현에서는 로그인한 사용자 ID 반환
         return keychainManager.getUserId() ?? "test_user"
+    }
+    
+    private func getCurrentUserNickname() -> String {
+        // 닉네임 기반 비교를 위한 메서드
+        return keychainManager.getNickname() ?? ""
     }
 }
 
