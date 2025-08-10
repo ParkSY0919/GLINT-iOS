@@ -27,6 +27,10 @@ extension Notification.Name {
     /// FCM 푸시 알림 탭 시 채팅방으로 이동 요청
     /// UserInfo: roomId
     static let chatNavigateToRoom = Notification.Name("chatNavigateToRoom")
+    
+    /// 특정 메시지로 스크롤 요청 (검색 결과 네비게이션용)
+    /// UserInfo: messageId
+    static let scrollToMessage = Notification.Name("scrollToMessage")
 }
 
 /// 채팅 알림 관련 유틸리티

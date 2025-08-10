@@ -13,12 +13,16 @@ struct ChatViewState {
     var next: String? = ""
     var navTitle: String = ""
     var messages: [ChatMessage] = []
+    var messageGroups: [MessageGroup] = [] // 시간 그룹화된 메시지들
     var newMessage: String = ""
     var isLoading: Bool = false
+    var isLoadingMore: Bool = false // 추가 메시지 로딩 상태
+    var hasMoreMessages: Bool = true // 더 불러올 메시지가 있는지 여부
+    var oldestLoadedTimestamp: Date? // 현재 로드된 가장 오래된 메시지 시간
     var errorMessage: String?
     var isConnected: Bool = false
     var unreadCount: Int = 0
-    var selectedImages: [UIImage] = [] // UIImage 배열로 변경 (옵셔널 제거)
+    var selectedImages: [UIImage] = [] // UIImage 배열로 변경
     var showImagePicker: Bool = false
     var showImageDetail: Bool = false // 이미지 상세보기 모달
     var detailImages: [String] = [] // 상세보기할 이미지 URL들
@@ -28,8 +32,14 @@ struct ChatViewState {
     var cacheSize: String = "0 MB"
     var relativeUserId: String = ""
     var myUserID: String = ""
+    var myNickname: String = "" // nickname으로 isFromMe 판단용
     var myAccessToken: String = ""
     var fileUploadResponse: [String]?
+    
+    // MARK: - Search State
+    var isSearchMode: Bool = false
+    var searchText: String = ""
+    var currentSearchQuery: String = ""
 }
 
 enum ChatViewAction {
@@ -47,6 +57,17 @@ enum ChatViewAction {
     case deleteMessage(String)
     case clearCache
     case refreshMessages
+    case loadMoreMessages // 무한스크롤로 이전 메시지 로드
+    case messageGroupAppearedAtIndex(Int) // 특정 인덱스 메시지 그룹이 화면에 나타남
+    
+    // MARK: - Search Actions
+    case startSearch
+    case endSearch
+    case searchTextChanged(String)
+    case performSearch(String)
+    case navigateToNextSearchResult
+    case navigateToPreviousSearchResult
+    case scrollToSearchResult(String) // 검색 결과로 스크롤
 }
 
 @MainActor
@@ -58,6 +79,7 @@ final class ChatViewStore {
     private let coreDataManager = CoreDataManager.shared
     private let webSocketManager = WebSocketManager.shared
     private let keyChainManager = KeychainManager.shared
+    let searchManager = ChatSearchManager()
     
     @ObservationIgnored private var notificationObservers: [NSObjectProtocol] = []
     
@@ -85,8 +107,16 @@ final class ChatViewStore {
     
     /// 비동기 초기화
     private func setupAsync() async {
-        state.myUserID = keyChainManager.getUserId() ?? ""
-        print("state.myUserID: \(state.myUserID)")
+        let userId = keyChainManager.getUserId() ?? ""
+        let nickname = keyChainManager.getNickname() ?? ""
+        state.myUserID = userId
+        state.myNickname = nickname
+        print("🔑 ChatViewStore 초기화:")
+        print("   - Keychain에서 가져온 사용자 ID: '\(userId)'")
+        print("   - Keychain에서 가져온 닉네임: '\(nickname)'")
+        print("   - state.myUserID 설정: '\(state.myUserID)'")
+        print("   - state.myNickname 설정: '\(state.myNickname)'")
+        print("   - 빈 문자열 여부 (ID): \(userId.isEmpty), (닉네임): \(nickname.isEmpty)")
         await setupNotificationObservers()
 //        await setupRealtimeUpdates()
     }
@@ -134,6 +164,33 @@ final class ChatViewStore {
             
         case .refreshMessages:
             handleRefreshMessages()
+            
+        case .loadMoreMessages:
+            handleLoadMoreMessages()
+            
+        case .messageGroupAppearedAtIndex(let index):
+            handleMessageGroupAppeared(at: index)
+            
+        case .startSearch:
+            handleStartSearch()
+            
+        case .endSearch:
+            handleEndSearch()
+            
+        case .searchTextChanged(let text):
+            handleSearchTextChanged(text)
+            
+        case .performSearch(let query):
+            handlePerformSearch(query)
+            
+        case .navigateToNextSearchResult:
+            handleNavigateToNextSearchResult()
+            
+        case .navigateToPreviousSearchResult:
+            handleNavigateToPreviousSearchResult()
+            
+        case .scrollToSearchResult(let messageId):
+            handleScrollToSearchResult(messageId)
         }
     }
 }
@@ -150,10 +207,11 @@ private extension ChatViewStore {
         // WebSocket 채팅방 참여
         webSocketManager.joinChatRoom(roomId: roomID, accessToken: keyChainManager.getAccessToken() ?? "꽝")
         
+        GTLogger.d("현재 내 닉네임: \(state.myNickname)")
         // 현재 사용자 생성/조회 (내 정보)
         _ = coreDataManager.fetchOrCreateUser(
             userId: state.myUserID,
-            nickname: "psy", // 내 닉네임
+            nickname: state.myNickname, // 키체인에서 가져온 실제 닉네임 사용
             profileImageUrl: nil,
             isCurrentUser: true
         )
@@ -166,8 +224,8 @@ private extension ChatViewStore {
             isCurrentUser: false
         )
         
-        // CoreData에서 메시지 로드
-        loadMessagesFromCoreData()
+        // CoreData에서 초기 메시지 로드 (최신 20개)
+        loadInitialMessagesFromCoreData()
         
         // 연결 상태 업데이트
         updateConnectionState()
@@ -340,45 +398,228 @@ private extension ChatViewStore {
     
     /// 메시지 새로고침 처리
     func handleRefreshMessages() {
-        loadMessagesFromCoreData()
+        loadInitialMessagesFromCoreData()
         syncMessagesFromServer()
+    }
+    
+    /// 무한스크롤로 이전 메시지 로드
+    func handleLoadMoreMessages() {
+        guard !state.isLoadingMore && state.hasMoreMessages else { 
+            print("⚠️ 이미 로딩 중이거나 더 이상 메시지가 없음")
+            return 
+        }
+        
+        state.isLoadingMore = true
+        
+        Task {
+            do {
+                let beforeTimestamp = state.oldestLoadedTimestamp
+                let gtChats = coreDataManager.fetchChatsWithCursor(
+                    for: state.roomID, 
+                    beforeTimestamp: beforeTimestamp, 
+                    limit: 20
+                )
+                
+                await MainActor.run {
+                    if gtChats.isEmpty {
+                        state.hasMoreMessages = false
+                        print("📱 더 이상 불러올 메시지 없음")
+                    } else {
+                        let newMessages = ChatMessage.from(gtChats, currentUserNickname: state.myNickname)
+                        
+                        // 기존 메시지와 합치기 (중복 제거)
+                        let allMessages = (newMessages + state.messages).uniqued(by: \.id)
+                        state.messages = allMessages.sorted { $0.timestamp < $1.timestamp }
+                        
+                        // 메시지 그룹화
+                        state.messageGroups = MessageGroupFactory.createMessageGroups(from: state.messages)
+                        
+                        // 가장 오래된 메시지 시간 업데이트
+                        if let oldestMessage = newMessages.min(by: { $0.timestamp < $1.timestamp }) {
+                            state.oldestLoadedTimestamp = oldestMessage.timestamp
+                        }
+                        
+                        print("📱 추가 메시지 로드 완료: \(newMessages.count)개")
+                    }
+                    
+                    state.isLoadingMore = false
+                }
+                
+            } catch {
+                await MainActor.run {
+                    state.isLoadingMore = false
+                    state.errorMessage = error.localizedDescription
+                    print("❌ 추가 메시지 로드 실패: \(error)")
+                }
+            }
+        }
+    }
+    
+    /// 메시지 그룹이 화면에 나타날 때 처리 (무한스크롤 트리거)
+    func handleMessageGroupAppeared(at index: Int) {
+        // 10번째 메시지 그룹에 도달하면 추가 로드
+        if index == 9 && !state.isLoadingMore && state.hasMoreMessages {
+            print("📱 10번째 메시지 그룹 도달, 추가 로드 시작")
+            handleLoadMoreMessages()
+        }
+    }
+    
+    // MARK: - Search Action Handlers
+    
+    /// 검색 모드 시작
+    func handleStartSearch() {
+        state.isSearchMode = true
+        state.searchText = ""
+        state.currentSearchQuery = ""
+        searchManager.clearSearch()
+        print("🔍 검색 모드 시작")
+    }
+    
+    /// 검색 모드 종료
+    func handleEndSearch() {
+        state.isSearchMode = false
+        state.searchText = ""
+        state.currentSearchQuery = ""
+        searchManager.clearSearch()
+        print("🔍 검색 모드 종료")
+    }
+    
+    /// 검색 텍스트 변경 처리
+    func handleSearchTextChanged(_ text: String) {
+        state.searchText = text
+        
+        // 실시간 검색 (빈 문자열이면 검색 초기화)
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            searchManager.clearSearch()
+            state.currentSearchQuery = ""
+        } else if searchManager.shouldUpdateSearch(for: text) {
+            handlePerformSearch(text)
+        }
+    }
+    
+    /// 검색 실행 처리
+    func handlePerformSearch(_ query: String) {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else { 
+            searchManager.clearSearch()
+            state.currentSearchQuery = ""
+            return 
+        }
+        
+        state.currentSearchQuery = trimmedQuery
+        searchManager.searchMessages(query: trimmedQuery, roomId: state.roomID, currentUserNickname: state.myNickname)
+        print("🔍 검색 실행: '\(trimmedQuery)'")
+    }
+    
+    /// 다음 검색 결과로 이동
+    func handleNavigateToNextSearchResult() {
+        guard searchManager.canNavigateNext else { 
+            print("🔍 다음 검색 결과 없음")
+            return 
+        }
+        
+        searchManager.navigateToNext()
+        if let currentResult = searchManager.currentResult {
+            handleScrollToSearchResult(currentResult.messageId)
+        }
+    }
+    
+    /// 이전 검색 결과로 이동
+    func handleNavigateToPreviousSearchResult() {
+        guard searchManager.canNavigatePrevious else { 
+            print("🔍 이전 검색 결과 없음")
+            return 
+        }
+        
+        searchManager.navigateToPrevious()
+        if let currentResult = searchManager.currentResult {
+            handleScrollToSearchResult(currentResult.messageId)
+        }
+    }
+    
+    /// 검색 결과로 스크롤 처리
+    func handleScrollToSearchResult(_ messageId: String) {
+        // UI에서 처리할 scrollToMessage 이벤트 발생
+        // NotificationCenter를 통해 MessageListSectionView로 전달
+        NotificationCenter.default.post(
+            name: .scrollToMessage,
+            object: nil,
+            userInfo: ["messageId": messageId]
+        )
+        print("🔍 메시지로 스크롤 요청: \(messageId.prefix(8))")
     }
 }
 
 // MARK: - CoreData Integration
 @MainActor
 private extension ChatViewStore {
-    /// CoreData에서 메시지 로드
-    func loadMessagesFromCoreData() {
-        let gtChats = coreDataManager.fetchChats(for: state.roomID, limit: 100)
-        let chatMessages = ChatMessage.from(gtChats, currentUserId: state.myUserID)
+    /// CoreData에서 초기 메시지 로드 (최신 20개)
+    func loadInitialMessagesFromCoreData() {
+        print("📊 초기 메시지 로드 시작 - 현재 사용자 닉네임: '\(state.myNickname)'")
+        let gtChats = coreDataManager.fetchChatsWithCursor(for: state.roomID, beforeTimestamp: nil, limit: 20)
+        let chatMessages = ChatMessage.from(gtChats, currentUserNickname: state.myNickname)
         
         // 시간순 정렬 (오래된 것부터)
         state.messages = chatMessages.sorted { $0.timestamp < $1.timestamp }
         
-        print("📱 CoreData에서 \(chatMessages.count)개 메시지 로드")
+        // 메시지 그룹화
+        state.messageGroups = MessageGroupFactory.createMessageGroups(from: state.messages)
+        
+        // 가장 오래된 메시지 시간 설정
+        if let oldestMessage = state.messages.first {
+            state.oldestLoadedTimestamp = oldestMessage.timestamp
+        }
+        
+        // 더 불러올 메시지가 있는지 확인
+        state.hasMoreMessages = chatMessages.count == 20
+        
+        // isFromMe 검증을 위한 추가 로그
+        let myMessages = chatMessages.filter { $0.isFromMe }
+        let otherMessages = chatMessages.filter { !$0.isFromMe }
+        print("📊 메시지 로드 완료:")
+        print("   - 전체 메시지: \(chatMessages.count)개")
+        print("   - 내 메시지: \(myMessages.count)개")
+        print("   - 상대방 메시지: \(otherMessages.count)개")
+        print("   - 그룹: \(state.messageGroups.count)개")
     }
     
-    /// 서버에서 메시지 동기화
+    /// CoreData에서 메시지 로드 (호환성을 위해 유지)
+    func loadMessagesFromCoreData() {
+        let gtChats = coreDataManager.fetchChats(for: state.roomID, limit: 100)
+        let chatMessages = ChatMessage.from(gtChats, currentUserNickname: state.myNickname)
+        
+        // 시간순 정렬 (오래된 것부터)
+        state.messages = chatMessages.sorted { $0.timestamp < $1.timestamp }
+        
+        // 메시지 그룹화
+        state.messageGroups = MessageGroupFactory.createMessageGroups(from: state.messages)
+        
+        print("📱 CoreData에서 \(chatMessages.count)개 메시지 로드, 그룹: \(state.messageGroups.count)개")
+    }
+    
+    /// 서버에서 메시지 동기화 (개선된 버전)
     func syncMessagesFromServer() {
         state.isLoading = true
         state.errorMessage = nil
         
-        // 1. 먼저 CoreData에서 기존 데이터 로드 (즉시 UI 업데이트)
-        loadMessagesFromCoreData()
-        
         Task {
             do {
+                // 1. 현재 시간 기준으로 서버에서 최신 메시지 가져오기
                 let chatResponses = try await useCase.getChatHistory(state.roomID, state.next ?? "")
                 
-                // 2. 서버 응답을 CoreData에 저장
-                await saveChatHistoryToCoreData(chatResponses)
+                // 2. 새로운 메시지만 필터링하여 CoreData에 저장
+                let newMessagesCount = coreDataManager.saveNewMessagesFromServer(chatResponses, roomId: state.roomID, currentUserNickname: state.myNickname)
                 
                 // 3. CoreData에서 업데이트된 데이터 다시 로드하여 UI 업데이트
                 await MainActor.run {
-                    self.loadMessagesFromCoreData()
+                    if newMessagesCount > 0 {
+                        // 새 메시지가 있으면 전체 다시 로드
+                        self.loadInitialMessagesFromCoreData()
+                        print("🌐 서버 동기화 완료: \(newMessagesCount)개 새 메시지 추가")
+                    } else {
+                        print("🌐 서버 동기화 완료: 새 메시지 없음")
+                    }
                     state.isLoading = false
-                    print("🌐 서버 동기화 완료: \(chatResponses.count)개 메시지 처리")
                 }
                 
             } catch {
@@ -413,17 +654,19 @@ private extension ChatViewStore {
                     // 새로운 메시지만 CoreData에 저장
                     let timestamp = parseDate(from: chatResponse.createdAt) ?? Date()
                     
-                    // 메시지 발신자 구분
-                    print("   - 발신자 구분: \(chatResponse.sender.userID) == \(state.myUserID)")
-                    let isMyMessage = chatResponse.sender.userID == state.myUserID
+                    // 메시지 발신자 구분 (nickname으로 비교)
+                    print("   - 발신자 구분: \(chatResponse.sender.nick) == \(state.myNickname)")
+                    let isMyMessage = chatResponse.sender.nick == state.myNickname
                     
                     let _ = coreDataManager.createChatFromServer(
                         chatId: chatResponse.chatID,
                         content: chatResponse.content,
                         roomId: chatResponse.roomID,
                         userId: chatResponse.sender.userID,
+                        senderNickname: chatResponse.sender.nick,
                         timestamp: timestamp,
-                        files: chatResponse.files.isEmpty ? nil : chatResponse.files
+                        files: chatResponse.files.isEmpty ? nil : chatResponse.files,
+                        currentUserNickname: state.myNickname
                     )
                     
                     // 사용자 정보 업데이트 (발신자 구분 포함)
@@ -508,10 +751,10 @@ private extension ChatViewStore {
             // CoreData에서 새로운 메시지 로드하여 화면에 추가
             
             let beforeCount = self.state.messages.count
-            self.loadMessagesFromCoreData()
+            self.loadInitialMessagesFromCoreData()
             let afterCount = self.state.messages.count
             
-            print("   📱 메시지 로드 완료: \(beforeCount) → \(afterCount)")
+            print("   📱 메시지 로드 완료: \(beforeCount) → \(afterCount), 그룹: \(self.state.messageGroups.count)개")
             
             // 새 메시지 알림 로그
             if isMyMessage {

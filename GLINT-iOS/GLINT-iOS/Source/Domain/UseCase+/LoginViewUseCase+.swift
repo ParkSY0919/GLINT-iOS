@@ -64,6 +64,14 @@ extension LoginViewUseCase {
                 )
                 
                 let response = try await repository.signIn(request)
+                
+                // 로그인 성공시 토큰과 사용자 정보 저장
+                keychain.saveUserId(response.userID)
+                keychain.saveNickname(response.nick)
+                keychain.saveAccessToken(response.accessToken)
+                keychain.saveRefreshToken(response.refreshToken)
+                
+                GTLogger.i("일반 로그인 성공 - 사용자 정보 저장: \(response.nick)")
                 return response
             },
             // 로그인-apple
@@ -73,6 +81,7 @@ extension LoginViewUseCase {
                 
                 GTLogger.i("Apple 로그인 응답: \(response)")
                 keychain.saveUserId(response.userID)
+                keychain.saveNickname(response.nick)
                 keychain.saveAccessToken(response.accessToken)
                 keychain.saveRefreshToken(response.refreshToken)
                 
@@ -82,7 +91,14 @@ extension LoginViewUseCase {
             signInKakao: { entity in
                 let request = entity
                 let response = try await repository.signInKakao(request)
-                GTLogger.i("Kakao 로그인 응답: \(response)")
+                
+                // 카카오 로그인 성공시 토큰과 사용자 정보 저장
+                keychain.saveUserId(response.userID)
+                keychain.saveNickname(response.nick)
+                keychain.saveAccessToken(response.accessToken)
+                keychain.saveRefreshToken(response.refreshToken)
+                
+                GTLogger.i("Kakao 로그인 성공 - 사용자 정보 저장: \(response.nick)")
                 return response
             },
             deviceTokenUpdate: { deviceToken in

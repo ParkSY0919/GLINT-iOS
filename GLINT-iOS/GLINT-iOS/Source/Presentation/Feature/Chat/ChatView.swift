@@ -35,10 +35,36 @@ struct ChatView: View {
                 contentView
             }
         }
-        .navigationSetup(
-            title: navigationTitle,
-            onBackButtonTapped: { store.send(.backButtonTapped) }
-        )
+        .navigationTitle(navigationTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            // Leading buttons
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { store.send(.backButtonTapped) }) {
+                    Image(systemName: "arrow.left")
+                        .frame(width: 32, height: 32)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray75)
+                }
+            }
+            
+            // Trailing buttons
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    if store.state.isSearchMode {
+                        store.send(.endSearch)
+                    } else {
+                        store.send(.startSearch)
+                    }
+                }) {
+                    Image(systemName: store.state.isSearchMode ? "xmark" : "magnifyingglass")
+                        .frame(width: 32, height: 32)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.gray75)
+                }
+            }
+        }
         .alert("오류", isPresented: .constant(store.state.errorMessage != nil)) {
             Button("확인") {
                 // store.send(.clearError) - 필요 시 추가
@@ -94,6 +120,11 @@ private extension ChatView {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
+                // 검색 헤더 (검색 모드일 때만 표시)
+                if store.state.isSearchMode {
+                    searchHeaderView
+                }
+                
                 ConnectionStatusSectionView(
                     isConnected: store.state.isConnected,
                     onRetryTapped: {
@@ -103,8 +134,11 @@ private extension ChatView {
                 
                 MessageListSectionView(
                     messages: store.state.messages,
+                    messageGroups: store.state.messageGroups,
                     isLoading: store.state.isLoading,
+                    isLoadingMore: store.state.isLoadingMore,
                     cacheSize: store.state.cacheSize,
+                    searchQuery: store.state.currentSearchQuery,
                     onRetryMessage: { chatId in
                         store.send(.retryFailedMessage(chatId))
                     },
@@ -119,6 +153,12 @@ private extension ChatView {
                     },
                     onRefresh: {
                         store.send(.refreshMessages)
+                    },
+                    onLoadMore: {
+                        store.send(.loadMoreMessages)
+                    },
+                    onMessageGroupAppeared: { index in
+                        store.send(.messageGroupAppearedAtIndex(index))
                     }
                 )
                 
@@ -162,5 +202,33 @@ private extension ChatView {
             title += " (\(store.state.unreadCount))"
         }
         return title
+    }
+    
+    
+    /// 검색 헤더 뷰
+    var searchHeaderView: some View {
+        ChatSearchHeader(
+            searchText: Binding(
+                get: { store.state.searchText },
+                set: { store.send(.searchTextChanged($0)) }
+            ),
+            isSearchMode: Binding(
+                get: { store.state.isSearchMode },
+                set: { _ in }
+            ),
+            searchManager: store.searchManager,
+            onSearch: { query in
+                store.send(.performSearch(query))
+            },
+            onNavigatePrevious: {
+                store.send(.navigateToPreviousSearchResult)
+            },
+            onNavigateNext: {
+                store.send(.navigateToNextSearchResult)
+            },
+            onCloseSearch: {
+                store.send(.endSearch)
+            }
+        )
     }
 }
