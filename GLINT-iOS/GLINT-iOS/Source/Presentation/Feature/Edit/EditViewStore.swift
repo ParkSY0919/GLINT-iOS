@@ -91,6 +91,9 @@ private extension EditViewStore {
         
         basePreviewImage = image.resized(to: previewSize) ?? image
         applyAllFiltersToPreview()
+        
+        // 메모리 사용량 분석
+        checkImageMemoryUsage()
     }
     
     func handlePropertySelection(_ type: FilterPropertyType) {
@@ -270,6 +273,40 @@ private extension EditViewStore {
         return FilterPropertyType.allCases.allSatisfy { type in
             params1[type] == params2[type]
         }
+    }
+    
+    // MARK: - Memory Analysis Methods
+    private func checkImageMemoryUsage() {
+        print("=== 이미지 메모리 사용량 분석 ===")
+        
+        // 원본 이미지 메모리 사용량
+        if let originalImage = state.originalImage {
+            let originalMemory = calculateImageMemory(originalImage)
+            print("📷 원본 이미지: \(originalImage.size) - \(String(format: "%.2f", originalMemory)) MB")
+        }
+        
+        // 프리뷰 이미지 메모리 사용량
+        if let previewImage = basePreviewImage {
+            let previewMemory = calculateImageMemory(previewImage)
+            print("🔍 프리뷰 이미지: \(previewImage.size) - \(String(format: "%.2f", previewMemory)) MB")
+        }
+        
+        // 메모리 절약 효과 계산
+        if let original = state.originalImage, let preview = basePreviewImage {
+            let originalMemory = calculateImageMemory(original)
+            let previewMemory = calculateImageMemory(preview)
+            let savings = ((originalMemory - previewMemory) / originalMemory) * 100
+            print("💡 메모리 절약: \(String(format: "%.1f", savings))% (원본 대비)")
+            print("📊 메모리 절약량: \(String(format: "%.2f", originalMemory - previewMemory)) MB")
+        }
+        
+        print("================================")
+    }
+    
+    private func calculateImageMemory(_ image: UIImage) -> Double {
+        let bytesPerPixel = 4 // RGBA
+        let memorySize = image.size.width * image.size.height * CGFloat(bytesPerPixel) * image.scale * image.scale
+        return Double(memorySize / 1024 / 1024) // MB 단위
     }
 }
 
