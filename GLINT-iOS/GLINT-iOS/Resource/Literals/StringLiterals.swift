@@ -119,7 +119,7 @@ extension Strings {
         
         // MARK: - Purchase Messages
         enum Purchase {
-            static let lockedFilterMessage = "결제 후 필요한 유료 필터입니다"
+            static let lockedFilterMessage = "결제가 필요한 유료 필터입니다"
             static let purchaseSuccessMessage = "필터 구매를 성공하였습니다."
             static let orderNumberPrefix = "주문번호: "
             static let slpIdentiCode = "imp14511373"

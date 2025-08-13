@@ -127,7 +127,7 @@ struct GLINT_iOSApp: App {
         imageCache.countLimit = 30 // 이미지 개수 제한
         imageCache.costLimit = 50 * 1024 * 1024 // 50MB 메모리 제한
         
-        let dataCache = try! DataCache(name: "com.yourapp.nuke")
+        let dataCache = try! DataCache(name: "com.GLINT.nuke")
         dataCache.sizeLimit = 1024 * 1024 * 200 // 200MB
         
         // Nuke ImagePipeline 설정
