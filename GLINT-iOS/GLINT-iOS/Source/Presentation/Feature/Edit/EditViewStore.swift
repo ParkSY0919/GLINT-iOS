@@ -47,8 +47,20 @@ final class EditViewStore {
     private var currentFilteredPreview: UIImage?
     private var lastAppliedParameters: FilterParameters?
     
+    // 디바운스 타이머 관련
+    private nonisolated(unsafe) var debounceTimer: DispatchSourceTimer?
+    private let debounceDelay: TimeInterval = 0.5
+    private var pendingHistoryChange: (type: FilterPropertyType, oldValue: Float, newValue: Float)?
+    
     init(router: NavigationRouter<MakeTabRoute>) {
         self.router = router
+    }
+    
+    deinit {
+        
+        // deinit에서는 MainActor 메서드를 호출할 수 없으므로 직접 타이머 정리
+        debounceTimer?.cancel()
+        debounceTimer = nil
     }
     
     func send(_ action: EditViewAction) {
@@ -103,6 +115,11 @@ private extension EditViewStore {
         state.selectedPropertyType = type
         
         if previousType != type {
+            // 기존에 대기 중인 히스토리 저장이 있다면 즉시 실행
+            if pendingHistoryChange != nil {
+                executeHistorySave()
+            }
+            
             updateDisplayImage()
         }
     }
@@ -110,9 +127,15 @@ private extension EditViewStore {
     func handleValueChange(_ value: Float) {
         guard state.isInitialized else { return }
         
-        state.editState.parameters[state.selectedPropertyType]?.currentValue = value
+        // 즉시 UI 업데이트 (히스토리 저장 안함)
+        state.editState.updateParameterImmediately(state.selectedPropertyType, value: value)
         state.isSliderActive = true
         applyCurrentValueToPreview(value)
+        
+        // 기존 타이머 취소
+        cancelDebounceTimer()
+        
+        print("🔄 슬라이더 조작 중 - \(state.selectedPropertyType.displayName): \(value) (히스토리 저장 안함)")
     }
     
     func handleValueChangeEnded(_ value: Float) {
@@ -120,7 +143,11 @@ private extension EditViewStore {
         
         state.isSliderActive = false
         applyAllFiltersToPreview()
-        state.editState.updateParameter(state.selectedPropertyType, value: value)
+        
+        // 디바운스 타이머 시작 (0.5초 후 히스토리 저장)
+        scheduleHistorySave(for: state.selectedPropertyType, newValue: value)
+        
+        print("⏱️ 슬라이더 조작 완료 - \(state.selectedPropertyType.displayName): \(value) (0.5초 후 히스토리 저장)")
     }
     
     func handleImageToggle() {
@@ -131,6 +158,11 @@ private extension EditViewStore {
     func handleUndo() {
         guard state.isInitialized else { return }
         
+        // 대기 중인 히스토리가 있다면 즉시 저장 후 undo
+        if pendingHistoryChange != nil {
+            executeHistorySave()
+        }
+        
         if state.editState.undo() {
             applyAllFiltersToPreview()
         }
@@ -138,6 +170,11 @@ private extension EditViewStore {
     
     func handleRedo() {
         guard state.isInitialized else { return }
+        
+        // 대기 중인 히스토리가 있다면 즉시 저장 후 redo
+        if pendingHistoryChange != nil {
+            executeHistorySave()
+        }
         
         if state.editState.redo() {
             applyAllFiltersToPreview()
@@ -307,6 +344,68 @@ private extension EditViewStore {
         let bytesPerPixel = 4 // RGBA
         let memorySize = image.size.width * image.size.height * CGFloat(bytesPerPixel) * image.scale * image.scale
         return Double(memorySize / 1024 / 1024) // MB 단위
+    }
+    
+    // MARK: - Debounce Timer Management
+    
+    private func scheduleHistorySave(for type: FilterPropertyType, newValue: Float) {
+        // 현재 파라미터에서 이전 값 가져오기 (타이머가 시작되기 전의 값)
+        let oldValue = getLastSavedValue(for: type)
+        
+        // 보류 중인 변경사항 저장
+        pendingHistoryChange = (type: type, oldValue: oldValue, newValue: newValue)
+        
+        // 기존 타이머 취소
+        cancelDebounceTimer()
+        
+        // 새 타이머 생성
+        debounceTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
+        debounceTimer?.schedule(deadline: .now() + debounceDelay)
+        debounceTimer?.setEventHandler { [weak self] in
+            self?.executeHistorySave()
+        }
+        debounceTimer?.resume()
+    }
+    
+    private func cancelDebounceTimer() {
+        debounceTimer?.cancel()
+        debounceTimer = nil
+    }
+    
+    private func executeHistorySave() {
+        guard let change = pendingHistoryChange else { return }
+        
+        // 히스토리에 저장
+        state.editState.saveToHistory(
+            change.type,
+            oldValue: change.oldValue,
+            newValue: change.newValue
+        )
+        
+        // 보류 중인 변경사항 초기화
+        pendingHistoryChange = nil
+        debounceTimer = nil
+        
+        print("📝 디바운스 완료 - \(change.type.displayName): \(change.oldValue) → \(change.newValue)")
+        print("📊 현재 히스토리 개수: \(state.editState.history.count), 인덱스: \(state.editState.historyIndex)")
+    }
+    
+    private func getLastSavedValue(for type: FilterPropertyType) -> Float {
+        // 히스토리에서 해당 타입의 마지막 저장 값을 찾기
+        // 히스토리가 없거나 해당 타입이 없으면 기본값 반환
+        let history = state.editState.history
+        let currentIndex = state.editState.historyIndex
+        
+        // 현재 인덱스에서 역순으로 검색
+        for i in stride(from: currentIndex, through: 0, by: -1) {
+            let action = history[i]
+            if action.type == type {
+                return action.newValue
+            }
+        }
+        
+        // 히스토리에 없으면 기본값 반환
+        return type.defaultValue
     }
 }
 
