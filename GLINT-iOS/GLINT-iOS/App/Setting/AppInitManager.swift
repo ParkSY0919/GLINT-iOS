@@ -23,6 +23,7 @@ final class AppInitManager {
     }
     
     /// 앱 초기화 시 CoreData와 WebSocket 설정 (기존 함수 - 호환성 유지)
+    @MainActor
     func setupCoreDataAndWebSocket() {
         setupCoreDataAndWebSocketWithoutFCM()
         
@@ -46,7 +47,7 @@ final class AppInitManager {
         print("📱 CoreData 초기화 완료")
     }
     
-    func setupFCM() {
+    @MainActor func setupFCM() {
         // FCMManager 초기화 및 설정
         let fcmManager = FCMManager.shared
         fcmManager.configure()

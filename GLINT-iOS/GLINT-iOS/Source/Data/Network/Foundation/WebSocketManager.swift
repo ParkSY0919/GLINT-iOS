@@ -41,6 +41,7 @@ final class WebSocketManager: NSObject {
     // Core Data Manager
     private let coreDataManager = CoreDataManager.shared
     private let keychainManager = KeychainManager.shared
+    private let appStateManager = AppStateManager.shared
     
     private override init() {
         super.init()
@@ -141,6 +142,11 @@ final class WebSocketManager: NSObject {
         currentRoomID = roomId // 현재 채팅방 ID 업데이트
         self.accessToken = accessToken
         
+        // AppStateManager와 동기화
+        Task { @MainActor in
+            appStateManager.enterChatRoom(roomId)
+        }
+        
         // 연결이 필요하면 연결
         connectIfNeeded()
         
@@ -154,6 +160,11 @@ final class WebSocketManager: NSObject {
     func leaveChatRoom(_ roomId: String) {
         activeChatRooms.remove(roomId)
         currentRoomID = nil // 현재 채팅방 ID 초기화
+        
+        // AppStateManager와 동기화
+        Task { @MainActor in
+            appStateManager.leaveChatRoom(roomId)
+        }
         
         // 연결되어 있으면 채팅방 퇴장
         if currentState == .connected {
