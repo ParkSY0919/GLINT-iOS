@@ -190,10 +190,52 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
         
         GTLogger.shared.networkRequest("🚀 NetworkStart (Multipart): \(endPoint.method.rawValue) \(endPoint.baseURL)\(endPoint.path)")
         
+        // 파일 데이터 검증 및 로깅
+        print("📋 Multipart 파일 검증:")
+        var totalSize = 0
+        
+        for (index, data) in config.files.enumerated() {
+            let fileSize = data.count
+            let fileSizeMB = Double(fileSize) / (1024 * 1024)
+            totalSize += fileSize
+            
+            print("   파일 \(index): \(fileSize) bytes (\(String(format: "%.2f", fileSizeMB)) MB)")
+            
+            // 파일 크기 경고
+            if fileSizeMB > 5.0 {
+                print("   ⚠️ 파일 \(index): 크기가 5MB를 초과함 (서버 제한 가능성)")
+            }
+            
+            // 파일이 비어있는지 확인
+            if data.isEmpty {
+                print("   ❌ 파일 \(index)가 비어있음!")
+            }
+            
+            // JPEG 헤더 확인
+            if data.count >= 2 {
+                let header = data.prefix(2)
+                let headerBytes = [UInt8](header)
+                if headerBytes[0] == 0xFF && headerBytes[1] == 0xD8 {
+                    print("   ✅ 파일 \(index): 유효한 JPEG 헤더")
+                } else {
+                    print("   ⚠️ 파일 \(index): JPEG 헤더 아님 (\(String(format: "%02X %02X", headerBytes[0], headerBytes[1])))")
+                }
+            }
+        }
+        
+        let totalSizeMB = Double(totalSize) / (1024 * 1024)
+        print("📊 총 파일 크기: \(totalSize) bytes (\(String(format: "%.2f", totalSizeMB)) MB)")
+        
+        if totalSizeMB > 10.0 {
+            print("⚠️ 총 파일 크기가 10MB를 초과함 - 서버에서 거부될 수 있음")
+        }
+        
         let request = defaultSession.upload(
             multipartFormData: { formData in
                 for (index, data) in config.files.enumerated() {
                     let fileName = "file\(index).\(config.fileExtension)"
+                    print("📤 Multipart 파일 추가: \(fileName) (\(data.count) bytes) -> 필드명: \(config.fieldName)")
+                    
                     formData.append(
                         data,
                         withName: config.fieldName,
@@ -201,6 +243,8 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
                         mimeType: config.mimeType
                     )
                 }
+                
+                print("✅ Multipart FormData 구성 완료 - 총 \(config.files.count)개 파일")
             },
             to: endPoint.baseURL + endPoint.path,
             method: endPoint.method,
@@ -219,6 +263,44 @@ struct NetworkService<E: EndPoint>: NetworkServiceInterface {
             return value
             
         } catch {
+            // Multipart 요청 실패 시 상세 에러 정보 출력
+            print("❌ Multipart 요청 실패:")
+            print("   URL: \(endPoint.baseURL + endPoint.path)")
+            print("   Method: \(endPoint.method.rawValue)")
+            print("   파일 수: \(config.files.count)")
+            
+            if let afError = error as? AFError {
+                switch afError {
+                case .responseValidationFailed(let reason):
+                    if case .unacceptableStatusCode(let code) = reason {
+                        print("   상태 코드: \(code)")
+                        
+                        // 400 에러인 경우 응답 내용도 출력
+                        if code == 400 {
+                            // 여러 방법으로 응답 데이터 확인 시도
+                            var responseString: String?
+                            
+                            if let responseData = afError.downloadResumeData {
+                                responseString = String(data: responseData, encoding: .utf8)
+                                print("   서버 응답 (responseData): \(responseString ?? "디코딩 실패")")
+                            } else if let underlyingError = afError.underlyingError as? URLError,
+                                      let failureReason = afError.failureReason {
+                                print("   URLError: \(underlyingError.localizedDescription)")
+                                print("   실패 이유: \(failureReason)")
+                            } else {
+                                print("   응답 데이터를 가져올 수 없음")
+                            }
+                        }
+                    }
+                case .responseSerializationFailed(let reason):
+                    print("   직렬화 실패: \(reason)")
+                default:
+                    print("   기타 AFError: \(afError.localizedDescription)")
+                }
+            } else {
+                print("   일반 에러: \(error.localizedDescription)")
+            }
+            
             // handleError를 호출하여 에러 처리
             try handleError(error, endPoint: endPoint)
         }
