@@ -57,7 +57,10 @@ final class EditViewStore {
     private var pendingHistorySave: Bool = false
     
     // 히스토리 관리자
+    // 기존 히스토리 매니저와 새로운 델타 기반 매니저 병행 사용
     private let historyManager = FilterHistoryManager(maxHistoryCount: 50)
+    private let deltaHistoryManager = DeltaBasedFilterHistoryManager(maxHistoryCount: 50)
+    private let changeTracker = FilterChangeTracker()
     
     init(router: NavigationRouter<MakeTabRoute>) {
         self.router = router
@@ -151,10 +154,19 @@ private extension EditViewStore {
     func handleValueChangeEnded(_ value: Float) {
         guard state.isInitialized else { return }
         
+        // 델타 추적을 위한 현재 상태 캡처
+        let currentState = getCurrentFilterState()
+        
         state.isSliderActive = false
         applyAllFiltersToPreview()
         
-        // 디바운스 타이머 시작 (0.5초 후 히스토리 저장)
+        // 델타 기반 변경 추적 (슬라이더 조작 완료 시)
+        if let delta = changeTracker.trackSingleChange(type: state.selectedPropertyType, newValue: value) {
+            deltaHistoryManager.saveDelta(delta)
+            print("📊 델타 저장 (슬라이더 완료): \(state.selectedPropertyType.displayName) → \(value)")
+        }
+        
+        // 디바운스 타이머 시작 (0.5초 후 히스토리 저장) - 레거시 지원
         scheduleHistorySave()
         
         print("⏱️ 슬라이더 조작 완료 - \(state.selectedPropertyType.displayName): \(value) (0.5초 후 히스토리 저장)")
@@ -173,10 +185,18 @@ private extension EditViewStore {
             executeHistorySave()
         }
         
-        if let previousState = historyManager.undo() {
+        // 델타 기반 Undo 시도
+        if let undoState = deltaHistoryManager.undo() {
+            restoreFromDeltaState(undoState)
+            updateHistoryState()
+            applyAllFiltersToPreview()
+            print("🔄 델타 기반 Undo 수행")
+        } else if let previousState = historyManager.undo() {
+            // 기존 히스토리 매니저로 fallback
             state.editState.restore(from: previousState)
             updateHistoryState()
             applyAllFiltersToPreview()
+            print("🔄 레거시 Undo 수행")
         }
     }
     
@@ -188,10 +208,18 @@ private extension EditViewStore {
             executeHistorySave()
         }
         
-        if let nextState = historyManager.redo() {
+        // 델타 기반 Redo 시도
+        if let redoState = deltaHistoryManager.redo() {
+            restoreFromDeltaState(redoState)
+            updateHistoryState()
+            applyAllFiltersToPreview()
+            print("🔄 델타 기반 Redo 수행")
+        } else if let nextState = historyManager.redo() {
+            // 기존 히스토리 매니저로 fallback
             state.editState.restore(from: nextState)
             updateHistoryState()
             applyAllFiltersToPreview()
+            print("🔄 레거시 Redo 수행")
         }
     }
     
@@ -402,8 +430,33 @@ private extension EditViewStore {
     }
     
     private func updateHistoryState() {
-        state.canUndo = historyManager.canUndo
-        state.canRedo = historyManager.canRedo
+        // 델타 히스토리와 레거시 히스토리 중 하나라도 가능하면 활성화
+        state.canUndo = deltaHistoryManager.canUndo || historyManager.canUndo
+        state.canRedo = deltaHistoryManager.canRedo || historyManager.canRedo
+    }
+    
+    // MARK: - Delta State Management
+    
+    /// 델타 상태로부터 복원
+    private func restoreFromDeltaState(_ deltaState: [FilterPropertyType: Float]) {
+        for (filterType, value) in deltaState {
+            if let _ = state.editState.parameters[filterType] {
+                state.editState.parameters[filterType] = PhotoEditParameter(type: filterType)
+                state.editState.parameters[filterType]?.currentValue = value
+            }
+        }
+        
+        // 변경 추적기 상태 업데이트
+        changeTracker.setBaselineState(deltaState)
+    }
+    
+    /// 현재 필터 상태를 딕셔너리로 반환
+    private func getCurrentFilterState() -> [FilterPropertyType: Float] {
+        var currentState: [FilterPropertyType: Float] = [:]
+        for (type, parameter) in state.editState.parameters {
+            currentState[type] = parameter.currentValue
+        }
+        return currentState
     }
 }
 

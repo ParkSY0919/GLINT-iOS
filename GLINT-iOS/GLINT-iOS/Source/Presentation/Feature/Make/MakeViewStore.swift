@@ -127,13 +127,25 @@ private extension MakeViewStore {
     }
     
     func saveFilter() {
+        // 사전 검증: 필수 데이터 확인
+        guard let originImage = state.originImage else {
+            state.errorMessage = "원본 이미지가 선택되지 않았습니다. 갤러리에서 이미지를 먼저 선택해주세요."
+            GTLogger.shared.w("Filter save failed: 원본 이미지 없음")
+            return
+        }
+        
+        guard !state.filterName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            state.errorMessage = "필터 이름을 입력해주세요."
+            return
+        }
+        
         state.isLoading = true
         state.errorMessage = nil
         
         Task {
             do {
                 let imageData = try ImageConverter.convertToData(
-                    originalImage: state.originImage,
+                    originalImage: originImage,
                     filteredImage: state.filteredImage
                 )
                 
@@ -162,8 +174,31 @@ private extension MakeViewStore {
                 state.isLoading = false
             } catch {
                 state.isLoading = false
-                state.errorMessage = error.localizedDescription
-                GTLogger.shared.w("\(Strings.Make.Error.filterSaveFailed): \(String(describing: state.errorMessage))")
+                
+                // 구체적인 에러 메시지 제공
+                if let imageError = error as? ImageConverter.ImageConversionError {
+                    switch imageError {
+                    case .originalImageConversionFailed:
+                        state.errorMessage = "원본 이미지를 처리할 수 없습니다. 다른 이미지를 선택해주세요."
+                    case .filteredImageConversionFailed:
+                        state.errorMessage = "편집된 이미지를 처리할 수 없습니다. 다시 편집을 시도해주세요."
+                    case .allCompressionLevelsFailed:
+                        state.errorMessage = "이미지 파일이 너무 큽니다. 더 작은 크기의 이미지를 선택해주세요."
+                    case .imageResizingFailed:
+                        state.errorMessage = "이미지 크기 조정에 실패했습니다. 다른 이미지를 사용해주세요."
+                    case .heicHEIFConversionFailed(reason: let reason):
+                        state.errorMessage = "heicHEIFConversionFailed"
+                    case .jpegValidationFailed(reason: let reason):
+                        state.errorMessage = "jpegValidationFailed: \(reason)"
+                    case .unsupportedFormat(format: let format):
+                        state.errorMessage = "unsupportedFormat: \(format)"
+                    }
+                } else {
+                    // 네트워크 또는 서버 에러 처리
+                    state.errorMessage = "필터 저장 중 오류가 발생했습니다. 네트워크 연결을 확인하고 다시 시도해주세요."
+                }
+                
+                GTLogger.shared.w("\(Strings.Make.Error.filterSaveFailed): \(error.localizedDescription)")
             }
         }
     }

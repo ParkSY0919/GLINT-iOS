@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum FilterPropertyType: String, CaseIterable {
+enum FilterPropertyType: String, CaseIterable, Codable {
     case brightness = "brightness"
     case exposure = "exposure"
     case contrast = "contrast"
