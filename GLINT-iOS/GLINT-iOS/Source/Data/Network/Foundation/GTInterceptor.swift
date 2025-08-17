@@ -23,6 +23,13 @@ private struct PendingRequest {
     let originalToken: String?
 }
 
+// 토큰 검증 결과 타입
+private enum TokenValidationResult {
+    case valid
+    case inconsistent(String)
+    case recoverable(String)
+}
+
 final class GTInterceptor: RequestInterceptor {
     private let type: InterceptorType
     private let keychain = KeychainManager.shared
@@ -156,28 +163,188 @@ final class GTInterceptor: RequestInterceptor {
     }
     
     private func processPendingRequests(newToken: String?) {
+        // 강화된 토큰 상태 검증
+        let tokenValidationResult = validateTokenStateConsistency(newToken: newToken)
+        
+        switch tokenValidationResult {
+        case .valid:
+            // 정상 상태 - 요청들 처리
+            processPendingRequestsWithValidatedTokens(newToken: newToken)
+            
+        case .inconsistent(let reason):
+            // 불일치 감지 - 강제 로그아웃
+            GTLogger.e("🚨 토큰 상태 불일치 감지: \(reason)")
+            handleTokenInconsistency(reason: reason)
+            
+        case .recoverable(let issue):
+            // 복구 가능한 문제 - 복구 시도 후 재처리
+            GTLogger.shared.networkRequest("⚠️ 복구 가능한 토큰 문제: \(issue)")
+            if attemptTokenStateRecovery() {
+                processPendingRequestsWithValidatedTokens(newToken: keychain.getAccessToken())
+            } else {
+                handleTokenInconsistency(reason: "복구 실패: \(issue)")
+            }
+        }
+    }
+    
+    /// 토큰 상태 일관성 검증
+    private func validateTokenStateConsistency(newToken: String?) -> TokenValidationResult {
+        // 1. 기본 토큰 존재 여부 확인
+        let storedAccessToken = keychain.getAccessToken()
+        let storedRefreshToken = keychain.getRefreshToken()
+        
+        // 2. 토큰 쌍 일관성 확인
+        if (storedAccessToken == nil) != (storedRefreshToken == nil) {
+            return .inconsistent("토큰 쌍 불일치: access=\(storedAccessToken != nil), refresh=\(storedRefreshToken != nil)")
+        }
+        
+        // 3. 새 토큰과 저장된 토큰 비교
+        if let newToken = newToken, let storedToken = storedAccessToken {
+            if newToken != storedToken {
+                return .inconsistent("새 토큰과 저장된 토큰 불일치")
+            }
+        }
+        
+        // 4. 대기 중인 요청들의 토큰 상태 확인
+        let inconsistentRequests = Self.pendingRequests.filter { request in
+            if let originalToken = request.originalToken,
+               let currentToken = storedAccessToken {
+                return originalToken != currentToken && !isTokenRefreshScenario(original: originalToken, current: currentToken)
+            }
+            return false
+        }
+        
+        if !inconsistentRequests.isEmpty {
+            return .recoverable("대기 요청 중 토큰 불일치 발견 (\(inconsistentRequests.count)건)")
+        }
+        
+        // 5. 토큰 내용 유효성 재검증
+        do {
+            if let accessToken = storedAccessToken {
+                try keychain.validateTokenContent(accessToken, for: .accessToken)
+            }
+            if let refreshToken = storedRefreshToken {
+                try keychain.validateTokenContent(refreshToken, for: .refreshToken)
+            }
+        } catch {
+            return .inconsistent("토큰 내용 검증 실패: \(error.localizedDescription)")
+        }
+        
+        return .valid
+    }
+    
+    /// 정상 검증된 토큰으로 대기 요청들 처리
+    private func processPendingRequestsWithValidatedTokens(newToken: String?) {
         for pendingRequest in Self.pendingRequests {
-            // 토큰 불일치 검사
-            if let originalToken = pendingRequest.originalToken,
-               let currentToken = newToken,
-               originalToken != currentToken {
-                
-                // 토큰이 다르면 해당 요청은 새로운 토큰으로 재시도
-                GTLogger.shared.networkRequest("🔄 Token mismatch detected. Retrying with new token")
-                pendingRequest.completion(.retry)
-            } else if pendingRequest.originalToken == nil && newToken != nil {
-                // 원래 토큰이 없었지만 새로 생성된 경우
+            let shouldRetry = determineShouldRetry(for: pendingRequest, newToken: newToken)
+            
+            if shouldRetry {
+                GTLogger.shared.networkRequest("🔄 토큰 갱신 완료 - 요청 재시도")
                 pendingRequest.completion(.retry)
             } else {
-                // 토큰 상태가 일치하지 않는 경우 - 보안상 로그아웃
-                GTLogger.e("🚨 Token state inconsistency detected. Forcing logout")
-                self.forceLogout()
-                pendingRequest.completion(.doNotRetryWithError(AuthError.tokenRefreshFailed))
-                return
+                GTLogger.shared.networkRequest("⏭️ 요청 스킵 - 토큰 상태 불일치")
+                pendingRequest.completion(.doNotRetryWithError(AuthError.tokenMismatch))
             }
         }
         
         Self.pendingRequests.removeAll()
+    }
+    
+    /// 요청 재시도 여부 판단
+    private func determineShouldRetry(for request: PendingRequest, newToken: String?) -> Bool {
+        guard let newToken = newToken else { return false }
+        
+        // 원본 토큰이 없는 경우 (최초 요청)
+        if request.originalToken == nil {
+            return true
+        }
+        
+        // 토큰 갱신 시나리오인지 확인
+        if let originalToken = request.originalToken {
+            return isTokenRefreshScenario(original: originalToken, current: newToken)
+        }
+        
+        return false
+    }
+    
+    /// 정상적인 토큰 갱신 시나리오인지 판단
+    private func isTokenRefreshScenario(original: String, current: String) -> Bool {
+        // 토큰 길이 비교 (일반적으로 갱신된 토큰은 비슷한 길이)
+        let lengthDifference = abs(original.count - current.count)
+        if lengthDifference > 100 { // 100자 이상 차이나면 의심스러움
+            return false
+        }
+        
+        // JWT 토큰인 경우 구조 확인
+        let originalParts = original.components(separatedBy: ".")
+        let currentParts = current.components(separatedBy: ".")
+        
+        if originalParts.count == 3 && currentParts.count == 3 {
+            // JWT 헤더는 보통 동일해야 함
+            if originalParts[0] != currentParts[0] {
+                GTLogger.shared.networkRequest("⚠️ JWT 헤더 불일치 감지")
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    /// 토큰 상태 불일치 처리
+    private func handleTokenInconsistency(reason: String) {
+        GTLogger.e("🚨 토큰 불일치 처리 시작: \(reason)")
+        
+        // 모든 대기 요청 실패 처리
+        for pendingRequest in Self.pendingRequests {
+            pendingRequest.completion(.doNotRetryWithError(AuthError.tokenStateInconsistent))
+        }
+        Self.pendingRequests.removeAll()
+        
+        // 키체인 상태 진단
+        let diagnosis = keychain.diagnoseKeychainHealth()
+        GTLogger.e("🔍 키체인 진단 결과: \(diagnosis)")
+        
+        // 강제 로그아웃
+        forceLogout()
+    }
+    
+    /// 토큰 상태 복구 시도
+    private func attemptTokenStateRecovery() -> Bool {
+        GTLogger.shared.networkRequest("🔧 토큰 상태 복구 시도")
+        
+        // 1. 키체인 상태 검증
+        do {
+            try keychain.validateTokenState()
+            GTLogger.shared.networkSuccess("✅ 키체인 상태 검증 통과")
+            return true
+        } catch {
+            GTLogger.shared.networkFailure("❌ 키체인 상태 검증 실패", error: error)
+        }
+        
+        // 2. 임시 저장소에서 복구 시도
+        if TemporaryTokenStorage.shared.hasValidTokens() {
+            let recoverySuccess = TemporaryTokenStorage.shared.attemptKeychainRecovery(with: keychain)
+            if recoverySuccess {
+                GTLogger.shared.networkSuccess("✅ 임시 저장소에서 복구 성공")
+                return true
+            }
+        }
+        
+        // 3. 토큰 무결성 재검증
+        if let accessToken = keychain.getAccessToken(),
+           let refreshToken = keychain.getRefreshToken() {
+            do {
+                try keychain.verifyKeychainIntegrity(for: .accessToken, expectedToken: accessToken)
+                try keychain.verifyKeychainIntegrity(for: .refreshToken, expectedToken: refreshToken)
+                GTLogger.shared.networkSuccess("✅ 토큰 무결성 재검증 통과")
+                return true
+            } catch {
+                GTLogger.shared.networkFailure("❌ 토큰 무결성 재검증 실패", error: error)
+            }
+        }
+        
+        GTLogger.shared.d("❌ 모든 복구 시도 실패")
+        return false
     }
     
     private func handleRefreshFailure(
@@ -231,20 +398,127 @@ final class GTInterceptor: RequestInterceptor {
             do {
                 let refreshResponse: RefreshTokenResponse = try await networkService.request(endpoint)
                 
-                // Keychain에 새로운 토큰 저장
-                self.keychain.saveAccessToken(refreshResponse.accessToken)
-                self.keychain.saveRefreshToken(refreshResponse.refreshToken)
+                // 향상된 토큰 저장 및 검증 프로세스
+                try await self.saveTokensWithEnhancedValidation(
+                    accessToken: refreshResponse.accessToken,
+                    refreshToken: refreshResponse.refreshToken
+                )
                 
-                // 저장 성공 여부 확인
-                if (self.keychain.getAccessToken() != nil) && (self.keychain.getRefreshToken() != nil) {
-                    completion(.success(()))
-                } else {
-                    completion(.failure(AuthError.tokenSaveFailed))
-                }
+                completion(.success(()))
+                
             } catch {
                 GTLogger.shared.networkFailure("Refresh token logic failed", error: error)
                 completion(.failure(error))
             }
+        }
+    }
+    
+    /// 향상된 토큰 저장 및 검증 프로세스
+    @MainActor
+    private func saveTokensWithEnhancedValidation(accessToken: String, refreshToken: String) async throws {
+        GTLogger.shared.networkRequest("🔐 강화된 토큰 저장 프로세스 시작")
+        
+        // 1단계: 토큰 사전 검증
+        do {
+            try await Task.detached {
+                try self.keychain.validateTokenContent(accessToken, for: .accessToken)
+                try self.keychain.validateTokenContent(refreshToken, for: .refreshToken)
+            }.value
+            
+            GTLogger.shared.networkSuccess("✅ 토큰 사전 검증 통과")
+        } catch {
+            GTLogger.shared.networkFailure("❌ 토큰 사전 검증 실패", error: error)
+            throw error
+        }
+        
+        // 2단계: 기존 토큰 상태 백업
+        let originalAccessToken = keychain.getAccessToken()
+        let originalRefreshToken = keychain.getRefreshToken()
+        
+        // 3단계: 토큰 저장 시도
+        do {
+            try await Task.detached {
+                try self.keychain.saveTokenWithValidation(accessToken, key: .accessToken)
+                try self.keychain.saveTokenWithValidation(refreshToken, key: .refreshToken)
+            }.value
+            
+            GTLogger.shared.networkSuccess("✅ 토큰 저장 및 검증 완료")
+        } catch {
+            GTLogger.shared.networkFailure("❌ 토큰 저장 검증 실패", error: error)
+            
+            // 4단계: 실패 시 복구 시도
+            try await self.attemptTokenRecovery(
+                originalAccessToken: originalAccessToken,
+                originalRefreshToken: originalRefreshToken,
+                error: error
+            )
+            
+            throw error
+        }
+        
+        // 5단계: 최종 토큰 상태 검증
+        do {
+            try await Task.detached {
+                try self.keychain.validateTokenState()
+            }.value
+            
+            GTLogger.shared.networkSuccess("✅ 최종 토큰 상태 검증 완료")
+        } catch {
+            GTLogger.shared.networkFailure("❌ 최종 토큰 상태 검증 실패", error: error)
+            
+            // 심각한 상태 불일치 - 강제 로그아웃
+            self.forceLogout()
+            throw AuthError.tokenStateInconsistent
+        }
+        
+        // 6단계: 키체인 건강성 진단 (선택적)
+        let healthDiagnosis = keychain.diagnoseKeychainHealth()
+        GTLogger.shared.networkRequest("📊 키체인 건강성 진단: \(healthDiagnosis)")
+    }
+    
+    /// 토큰 복구 시도
+    @MainActor
+    private func attemptTokenRecovery(
+        originalAccessToken: String?,
+        originalRefreshToken: String?,
+        error: Error
+    ) async throws {
+        GTLogger.shared.networkRequest("🔄 토큰 복구 시도 시작")
+        
+        // 에러 유형별 복구 전략
+        switch error {
+        case AuthError.tokenStateInconsistent, AuthError.keychainStorageCorrupted:
+            // 심각한 상태 불일치 - 모든 토큰 삭제 후 강제 로그아웃
+            GTLogger.e("🚨 심각한 토큰 상태 불일치 감지 - 강제 로그아웃")
+            keychain.deleteAllTokens()
+            throw error
+            
+        case AuthError.tokenValidationFailed, AuthError.tokenContentInvalid:
+            // 토큰 내용 문제 - 원본 복구 시도
+            if let original = originalAccessToken {
+                keychain.saveAccessToken(original)
+            }
+            if let original = originalRefreshToken {
+                keychain.saveRefreshToken(original)
+            }
+            GTLogger.shared.networkRequest("🔄 원본 토큰 복구 완료")
+            
+        case AuthError.keychainAccessDenied, AuthError.deviceStorageFull:
+            // 시스템 레벨 문제 - 사용자에게 안내 후 재시도 대기
+            GTLogger.e("⚠️ 시스템 레벨 저장 문제 감지")
+            
+            // 메모리에 임시 저장 (앱 종료 전까지 사용)
+            TemporaryTokenStorage.shared.store(
+                accessToken: keychain.getAccessToken(),
+                refreshToken: keychain.getRefreshToken()
+            )
+            
+            throw error
+            
+        default:
+            // 기타 에러 - 기본 복구 시도
+            GTLogger.shared.networkRequest("🔄 기본 복구 프로세스 실행")
+            throw error
         }
     }
 }

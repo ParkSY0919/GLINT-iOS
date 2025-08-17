@@ -19,6 +19,15 @@ enum AuthError: LocalizedError {
     case noDeviceTokenFound
     case noData
     
+    // 토큰 저장 검증 관련 세분화된 에러
+    case tokenValidationFailed(reason: String)
+    case keychainStorageCorrupted
+    case tokenContentInvalid
+    case tokenLengthMismatch
+    case keychainAccessDenied
+    case deviceStorageFull
+    case tokenStateInconsistent
+    
     var errorDescription: String? {
         switch self {
         case .noTokenFound: return "저장된 토큰이 없습니다."
@@ -31,6 +40,13 @@ enum AuthError: LocalizedError {
         case .invalidPasswordFormat: return "올바른 비밀번호 형식이 아닙니다."
         case .noDeviceTokenFound: return "디바이스 토큰이 없습니다."
         case .noData: return "데이터가 없습니다."
+        case .tokenValidationFailed(let reason): return "토큰 검증 실패: \(reason)"
+        case .keychainStorageCorrupted: return "키체인 저장소가 손상되었습니다."
+        case .tokenContentInvalid: return "토큰 내용이 유효하지 않습니다."
+        case .tokenLengthMismatch: return "토큰 길이가 예상과 다릅니다."
+        case .keychainAccessDenied: return "키체인 접근이 거부되었습니다."
+        case .deviceStorageFull: return "디바이스 저장공간이 부족합니다."
+        case .tokenStateInconsistent: return "토큰 상태가 일관되지 않습니다."
         }
     }
 }
