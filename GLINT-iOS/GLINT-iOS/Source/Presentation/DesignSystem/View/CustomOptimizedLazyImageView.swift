@@ -13,21 +13,24 @@ import NukeUI
 struct CustomOptimizedLazyImageView<Content: View>: View {
     let urlString: String
     let priority: ImageRequest.Priority
+    let imageType: NetworkAwareCacheManager.ImageType
     let stateTransform: (LazyImageState) -> Content
     
     init(
         urlString: String,
+        imageType: NetworkAwareCacheManager.ImageType = .detail,
         priority: ImageRequest.Priority = .high,
         @ViewBuilder content: @escaping (LazyImageState) -> Content
     ) {
         self.urlString = urlString
+        self.imageType = imageType
         self.priority = priority
         self.stateTransform = content
     }
     
     var body: some View {
         LazyImage(url: URL(string: urlString), content: stateTransform)
-            .processors([])
+            .processors(NetworkAwareCacheManager.shared.getOptimizedProcessors(for: imageType))
             .priority(priority)
             .pipeline(.shared)
     }

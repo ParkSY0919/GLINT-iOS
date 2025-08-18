@@ -50,26 +50,60 @@ final class NetworkAwareCacheManager {
         let dataCachePolicy: ImagePipeline.DataCachePolicy
         let description: String
         
+        // 다운샘플링 설정
+        let thumbnailMaxSize: CGSize
+        let detailMaxSize: CGSize
+        let profileMaxSize: CGSize
+        let jpegQuality: Float
+        
         static let wifi = CacheConfiguration(
             dataCacheSizeLimit: 200 * 1024 * 1024, // 200MB
             imageCacheCostLimit: 50 * 1024 * 1024,  // 50MB
             dataCachePolicy: .automatic,
-            description: "WiFi 적극적 캐싱"
+            description: "WiFi 적극적 캐싱",
+            thumbnailMaxSize: CGSize(width: 400, height: 400),
+            detailMaxSize: CGSize(width: 1200, height: 1200),
+            profileMaxSize: CGSize(width: 300, height: 300),
+            jpegQuality: 0.9
         )
         
         static let cellular = CacheConfiguration(
             dataCacheSizeLimit: 100 * 1024 * 1024, // 100MB
             imageCacheCostLimit: 25 * 1024 * 1024,  // 25MB
             dataCachePolicy: .storeAll,
-            description: "Cellular 보수적 캐싱"
+            description: "Cellular 보수적 캐싱",
+            thumbnailMaxSize: CGSize(width: 300, height: 300),
+            detailMaxSize: CGSize(width: 800, height: 800),
+            profileMaxSize: CGSize(width: 200, height: 200),
+            jpegQuality: 0.8
         )
         
         static let offline = CacheConfiguration(
             dataCacheSizeLimit: 50 * 1024 * 1024,  // 50MB (최소)
             imageCacheCostLimit: 15 * 1024 * 1024,  // 15MB (최소)
             dataCachePolicy: .storeAll,
-            description: "Offline 캐시 전용"
+            description: "Offline 캐시 전용",
+            thumbnailMaxSize: CGSize(width: 250, height: 250),
+            detailMaxSize: CGSize(width: 600, height: 600),
+            profileMaxSize: CGSize(width: 150, height: 150),
+            jpegQuality: 0.75
         )
+    }
+    
+    // MARK: - Image Type Definition
+    
+    enum ImageType {
+        case thumbnail
+        case detail
+        case profile
+        
+        var displayName: String {
+            switch self {
+            case .thumbnail: return "썸네일"
+            case .detail: return "상세보기"
+            case .profile: return "프로필"
+            }
+        }
     }
     
     // MARK: - Initialization
@@ -119,6 +153,34 @@ final class NetworkAwareCacheManager {
             imageCache: config.imageCacheCostLimit / (1024 * 1024),
             policy: config.dataCachePolicy == .automatic ? "automatic" : "storeAll"
         )
+    }
+    
+    /// 네트워크 상태와 이미지 타입에 따른 프로세서 생성
+    func getOptimizedProcessors(for imageType: ImageType) -> [ImageProcessing] {
+        let config = getCacheConfiguration(for: currentNetworkType)
+        
+        let targetSize: CGSize
+        switch imageType {
+        case .thumbnail:
+            targetSize = config.thumbnailMaxSize
+        case .detail:
+            targetSize = config.detailMaxSize
+        case .profile:
+            targetSize = config.profileMaxSize
+        }
+        
+        var processors: [ImageProcessing] = []
+        
+        // 리사이징 프로세서 (aspect fit으로 비율 유지)
+        processors.append(ImageProcessors.Resize(size: targetSize, contentMode: .aspectFit))
+        
+        // 프로필 이미지의 경우 원형 크롭 추가
+        if imageType == .profile {
+            let minDimension = min(targetSize.width, targetSize.height)
+            processors.append(ImageProcessors.Circle())
+        }
+        
+        return processors
     }
     
     // MARK: - Private Methods
@@ -267,11 +329,17 @@ final class NetworkAwareCacheManager {
     
     func printNetworkStatus() {
         let cacheInfo = getCurrentCacheInfo()
+        let config = getCacheConfiguration(for: currentNetworkType)
         print("🌐 현재 네트워크 상태:")
         print("   타입: \(currentNetworkType.displayName)")
         print("   데이터 캐시: \(cacheInfo.dataCache)MB")
         print("   이미지 캐시: \(cacheInfo.imageCache)MB")
         print("   정책: \(cacheInfo.policy)")
+        print("📏 다운샘플링 설정:")
+        print("   썸네일: \(Int(config.thumbnailMaxSize.width))×\(Int(config.thumbnailMaxSize.height))")
+        print("   상세보기: \(Int(config.detailMaxSize.width))×\(Int(config.detailMaxSize.height))")
+        print("   프로필: \(Int(config.profileMaxSize.width))×\(Int(config.profileMaxSize.height))")
+        print("   JPEG 품질: \(Int(config.jpegQuality * 100))%")
     }
     
     deinit {
