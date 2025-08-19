@@ -233,7 +233,7 @@ private extension EditViewStore {
                 return
             }
             // 필터된 이미지와 함께 pop
-            self.router.pop(withData: filteredImage, addData: state.editState.toFilterPresetsEntity())
+            self.router.popWithData(withData: filteredImage, addData: state.editState.toFilterPresetsEntity())
             GTLogger.shared.i("Filter applied and saved")
         }
     }

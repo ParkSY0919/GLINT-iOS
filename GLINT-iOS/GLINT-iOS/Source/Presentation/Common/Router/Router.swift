@@ -61,7 +61,7 @@ final class NavigationRouter<Route: Hashable>: Router {
     }
     
     // 데이터와 함께 이전 화면으로 돌아가기
-    func pop<T, U>(withData data: T, addData: U) {
+    func popWithData<T, U>(withData data: T, addData: U) {
         let targetRouteIndex = path.count - 1
         print("🔄 Attempting to pop with data. Target route index: \(targetRouteIndex)")
         print("🔄 Available callbacks: \(Array(popCallbacksOverData.keys))")
