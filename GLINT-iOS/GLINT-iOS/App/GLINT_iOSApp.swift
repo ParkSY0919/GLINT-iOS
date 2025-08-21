@@ -69,6 +69,7 @@ struct GLINT_iOSApp: App {
         setupNavigationAppearance()
         setupImagePipeline()
         KeychainManager.shared.saveDeviceUUID()
+        setupNetworkAwareCaching()
     }
     
     var body: some Scene {
@@ -92,9 +93,22 @@ struct GLINT_iOSApp: App {
                             print("📱 백그라운드 진입 - CoreData 저장 완료")
                         }
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willTerminateNotification)) { _ in
-                            // 앱 종료 시 CoreData 저장
+                            // 앱 종료 시 CoreData 저장 및 네트워크 모니터링 정리
                             CoreDataManager.shared.saveContext()
-                            print("📱 앱 종료 - CoreData 저장 완료")
+                            NetworkAwareCacheManager.shared.stopNetworkMonitoring()
+                            print("📱 앱 종료 - CoreData 저장 및 네트워크 모니터링 정리 완료")
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                            // 포그라운드 복귀 시 네트워크 상태 확인
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                NetworkAwareCacheManager.shared.printNetworkStatus()
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: NetworkAwareCacheManager.networkTypeDidChangeNotification)) { notification in
+                            // 네트워크 타입 변경 알림 처리
+                            if let networkType = notification.userInfo?["networkType"] as? NetworkAwareCacheManager.NetworkType {
+                                print("📶 네트워크 타입 변경 알림: \(networkType)")
+                            }
                         }
                 }
             }
@@ -122,19 +136,19 @@ struct GLINT_iOSApp: App {
             interceptors: [GTInterceptor(type: .nuke)])
         )
         
-        // ImageCache 설정 강화
+        // ImageCache 설정 개선 (기본 설정으로 초기화, NetworkAwareCacheManager가 동적으로 관리)
         let imageCache = ImageCache()
         imageCache.countLimit = 30 // 이미지 개수 제한
-        imageCache.costLimit = 50 * 1024 * 1024 // 50MB 메모리 제한
+        imageCache.costLimit = 50 * 1024 * 1024 // 50MB 메모리 제한 (WiFi 기본값)
         
-        let dataCache = try! DataCache(name: "com.yourapp.nuke")
-        dataCache.sizeLimit = 1024 * 1024 * 200 // 200MB
+        let dataCache = try! DataCache(name: "com.GLINT.nuke")
+        dataCache.sizeLimit = 1024 * 1024 * 200 // 200MB (WiFi 기본값)
         
         // Nuke ImagePipeline 설정
         let pipeline = ImagePipeline {
             $0.dataLoader = AlamofireDataLoader(session: imageSession)
             $0.dataCache = dataCache
-            $0.imageCache = ImageCache.shared
+            $0.imageCache = imageCache // ✅ 커스텀 캐시 사용 (shared 대신)
             $0.dataCachePolicy = .automatic
             $0.isRateLimiterEnabled = true
             $0.isTaskCoalescingEnabled = true
@@ -145,6 +159,24 @@ struct GLINT_iOSApp: App {
         }
 
         ImagePipeline.shared = pipeline
+        
+        // NetworkAwareCacheManager에 세션과 인터셉터 설정 전달
+        NetworkAwareCacheManager.shared.configure(
+            with: imageSession,
+            interceptors: [GTInterceptor(type: .nuke)]
+        )
+        
+        print("📱 기본 ImagePipeline 설정 완료 (NetworkAwareCacheManager 연동)")
+    }
+    
+    private func setupNetworkAwareCaching() {
+        // 네트워크 모니터링 시작
+        NetworkAwareCacheManager.shared.startNetworkMonitoring()
+        
+        // 현재 네트워크 상태 출력
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            NetworkAwareCacheManager.shared.printNetworkStatus()
+        }
     }
 }
 

@@ -79,6 +79,7 @@ final class ChatViewStore {
     private let coreDataManager = CoreDataManager.shared
     private let webSocketManager = WebSocketManager.shared
     private let keyChainManager = KeychainManager.shared
+    private let appStateManager = AppStateManager.shared
     let searchManager = ChatSearchManager()
     
     @ObservationIgnored private var notificationObservers: [NSObjectProtocol] = []
@@ -204,6 +205,9 @@ private extension ChatViewStore {
         state.navTitle = nick
         state.relativeUserId = userID
         
+        // AppStateManager에 현재 채팅방 입장 알림
+        appStateManager.enterChatRoom(roomID)
+        
         // WebSocket 채팅방 참여
         webSocketManager.joinChatRoom(roomId: roomID, accessToken: keyChainManager.getAccessToken() ?? "꽝")
         
@@ -239,6 +243,9 @@ private extension ChatViewStore {
     
     /// 뷰가 사라졌을 때의 처리
     func handleViewDisappeared() {
+        // AppStateManager에 채팅방 퇴장 알림
+        appStateManager.leaveChatRoom(state.roomID)
+        
         // WebSocket 채팅방 떠나기
         webSocketManager.leaveChatRoom(state.roomID)
     }
@@ -325,6 +332,9 @@ private extension ChatViewStore {
     
     /// 뒤로 가기 버튼 탭 처리
     func handleBackButtonTapped() {
+        // AppStateManager에 채팅방 퇴장 알림
+        appStateManager.leaveChatRoom(state.roomID)
+        
         router.pop()
     }
     

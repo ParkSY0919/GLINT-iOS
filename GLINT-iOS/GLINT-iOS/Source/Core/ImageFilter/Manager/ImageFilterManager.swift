@@ -7,25 +7,9 @@
 
 import CoreImage
 import UIKit
-import Metal
 
 final class ImageFilterManager {
-    // Metal GPU 가속을 위한 최적화된 CIContext
-    private static let sharedContext: CIContext = {
-        if let metalDevice = MTLCreateSystemDefaultDevice() {
-            return CIContext(mtlDevice: metalDevice, options: [
-                .workingColorSpace: NSNull(),
-                .outputColorSpace: NSNull(),
-                .cacheIntermediates: false
-            ])
-        } else {
-            return CIContext(options: [
-                .workingColorSpace: NSNull(),
-                .outputColorSpace: NSNull(),
-                .useSoftwareRenderer: false
-            ])
-        }
-    }()
+    private static let sharedContext = CIContext()
     
     private let context = ImageFilterManager.sharedContext
     

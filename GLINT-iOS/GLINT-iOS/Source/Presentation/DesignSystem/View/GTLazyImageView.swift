@@ -13,14 +13,17 @@ import NukeUI
 struct GTLazyImageView: View {
     let urlString: String
     let priority: ImageRequest.Priority
+    let imageType: NetworkAwareCacheManager.ImageType
     let imageTransform: (Image) -> AnyView
     
     init(
         urlString: String,
+        imageType: NetworkAwareCacheManager.ImageType = .detail,
         priority: ImageRequest.Priority = .high,
         @ViewBuilder imageTransform: @escaping (Image) -> some View
     ) {
         self.urlString = urlString
+        self.imageType = imageType
         self.priority = priority
         self.imageTransform = { AnyView(imageTransform($0)) }
     }
@@ -29,7 +32,7 @@ struct GTLazyImageView: View {
         LazyImage(url: URL(string: urlString)) { state in
             lazyImageTransform(state, transform: imageTransform)
         }
-        .processors([])
+        .processors(NetworkAwareCacheManager.shared.getOptimizedProcessors(for: imageType))
         .priority(priority)
         .pipeline(.shared)
     }

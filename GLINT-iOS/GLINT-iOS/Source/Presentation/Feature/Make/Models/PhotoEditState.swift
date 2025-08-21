@@ -17,10 +17,9 @@ struct PhotoEditParameter {
     }
 }
 
+/// 순수한 필터 상태 관리 (히스토리 관리 제외)
 struct PhotoEditState {
     var parameters: [FilterPropertyType: PhotoEditParameter] = [:]
-    var history: [PhotoEditAction] = []
-    var historyIndex: Int = -1
     
     init() {
         for type in FilterPropertyType.allCases {
@@ -28,52 +27,55 @@ struct PhotoEditState {
         }
     }
     
+    // MARK: - Parameter Management
+    
+    /// 파라미터 값 즉시 업데이트 (히스토리 관리는 외부에서)
     mutating func updateParameter(_ type: FilterPropertyType, value: Float) {
-        let oldValue = parameters[type]?.currentValue ?? type.defaultValue
         parameters[type]?.currentValue = value
-        
-        // 값이 변경된 경우에만 히스토리에 추가
-        if oldValue != value {
-            // 히스토리에 추가 (현재 인덱스 이후 제거)
-            if historyIndex < history.count - 1 {
-                history.removeSubrange((historyIndex + 1)...)
-            }
-            
-            let action = PhotoEditAction(type: type, oldValue: oldValue, newValue: value)
-            history.append(action)
-            historyIndex += 1
+    }
+    
+    /// 특정 파라미터 값 반환
+    func getValue(for type: FilterPropertyType) -> Float {
+        return parameters[type]?.currentValue ?? type.defaultValue
+    }
+    
+    /// 전체 상태를 다른 상태로 복원
+    mutating func restore(from state: FilterHistoryState) {
+        for (type, value) in state.parameters {
+            parameters[type]?.currentValue = value
         }
     }
     
-    mutating func undo() -> Bool {
-        guard historyIndex >= 0 else { return false }
-        
-        let action = history[historyIndex]
-        parameters[action.type]?.currentValue = action.oldValue
-        historyIndex -= 1
-        return true
+    /// 현재 상태를 히스토리 상태로 변환
+    func toHistoryState(description: String = "Parameter Change") -> FilterHistoryState {
+        return FilterHistoryState(from: self, description: description)
     }
     
-    mutating func redo() -> Bool {
-        guard historyIndex < history.count - 1 else { return false }
-        
-        historyIndex += 1
-        let action = history[historyIndex]
-        parameters[action.type]?.currentValue = action.newValue
-        return true
+    /// 기본값으로 리셋
+    mutating func resetToDefaults() {
+        for type in FilterPropertyType.allCases {
+            parameters[type]?.currentValue = type.defaultValue
+        }
     }
     
-    var canUndo: Bool {
-        return historyIndex >= 0
+    /// 현재 상태가 기본값과 다른지 확인
+    func hasChangesFromDefault() -> Bool {
+        return FilterPropertyType.allCases.contains { type in
+            let currentValue = parameters[type]?.currentValue ?? type.defaultValue
+            return currentValue != type.defaultValue
+        }
     }
     
-    var canRedo: Bool {
-        return historyIndex < history.count - 1
+    /// 변경된 파라미터 목록 반환
+    func getChangedParameters() -> [FilterPropertyType: Float] {
+        var changedParams: [FilterPropertyType: Float] = [:]
+        for type in FilterPropertyType.allCases {
+            let currentValue = parameters[type]?.currentValue ?? type.defaultValue
+            if currentValue != type.defaultValue {
+                changedParams[type] = currentValue
+            }
+        }
+        return changedParams
     }
 }
 
-struct PhotoEditAction {
-    let type: FilterPropertyType
-    let oldValue: Float
-    let newValue: Float
-} 

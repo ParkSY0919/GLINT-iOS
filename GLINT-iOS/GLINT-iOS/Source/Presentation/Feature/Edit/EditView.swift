@@ -54,8 +54,8 @@ private extension EditView {
             originalImage: originalImage,
             filteredImage: filteredImage,
             showingOriginal: store.state.showingOriginal,
-            canUndo: store.state.editState.canUndo,
-            canRedo: store.state.editState.canRedo,
+            canUndo: store.state.canUndo,
+            canRedo: store.state.canRedo,
             onToggleImage: {
                 store.send(.toggleImageView)
             },
