@@ -11,12 +11,16 @@ struct TabBarView: View {
     @Environment(\.mainViewUseCase)
     private var mainViewUseCase
     
+    @Environment(\.communityViewUseCase)
+    private var communityViewUseCase
+    
     @Environment(\.makeViewUseCase)
     private var makeViewUseCase
     
     @State
     private var viewModel = TabBarViewModel(
         mainViewUseCase: MainViewUseCase.liveValue,
+        communityViewUseCase: CommunityViewUseCase.liveValue,
         makeViewUseCase: MakeViewUseCase.liveValue
     )
     
@@ -31,6 +35,10 @@ struct TabBarView: View {
                     MainTab()
                         .environment(viewModel.mainRouter)
                         .environment(viewModel.mainViewStore)
+                case 1:
+                    CommunityTab()
+                        .environment(viewModel.communityRouter)
+                        .environment(viewModel.communityViewStore)
                 case 2:
                     MakeTab()
                         .environment(viewModel.makeRouter)

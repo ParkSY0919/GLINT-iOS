@@ -152,4 +152,20 @@ extension Strings {
         }
     }
     
+    enum Community {
+        // MARK: - UI Text
+        static let title = "Community"
+        static let subtitle = "다른 사용자들이 만든 멋진 필터들을 확인해보세요"
+        
+        // MARK: - Error Messages
+        enum Error {
+            static let loadFailed = "커뮤니티 아이템을 불러올 수 없습니다"
+        }
+        
+        // MARK: - Log Messages
+        enum Log {
+            static let itemTapped = "Community item tapped"
+        }
+    }
+    
 }

@@ -153,3 +153,7 @@ enum MakeTabRoute: Hashable {
     case make
     case edit(originImage: UIImage)
 }
+
+enum CommunityTabRoute: Hashable {
+    case community
+}
