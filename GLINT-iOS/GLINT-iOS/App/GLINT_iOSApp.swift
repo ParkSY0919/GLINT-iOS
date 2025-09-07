@@ -30,11 +30,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     
     // 원격 푸시 알림 등록 성공
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        print("📱 APNS 디바이스 토큰 등록 성공")
+        print("📱 APNS 디바이스 토큰 발급 성공")
         
-        // APNS 토큰을 Firebase Messaging에 설정
+        // APNS에서 발급받은 토큰을 Firebase Messaging에 설정
         Messaging.messaging().apnsToken = deviceToken
-        print("🔥 APNS 토큰 Firebase에 설정 완료")
+        print("🔥 APNS 디바이스 토큰 Firebase에 설정 완료")
         
         // 이제 FCM 초기화 진행
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
