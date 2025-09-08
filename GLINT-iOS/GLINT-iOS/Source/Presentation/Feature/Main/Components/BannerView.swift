@@ -19,45 +19,71 @@ struct BannerView: View {
     @State private var bannerEntitiesData: [BannerEntity] = []
     
     var body: some View {
-        if !bannerEntitiesData.isEmpty {
-            TabView(selection: $currentIndex) {
-                ForEach(Array(bannerEntitiesData.enumerated()), id: \.offset) { index, banner in
-                    bannerItem(for: banner)
-                        .tag(index)
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader
+            
+            if !bannerEntitiesData.isEmpty {
+                bannerCarousel
+            } else {
+                emptyBannerView
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
+        }
+    }
+    
+    private var sectionHeader: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "megaphone.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.pinterestRed)
+            
+            Text("이벤트")
+                .font(.pretendardFont(.body_bold, size: 16))
+                .foregroundColor(.pinterestTextPrimary)
+            
+            Spacer()
+        }
+    }
+    
+    private var bannerCarousel: some View {
+        TabView(selection: $currentIndex) {
+            ForEach(Array(bannerEntitiesData.enumerated()), id: \.offset) { index, banner in
+                bannerItem(for: banner)
+                    .tag(index)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .frame(height: 100)
+        .clipShape(RoundedRectangle(cornerRadius: 15))
+        .overlay(alignment: .bottomTrailing) {
+            pageIndicator(totalCount: bannerEntitiesData.count)
+        }
+        .onReceive(timer) { _ in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                currentIndex = (currentIndex + 1) % bannerEntitiesData.count
+            }
+        }
+        .padding(.horizontal, 20)
+        .onAppear {
+            setupBannerData()
+        }
+        .onChange(of: bannerEntities) { newBanners in
+            setupBannerData()
+        }
+    }
+    
+    private var emptyBannerView: some View {
+        RoundedRectangle(cornerRadius: 15)
+            .fill(Color.gray.opacity(0.3))
             .frame(height: 100)
-            .clipShape(RoundedRectangle(cornerRadius: 15))
-            .overlay(alignment: .bottomTrailing) {
-                pageIndicator(totalCount: bannerEntitiesData.count)
-            }
-            .onReceive(timer) { _ in
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    currentIndex = (currentIndex + 1) % bannerEntitiesData.count
-                }
-            }
             .padding(.horizontal, 20)
+            .overlay {
+                Text("배너를 불러올 수 없습니다.")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
             .onAppear {
                 setupBannerData()
             }
-            .onChange(of: bannerEntities) { newBanners in
-                setupBannerData()
-            }
-        } else {
-            RoundedRectangle(cornerRadius: 15)
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 100)
-                .padding(.horizontal, 20)
-                .overlay {
-                    Text("배너를 불러올 수 없습니다.")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                .onAppear {
-                    setupBannerData()
-                }
-        }
     }
     
     private func setupBannerData() {
@@ -81,7 +107,6 @@ struct BannerView: View {
         }
     }
     
-    // bannerItem이 BannerResponse를 받도록 수정
     func bannerItem(for banner: BannerEntity) -> some View {
         GTLazyImageView(urlString: banner.bannerImageURL, priority: .veryHigh) { image in
             image
@@ -96,7 +121,6 @@ struct BannerView: View {
         }
     }
     
-    // pageIndicator가 총 개수를 받도록 수정
     func pageIndicator(totalCount: Int) -> some View {
         Text("\(currentIndex + 1) / \(totalCount)")
             .font(.caption2)

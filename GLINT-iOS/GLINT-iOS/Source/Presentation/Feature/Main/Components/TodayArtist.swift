@@ -27,10 +27,31 @@ struct TodayArtistView: View {
 
 private extension TodayArtistView {
     var titleSection: some View {
-        Text(Strings.Main.todayArtistIntro)
-            .font(.pretendardFont(.body_bold, size: 16))
-            .padding(.leading, 20)
-            .foregroundColor(.gray60)
+        HStack(spacing: 8) {
+            Image(systemName: "person.crop.circle.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.pinterestRed)
+            
+            Text(Strings.Main.todayArtistIntro)
+                .font(.pretendardFont(.body_bold, size: 16))
+                .foregroundColor(.pinterestTextPrimary)
+            
+            Spacer()
+            
+            Text("추천")
+                .font(.pretendardFont(.caption_medium, size: 12))
+                .foregroundColor(.pinterestTextTertiary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.pinterestRed.opacity(0.1))
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.pinterestRed.opacity(0.3), lineWidth: 1)
+                        )
+                )
+        }
     }
     
     @ViewBuilder

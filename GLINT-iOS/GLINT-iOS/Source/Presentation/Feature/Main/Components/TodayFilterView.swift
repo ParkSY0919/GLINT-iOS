@@ -72,25 +72,31 @@ private extension TodayFilterView {
     }
     
     var smallTitleSection: some View {
-        Text(Strings.Main.todayFilterIntro)
-            .font(.pretendardFont(.body_medium, size: 13))
-            .foregroundStyle(.gray60)
-            .foregroundColor(.white.opacity(0.8))
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.pinterestRed)
+            
+            Text(Strings.Main.todayFilterIntro)
+                .font(.pretendardFont(.body_medium, size: 13))
+                .foregroundColor(.pinterestTextSecondary)
+        }
     }
     
     func largeTitleSection(_ title: String) -> some View {
         Text(title)
             .font(.pointFont(.title, size: 32))
-            .foregroundColor(.gray30)
+            .foregroundColor(.pinterestTextPrimary)
             .lineLimit(2, reservesSpace: true)
             .padding(.top, 4)
             .padding(.bottom, 20)
+            .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
     }
     
     func descriptionSection(_ description: String) -> some View {
         Text(description)
             .font(.pretendardFont(.caption, size: 12))
-            .foregroundStyle(.gray60)
+            .foregroundColor(.pinterestTextSecondary)
             .lineLimit(4, reservesSpace: true)
     }
     
@@ -108,13 +114,34 @@ private extension TodayFilterView {
             Button {
                 onTryFilterTapped(filterID)
             } label: {
-                Text(Strings.Main.tryFilter)
-                    .font(.pretendardFont(.caption_medium, size: 12))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(.gray75.opacity(0.7))
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .foregroundColor(.gray0)
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.filters")
+                        .font(.system(size: 14, weight: .semibold))
+                    
+                    Text(Strings.Main.tryFilter)
+                        .font(.pretendardFont(.caption_medium, size: 14))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    ZStack {
+                        LinearGradient(
+                            colors: [.gradientStart, .gradientMid],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        
+                        LinearGradient(
+                            colors: [.glassLight, .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: .pinterestRed.opacity(0.3), radius: 8, x: 0, y: 4)
+                .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
             }
             .buttonStyle(.plain)
         }
