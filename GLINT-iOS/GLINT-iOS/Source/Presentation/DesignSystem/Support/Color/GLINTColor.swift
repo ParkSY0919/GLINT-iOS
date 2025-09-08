@@ -103,4 +103,42 @@ extension Color {
     static let glintSuccess = Color(red: 0.2, green: 0.8, blue: 0.4)
     static let glintWarning = Color(red: 1.0, green: 0.6, blue: 0.2)
     static let glintError = Color(red: 1.0, green: 0.3, blue: 0.3)
+    
+    // MARK: - Pinterest-Inspired Dark Theme Colors
+    
+    // Primary dark theme background
+    static let pinterestDarkBg = Color(red: 0.067, green: 0.067, blue: 0.067) // #111111
+    static let pinterestDarkSurface = Color(red: 0.118, green: 0.118, blue: 0.118) // #1E1E1E
+    static let pinterestDarkCard = Color(red: 0.157, green: 0.157, blue: 0.157) // #282828
+    
+    // Teal-inspired accent colors (#3B5B69 계열)
+    static let pinterestRed = Color(red: 0.231, green: 0.357, blue: 0.412) // #3B5B69
+    static let pinterestRedSoft = Color(red: 0.231, green: 0.357, blue: 0.412, opacity: 0.1)
+    static let pinterestGold = Color(red: 0.427, green: 0.635, blue: 0.710) // #6DA2B5 (lighter teal)
+    static let pinterestBlue = Color(red: 0.188, green: 0.298, blue: 0.357) // #304C5B (darker teal)
+    
+    // Text colors for dark theme
+    static let pinterestTextPrimary = Color(red: 0.95, green: 0.95, blue: 0.95) // #F2F2F2
+    static let pinterestTextSecondary = Color(red: 0.7, green: 0.7, blue: 0.7) // #B3B3B3
+    static let pinterestTextTertiary = Color(red: 0.5, green: 0.5, blue: 0.5) // #808080
+    
+    // Glassmorphism colors
+    static let glassLight = Color.white.opacity(0.1)
+    static let glassDark = Color.black.opacity(0.2)
+    static let glassStroke = Color.white.opacity(0.2)
+    
+    // Gradient colors (Teal theme)
+    static let gradientStart = Color(red: 0.231, green: 0.357, blue: 0.412) // #3B5B69
+    static let gradientMid = Color(red: 0.427, green: 0.635, blue: 0.710) // #6DA2B5
+    static let gradientEnd = Color(red: 0.325, green: 0.502, blue: 0.573) // #536B92 (blue-teal)
+    
+    // Interactive states
+    static let pinterestHover = Color.white.opacity(0.05)
+    static let pinterestPressed = Color.white.opacity(0.1)
+    static let pinterestFocused = pinterestRed.opacity(0.3)
+    
+    // Status colors for dark theme
+    static let pinterestSuccess = Color(red: 0.0, green: 0.8, blue: 0.4) // #00CC66
+    static let pinterestWarning = Color(red: 1.0, green: 0.6, blue: 0.0) // #FF9900
+    static let pinterestError = Color(red: 1.0, green: 0.2, blue: 0.2) // #FF3333
 }
