@@ -50,13 +50,9 @@ struct SocialLoginButtonView: View {
     
     @ViewBuilder
     private func loginIconView() -> some View {
-        if type == .kakao {
-            type.icon
-                .resizable()
-                .padding(12)
-        } else {
-            type.icon
-        }
+        type.icon
+            .resizable()
+            .aspectRatio(contentMode: .fit)
     }
 }
 

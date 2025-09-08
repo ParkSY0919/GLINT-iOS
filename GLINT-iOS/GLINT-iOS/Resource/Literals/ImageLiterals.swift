@@ -30,7 +30,7 @@ extension Images {
     }
     
     enum Login {
-        static let apple = Image(systemName: "apple.logo")
+        static let apple = Image(.apple)
         static let kakao = Image(.kakao)
     }
     

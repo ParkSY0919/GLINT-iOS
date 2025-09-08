@@ -18,8 +18,8 @@ struct GLSocialLoginButton: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 24)) // 아이콘 크기
-            .frame(width: 50, height: 50) // 버튼 크기
+//            .font(.system(size: 24)) // 아이콘 크기
+            .frame(width: 100, height: 40) // 버튼 크기
             .background(backgroundColor)
             .foregroundColor(foregroundColor)
             .cornerRadius(8)
