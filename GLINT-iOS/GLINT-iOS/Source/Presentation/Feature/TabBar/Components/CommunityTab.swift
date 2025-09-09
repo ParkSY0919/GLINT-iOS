@@ -24,6 +24,8 @@ struct CommunityTab: View {
         switch route {
         case .community:
             CommunityView()
+        case .communityDetail(let id):
+            CommunityDetailView(id: id)
         }
     }
 }

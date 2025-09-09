@@ -613,12 +613,13 @@ extension CoreDataManager {
         let calendar = Calendar.current
         let cutoffDate = calendar.date(byAdding: .day, value: -days, to: Date()) ?? Date()
         
-        backgroundContext.perform {
+        let privateContext = persistentContainer.newBackgroundContext()
+        privateContext.perform {
             let request: NSFetchRequest<GTChatFile> = GTChatFile.fetchRequest()
             request.predicate = NSPredicate(format: "createdAt < %@", cutoffDate as NSDate)
             
             do {
-                let oldFiles = try self.backgroundContext.fetch(request)
+                let oldFiles = try privateContext.fetch(request)
                 
                 for file in oldFiles {
                     // 로컬 파일 삭제
@@ -631,11 +632,14 @@ extension CoreDataManager {
                         try? FileManager.default.removeItem(atPath: thumbnailPath)
                     }
                     
-                    // CoreData에서 삭제
-                    self.backgroundContext.delete(file)
+                    // CoreData에서 삭제 (동일한 컨텍스트에서 fetch한 객체를 삭제)
+                    privateContext.delete(file)
                 }
                 
-                self.saveBackgroundContext(self.backgroundContext)
+                // 변경사항 저장
+                if privateContext.hasChanges {
+                    try privateContext.save()
+                }
                 print("Cleaned up \(oldFiles.count) old files")
                 
             } catch {

@@ -39,10 +39,31 @@ private extension HotTrendView {
     }
     
     var hotTrendTitleSection: some View {
-        Text(Strings.Main.hotTrend)
-            .font(.pretendardFont(.body_bold, size: 16))
-            .foregroundStyle(.gray60)
-            .padding(.leading, 20)
+        HStack(spacing: 8) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.pinterestRed)
+            
+            Text(Strings.Main.hotTrend)
+                .font(.pretendardFont(.body_bold, size: 16))
+                .foregroundColor(.pinterestTextPrimary)
+            
+            Spacer()
+            
+            Text("인기")
+                .font(.pretendardFont(.caption_medium, size: 12))
+                .foregroundColor(.pinterestTextTertiary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    Capsule()
+                        .fill(Color.pinterestRed.opacity(0.1))
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.pinterestRed.opacity(0.3), lineWidth: 1)
+                        )
+                )
+        }
     }
     
     var hotTrendScrollContentSection: some View {

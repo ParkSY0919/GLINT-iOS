@@ -11,38 +11,36 @@ struct AttendanceView: View {
     @State private var store = AttendanceViewStore()
     
     var body: some View {
-        NavigationView {
-            ZStack {
-                // 메인 WebView
-                AttendanceWebView(
-                    onMessageReceived: { message in
-                        store.send(.messageReceived(message))
-                    },
-                    onWebViewLoadFailed: {
-                        store.send(.webViewLoadFailed)
-                    },
-                    onCoordinatorReady: { coordinator in
-                        store.send(.webViewLoaded(coordinator: coordinator))
-                    }
-                )
-                .ignoresSafeArea(.all, edges: .bottom)
-                .onAppear {
-                    store.send(.viewWillAppear)
+        ZStack {
+            // 메인 WebView
+            AttendanceWebView(
+                onMessageReceived: { message in
+                    store.send(.messageReceived(message))
+                },
+                onWebViewLoadFailed: {
+                    store.send(.webViewLoadFailed)
+                },
+                onCoordinatorReady: { coordinator in
+                    store.send(.webViewLoaded(coordinator: coordinator))
                 }
-                
-                // 로딩 인디케이터
-                if store.isLoading {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                    
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.2)
-                }
+            )
+            .ignoresSafeArea(.all, edges: .bottom)
+            .onAppear {
+                store.send(.viewWillAppear)
             }
-            .navigationTitle("출석체크")
-            .navigationBarTitleDisplayMode(.inline)
+            
+            // 로딩 인디케이터
+            if store.isLoading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.2)
+            }
         }
+        .navigationTitle("출석체크")
+        .navigationBarTitleDisplayMode(.inline)
         .alert("출석 완료", isPresented: $store.showCompletionAlert) {
             Button("확인") {
                 store.send(.dismissCompletionAlert)
