@@ -65,9 +65,9 @@ private extension CommunityViewStore {
         loadData()
     }
     
-    /// filterID 따른 상세화면 이동 (TabBarViewModel을 통한 cross-tab navigation)
+    /// filterID 따른 커뮤니티 전용 상세화면 이동
     func handleToDetailView(_ filterID: String) {
-        tabBarViewModel?.navigateToDetailFromCommunity(filterId: filterID)
+        router.push(.communityDetail(id: filterID))
     }
     
     /// 재시도 버튼 탭 처리

@@ -156,4 +156,5 @@ enum MakeTabRoute: Hashable {
 
 enum CommunityTabRoute: Hashable {
     case community
+    case communityDetail(id: String)
 }
