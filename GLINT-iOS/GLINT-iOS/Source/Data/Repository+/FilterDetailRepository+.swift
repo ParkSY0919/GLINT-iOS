@@ -10,10 +10,11 @@ import Foundation
 extension FilterDetailRepository {
     static let liveValue: FilterDetailRepository = {
         let provider = NetworkService<FilterDetailEndPoint>()
-        
+
         return FilterDetailRepository(
             filterDetail: { id in
-                return try await provider.request(.filterDetail(filterId: id))
+                let response: FilterDetailResponse = try await provider.request(.filterDetail(filterId: id))
+                return response.toDetailEntity()
             },
             deleteFilter: { id in
                 return try await provider.requestVoid(.deleteFilter(filterID: id))

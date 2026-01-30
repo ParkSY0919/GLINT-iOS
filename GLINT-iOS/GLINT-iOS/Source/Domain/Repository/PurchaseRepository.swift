@@ -8,8 +8,8 @@
 import Foundation
 
 struct PurchaseRepository {
-    var createOrder: (_ request: CreateOrderRequest) async throws -> CreateOrderResponse
-    var orderInfo: () async throws -> OrderInfoResponse
-    var paymentValidation: (_ request: PaymentValidationRequest) async throws -> PaymentValidationResponse
-    var paymentInfo: (_ request: PaymentInfoRequest) async throws -> PaymentInfoResponse
+    var createOrder: (_ filterID: String, _ totalPrice: Int) async throws -> OrderEntity
+    var orderInfo: () async throws -> OrderInfoEntity
+    var paymentValidation: (_ impUid: String) async throws -> PaymentValidationEntity
+    var paymentInfo: (_ orderCode: String) async throws -> PaymentInfoEntity
 }

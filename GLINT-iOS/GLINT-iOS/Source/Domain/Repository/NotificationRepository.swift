@@ -8,5 +8,5 @@
 import Foundation
 
 struct NotificationRepository {
-    var push: (_ request: PushRequest) async throws -> Void
+    var push: (_ userIds: [String], _ title: String, _ body: String) async throws -> Void
 }

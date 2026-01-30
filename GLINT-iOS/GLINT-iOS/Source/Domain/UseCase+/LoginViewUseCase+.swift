@@ -20,14 +20,14 @@ extension LoginViewUseCase {
         let repository: AuthRepository = .value
         let keychain: KeychainManager = .shared
         let manager = LoginManager()
-        
+
         func getDeviceTokenOrThrow() throws -> String {
             guard let token = keychain.getDeviceUUID() else {
                 throw AuthError.noDeviceTokenFound
             }
             return token
         }
-        
+
         return LoginViewUseCase(
             // email 유효성검사
             checkEmailValidation: { email in
@@ -35,71 +35,57 @@ extension LoginViewUseCase {
                 try await repository.checkEmailValidation(email)
             },
             // 회원가입
-            signUp: {email, password, nick in
+            signUp: { email, password, nick in
                 try Validator.validateEmail(email)
                 try Validator.validatePassword(password)
                 let deviceToken = try getDeviceTokenOrThrow()
-                
-                let request = SignUpRequest(
-                    email: email,
-                    password: password,
-                    nick: nick,
-                    deviceToken: deviceToken
-                )
-                
-                let response = try await repository.signUp(request)
-                GTLogger.i("회원가입 응답: \(response)")
-                return response
+
+                let entity = try await repository.signUp(email, password, nick, deviceToken)
+                GTLogger.i("회원가입 응답: \(entity)")
+                return entity
             },
             // 로그인
             signIn: { email, password in
                 try Validator.validateEmail(email)
                 try Validator.validatePassword(password)
                 let deviceToken = try getDeviceTokenOrThrow()
-                
-                let request = SignInRequest(
-                    email: email,
-                    password: password,
-                    deviceToken: deviceToken
-                )
-                
-                let response = try await repository.signIn(request)
-                
+
+                let entity = try await repository.signIn(email, password, deviceToken)
+
                 // 로그인 성공시 토큰과 사용자 정보 저장
-                keychain.saveUserId(response.userID)
-                keychain.saveNickname(response.nick)
-                keychain.saveAccessToken(response.accessToken)
-                keychain.saveRefreshToken(response.refreshToken)
-                
-                GTLogger.i("일반 로그인 성공 - 사용자 정보 저장: \(response.nick)")
-                return response
+                keychain.saveUserId(entity.userID)
+                keychain.saveNickname(entity.nick)
+                keychain.saveAccessToken(entity.accessToken)
+                keychain.saveRefreshToken(entity.refreshToken)
+
+                GTLogger.i("일반 로그인 성공 - 사용자 정보 저장: \(entity.nick)")
+                return entity
             },
             // 로그인-apple
             signInApple: {
                 let request = try await manager.appleLogin()
-                let response = try await repository.signInApple(request)
-                
-                GTLogger.i("Apple 로그인 응답: \(response)")
-                keychain.saveUserId(response.userID)
-                keychain.saveNickname(response.nick)
-                keychain.saveAccessToken(response.accessToken)
-                keychain.saveRefreshToken(response.refreshToken)
-                
-                return response
+                let entity = try await repository.signInApple(request)
+
+                GTLogger.i("Apple 로그인 응답: \(entity)")
+                keychain.saveUserId(entity.userID)
+                keychain.saveNickname(entity.nick)
+                keychain.saveAccessToken(entity.accessToken)
+                keychain.saveRefreshToken(entity.refreshToken)
+
+                return entity
             },
             // 로그인-kakao
-            signInKakao: { entity in
-                let request = entity
-                let response = try await repository.signInKakao(request)
-                
+            signInKakao: { request in
+                let entity = try await repository.signInKakao(request)
+
                 // 카카오 로그인 성공시 토큰과 사용자 정보 저장
-                keychain.saveUserId(response.userID)
-                keychain.saveNickname(response.nick)
-                keychain.saveAccessToken(response.accessToken)
-                keychain.saveRefreshToken(response.refreshToken)
-                
-                GTLogger.i("Kakao 로그인 성공 - 사용자 정보 저장: \(response.nick)")
-                return response
+                keychain.saveUserId(entity.userID)
+                keychain.saveNickname(entity.nick)
+                keychain.saveAccessToken(entity.accessToken)
+                keychain.saveRefreshToken(entity.refreshToken)
+
+                GTLogger.i("Kakao 로그인 성공 - 사용자 정보 저장: \(entity.nick)")
+                return entity
             },
             deviceTokenUpdate: { deviceToken in
                 let response: Void = try await repository.deviceTokenUpdate(deviceToken)

@@ -104,7 +104,7 @@ private extension MainViewStore {
                     hotTrendsData: h,
                     todayArtistUser: aProfile,
                     todayArtistFilter: aFilter,
-                    bannerList: b.compactMap { $0.toEntity() },
+                    bannerList: b,
                     isLoading: false,
                     errorMessage: nil
                 )

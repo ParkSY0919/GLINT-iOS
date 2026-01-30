@@ -8,7 +8,7 @@
 import Foundation
 
 struct FilterRepository {
-    var fileUpload: (_ files: [Data]) async throws -> FileUploadResponse
-    var createFilter: (_ request: CreateFilterRequest) async throws -> FilterDetailResponse
-    var likeFilter: (_ filterID: String, _ likeStatus: Bool) async throws -> LikeFilterResponse
+    var fileUpload: (_ files: [Data]) async throws -> FileUploadEntity
+    var createFilter: (_ request: CreateFilterEntity) async throws -> FilterEntity
+    var likeFilter: (_ filterID: String, _ likeStatus: Bool) async throws -> LikeEntity
 }

@@ -10,20 +10,24 @@ import Foundation
 extension FilterRepository {
     static let liveValue: FilterRepository = {
         let provider = NetworkService<FilterEndPoint>()
-        
+
         return FilterRepository(
             // 파일 업로드
             fileUpload: { files in
-                return try await provider.requestMultipart(.filterFiles(files: files))
+                let response: FileUploadResponse = try await provider.requestMultipart(.filterFiles(files: files))
+                return response.toEntity()
             },
-            
+
             createFilter: { request in
-                return try await provider.request(.createFilter(request: request))
+                let dtoRequest = request.toRequest()
+                let response: FilterDetailResponse = try await provider.request(.createFilter(request: dtoRequest))
+                return response.toFilterEntity()
             },
-            
+
             // 필터 좋아요
             likeFilter: { filterID, likeStatus in
-                return try await provider.request(.likeFilter(filterID: filterID, likeStatus: likeStatus))
+                let response: LikeFilterResponse = try await provider.request(.likeFilter(filterID: filterID, likeStatus: likeStatus))
+                return response.toEntity()
             }
         )
     }()

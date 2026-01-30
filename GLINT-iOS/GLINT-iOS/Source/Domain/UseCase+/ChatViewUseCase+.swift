@@ -11,23 +11,24 @@ extension ChatViewUseCase {
     static let liveValue: ChatViewUseCase = {
         let chatRepo: ChatRepository = .liveValue
         let notiRepo: NotificationRepository = .liveValue
-        
+
         return ChatViewUseCase(
             infoChatRooms: {
                 return try await chatRepo.infoChatRooms()
             },
             chatRoomFileUpload: { roomID, files in
-                return try await chatRepo.chatRoomFileUpload(roomID, files).files
+                let entity = try await chatRepo.chatRoomFileUpload(roomID, files)
+                return entity.files
             },
             getChatHistory: { roomID, next in
-                return try await chatRepo.getChatHistory(roomID, next).data
+                let entity = try await chatRepo.getChatHistory(roomID, next)
+                return entity.chats
             },
-            postChatMessage: { roomID, request in
-                return try await chatRepo.postChatMessage(roomID, request)
+            postChatMessage: { roomID, content, files in
+                return try await chatRepo.postChatMessage(roomID, content, files)
             },
             chatPushNoti: { userIds, title, body in
-                let request = PushRequest(userIds: userIds, title: title, body: body)
-                return try await notiRepo.push(request)
+                return try await notiRepo.push(userIds, title, body)
             }
         )
     }()

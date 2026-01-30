@@ -14,54 +14,47 @@ extension DetailViewUseCase {
         let filterDetailRepo: FilterDetailRepository = .liveValue
         let purchaseRepo: PurchaseRepository = .liveValue
         let chatRepo: ChatRepository = .liveValue
-        
+
         return DetailViewUseCase (
             filterDetail: { filterID in
-                let response = try await filterDetailRepo.filterDetail(filterID)
-                let filter = response.toFilterEntity()
-                let profile = response.creator.toProfileEntity()
-                let metadata = response.photoMetadata?.toEntity()
-                let presets = response.filterValues.toEntity()
-                let isMyPost = keychain.getUserId() == profile.userID
+                let detailEntity = try await filterDetailRepo.filterDetail(filterID)
+                let isMyPost = keychain.getUserId() == detailEntity.creator.userID
 
-                return (filter, profile, metadata, presets, isMyPost)
+                return (detailEntity.filter, detailEntity.creator, detailEntity.photoMetadata, detailEntity.filterValues, isMyPost)
             },
-            
+
             likeFilter: { filterID, likeStatus in
                 return try await filterRepo.likeFilter(filterID, likeStatus).likeStatus
             },
-            
+
             deleteFilter: { filterID in
                 return try await filterDetailRepo.deleteFilter(filterID)
             },
-            
+
             createOrder: { filterID, filterPrice in
-                let request = CreateOrderRequest(filter_id: filterID, total_price: filterPrice)
-                return try await purchaseRepo.createOrder(request).orderCode
+                return try await purchaseRepo.createOrder(filterID, filterPrice).orderCode
             },
-            
+
             orderInfo: {
                 return try await purchaseRepo.orderInfo()
             },
-            
+
             paymentValidation: { impUid in
-                let request = PaymentValidationRequest(impUid: impUid)
-                let response = try await purchaseRepo.paymentValidation(request).orderItem.orderCode
-                return response
+                let entity = try await purchaseRepo.paymentValidation(impUid)
+                return entity.orderItem.filter.id
             },
-            
+
             paymentInfo: { orderCode in
-                let request = PaymentInfoRequest(orderCode: orderCode)
-                let response = try await purchaseRepo.paymentInfo(request)
-                return (response.name, response.merchantUid)
+                let entity = try await purchaseRepo.paymentInfo(orderCode)
+                return (entity.cardName, entity.merchantUid)
             },
-            
+
             createChatRoom: { userID in
-                let response = try await chatRepo.createChatRoom(userID)
-                return (response.roomID)
+                let entity = try await chatRepo.createChatRoom(userID)
+                return entity.id
             }
         )
     }()
-    
+
 }
 

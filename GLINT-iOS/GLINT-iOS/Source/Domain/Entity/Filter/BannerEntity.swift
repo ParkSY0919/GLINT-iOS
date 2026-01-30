@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct BannerEntity: ResponseData, Identifiable, Equatable {
+struct BannerEntity: Identifiable, Equatable {
     var id: String { bannerImageURL }
     let name: String
-    let payload: PayloadResponse
+    let payload: PayloadEntity
     let bannerImageURL: String
-    
+
     static func == (lhs: BannerEntity, rhs: BannerEntity) -> Bool {
         return lhs.bannerImageURL == rhs.bannerImageURL && lhs.name == rhs.name
     }
