@@ -10,26 +10,33 @@ import Foundation
 extension PurchaseRepository {
     static let liveValue: PurchaseRepository = {
         let provider = NetworkService<PurchaseEndPoint>()
-        
+
         return PurchaseRepository(
             //주문 생성
-            createOrder: { request in
-                return try await provider.request(.createOrder(request))
+            createOrder: { filterID, totalPrice in
+                let request = CreateOrderRequest(filter_id: filterID, total_price: totalPrice)
+                let response: CreateOrderResponse = try await provider.request(.createOrder(request))
+                return response.toEntity()
             },
-            
+
             //주문 정보
             orderInfo: {
-                return try await provider.request(.infoOrder)
+                let response: OrderInfoResponse = try await provider.request(.infoOrder)
+                return response.toEntity()
             },
-            
+
             //결제 영수증 검증
-            paymentValidation: { request in
-                return try await provider.request(.paymentValidation((request)))
+            paymentValidation: { impUid in
+                let request = PaymentValidationRequest(impUid: impUid)
+                let response: PaymentValidationResponse = try await provider.request(.paymentValidation(request))
+                return response.toEntity()
             },
-            
+
             //결제 영수증 조회
-            paymentInfo: { request in
-                return try await provider.request(.paymentInfo((request)))
+            paymentInfo: { orderCode in
+                let request = PaymentInfoRequest(orderCode: orderCode)
+                let response: PaymentInfoResponse = try await provider.request(.paymentInfo(request))
+                return response.toEntity()
             }
         )
     }()

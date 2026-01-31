@@ -15,11 +15,11 @@ struct BannerResponse: ResponseData {
     let name: String
     let imageUrl: String
     let payload: PayloadResponse
-    
+
     func toEntity() -> BannerEntity {
         return .init(
             name: self.name,
-            payload: self.payload,
+            payload: PayloadEntity(type: self.payload.type, value: self.payload.value),
             bannerImageURL: self.imageUrl.imageURL
         )
     }

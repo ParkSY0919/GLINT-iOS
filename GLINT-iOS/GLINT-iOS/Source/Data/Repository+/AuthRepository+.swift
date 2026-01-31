@@ -10,26 +10,30 @@ import Foundation
 extension AuthRepository {
     static let value: AuthRepository = {
         let provider = NetworkService<AuthEndPoint>()
-        
+
         return AuthRepository(
             checkEmailValidation: { email in
                 try await provider.requestVoid(.checkEmailValidation(email: email))
             },
-            signUp: { request in
-                return try await provider.request(.signUp(request))
+            signUp: { email, password, nick, deviceToken in
+                let request = SignUpRequest(email: email, password: password, nick: nick, deviceToken: deviceToken)
+                let response: SignUpResponse = try await provider.request(.signUp(request))
+                return response.toEntity()
             },
-            signIn: { request in
-                return try await provider.request(.signIn(request))
+            signIn: { email, password, deviceToken in
+                let request = SignInRequest(email: email, password: password, deviceToken: deviceToken)
+                let response: SignInResponse = try await provider.request(.signIn(request))
+                return response.toEntity()
             },
             signInApple: { request in
-                let request = request.toAppleRequest()
-                let response: SignInResponse = try await provider.request(.signInForApple(request))
-                return response
+                let appleRequest = request.toAppleRequest()
+                let response: SignInResponse = try await provider.request(.signInForApple(appleRequest))
+                return response.toEntity()
             },
             signInKakao: { request in
-                let request = request.toKakaoRequest()
-                let response: SignInResponse = try await provider.request(.signInForKakao(request))
-                return response
+                let kakaoRequest = request.toKakaoRequest()
+                let response: SignInResponse = try await provider.request(.signInForKakao(kakaoRequest))
+                return response.toEntity()
             },
             deviceTokenUpdate: { deviceToken in
                 return try await provider.requestVoid(.deviceToken(token: deviceToken))

@@ -131,8 +131,8 @@ struct BannerView: View {
             .padding(10)
     }
     
-    // handleBannerTap이 PayloadResponse를 받도록 수정
-    func handleBannerTap(payload: PayloadResponse) {
+    // handleBannerTap이 PayloadEntity를 받도록 수정
+    func handleBannerTap(payload: PayloadEntity) {
         print("\(Strings.Main.Log.bannerTapped) - Type: \(payload.type), Value: \(payload.value)")
         onBannerTapped()
     }

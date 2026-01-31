@@ -299,11 +299,9 @@ private extension ChatViewStore {
                 // 서버에 메시지 전송 (이미지 포함)
                 let finalContent = messageContent.isEmpty && !state.selectedImages.isEmpty ? "📷 사진" : messageContent
                 let response = try await useCase.postChatMessage(
-                    state.roomID, 
-                    PostChatMessageRequest(
-                        content: finalContent, 
-                        files: state.fileUploadResponse
-                    )
+                    state.roomID,
+                    finalContent,
+                    state.fileUploadResponse
                 )
                 print("✅ 서버 메시지 전송 성공: \(response)")
 
@@ -615,10 +613,10 @@ private extension ChatViewStore {
         Task {
             do {
                 // 1. 현재 시간 기준으로 서버에서 최신 메시지 가져오기
-                let chatResponses = try await useCase.getChatHistory(state.roomID, state.next ?? "")
-                
+                let chatEntities = try await useCase.getChatHistory(state.roomID, state.next ?? "")
+
                 // 2. 새로운 메시지만 필터링하여 CoreData에 저장
-                let newMessagesCount = coreDataManager.saveNewMessagesFromServer(chatResponses, roomId: state.roomID, currentUserNickname: state.myNickname)
+                let newMessagesCount = coreDataManager.saveNewMessagesFromServer(chatEntities, roomId: state.roomID, currentUserNickname: state.myNickname)
                 
                 // 3. CoreData에서 업데이트된 데이터 다시 로드하여 UI 업데이트
                 await MainActor.run {
@@ -643,65 +641,65 @@ private extension ChatViewStore {
     }
     
     /// 서버 응답을 CoreData에 저장
-    private func saveChatHistoryToCoreData(_ response: [ChatResponse]) async {
-        print("📥 서버 응답 처리 시작: \(response.count)개 메시지")
-        
+    private func saveChatHistoryToCoreData(_ entities: [ChatEntity]) async {
+        print("📥 서버 응답 처리 시작: \(entities.count)개 메시지")
+
         await MainActor.run {
             // 중복 체크를 위해 기존 메시지 ID들 수집
             let existingMessageIds = Set(state.messages.map { $0.id })
             var newMessagesCount = 0
-            
+
             print("🔍 현재 화면에 있는 메시지 ID들: \(existingMessageIds)")
-            
+
             // 서버에서 받은 메시지들을 CoreData에 저장
-            for (index, chatResponse) in response.enumerated() {
-                print("📨 메시지 \(index + 1)/\(response.count) 처리:")
-                print("   - 메시지 ID: \(chatResponse.chatID)")
-                print("   - 보낸 사람: \(chatResponse.sender.userID) (\(chatResponse.sender.nick))")
-                print("   - 내용: \(chatResponse.content)")
-                
-                if !existingMessageIds.contains(chatResponse.chatID) {
+            for (index, chatEntity) in entities.enumerated() {
+                print("📨 메시지 \(index + 1)/\(entities.count) 처리:")
+                print("   - 메시지 ID: \(chatEntity.id)")
+                print("   - 보낸 사람: \(chatEntity.sender.userID ?? "") (\(chatEntity.sender.nick ?? ""))")
+                print("   - 내용: \(chatEntity.content)")
+
+                if !existingMessageIds.contains(chatEntity.id) {
                     // 새로운 메시지만 CoreData에 저장
-                    let timestamp = parseDate(from: chatResponse.createdAt) ?? Date()
-                    
-                    // 메시지 발신자 구분 (nickname으로 비교)
-                    print("   - 발신자 구분: \(chatResponse.sender.nick) == \(state.myNickname)")
-                    let isMyMessage = chatResponse.sender.nick == state.myNickname
-                    
+                    let timestamp = parseDate(from: chatEntity.createdAt) ?? Date()
+
+                    // 메시지 발신자 구분 (nick으로 비교)
+                    print("   - 발신자 구분: \(chatEntity.sender.nick ?? "") == \(state.myNickname)")
+                    let isMyMessage = chatEntity.sender.nick == state.myNickname
+
                     let _ = coreDataManager.createChatFromServer(
-                        chatId: chatResponse.chatID,
-                        content: chatResponse.content,
-                        roomId: chatResponse.roomID,
-                        userId: chatResponse.sender.userID,
-                        senderNickname: chatResponse.sender.nick,
+                        chatId: chatEntity.id,
+                        content: chatEntity.content,
+                        roomId: chatEntity.roomID,
+                        userId: chatEntity.sender.userID ?? "",
+                        senderNickname: chatEntity.sender.nick ?? "",
                         timestamp: timestamp,
-                        files: chatResponse.files.isEmpty ? nil : chatResponse.files,
+                        files: chatEntity.files.isEmpty ? nil : chatEntity.files,
                         currentUserNickname: state.myNickname
                     )
-                    
+
                     // 사용자 정보 업데이트 (발신자 구분 포함)
                     let _ = coreDataManager.fetchOrCreateUser(
-                        userId: chatResponse.sender.userID,
-                        nickname: chatResponse.sender.nick,
-                        profileImageUrl: chatResponse.sender.profileImage,
+                        userId: chatEntity.sender.userID ?? "",
+                        nickname: chatEntity.sender.nick ?? "",
+                        profileImageUrl: chatEntity.sender.profileImageURL,
                         isCurrentUser: isMyMessage
                     )
-                    
+
                     newMessagesCount += 1
-                    
+
                     if isMyMessage {
-                        print("✅ 내가 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
+                        print("✅ 내가 보낸 메시지로 CoreData에 저장: \(chatEntity.content)")
                     } else {
-                        print("✅ 상대방이 보낸 메시지로 CoreData에 저장: \(chatResponse.content)")
+                        print("✅ 상대방이 보낸 메시지로 CoreData에 저장: \(chatEntity.content)")
                     }
                 } else {
-                    print("⚠️ 이미 존재하는 메시지, 건너뜀: \(chatResponse.chatID)")
+                    print("⚠️ 이미 존재하는 메시지, 건너뜀: \(chatEntity.id)")
                 }
             }
-            
+
             // CoreData 저장
             coreDataManager.saveContext()
-            
+
             print("💾 서버 데이터 CoreData 저장 완료: \(newMessagesCount)개의 새 메시지")
         }
     }

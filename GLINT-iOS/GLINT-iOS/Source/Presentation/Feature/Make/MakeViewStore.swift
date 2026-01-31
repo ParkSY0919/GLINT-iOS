@@ -155,7 +155,7 @@ private extension MakeViewStore {
                     print(Strings.Make.Error.filterValuesFailed)
                     return
                 }
-                let request = CreateFilterRequest(
+                let entity = CreateFilterEntity(
                     category: state.selectedCategory?.rawValue ?? "별",
                     title: state.filterName,
                     price: Int(state.price) ?? 0,
@@ -164,8 +164,8 @@ private extension MakeViewStore {
                     photoMetadata: nil,
                     filterValues: filterValues
                 )
-                
-                let result = try await useCase.createFilter(request)
+
+                let result = try await useCase.createFilter(entity)
                 print("result: \(result)")
                 state.createFilterTitle = result.title
                 state.createFilterId = result.filterID

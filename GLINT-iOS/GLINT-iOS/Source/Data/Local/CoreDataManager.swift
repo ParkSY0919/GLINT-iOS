@@ -277,47 +277,47 @@ extension CoreDataManager {
     }
     
     /// 새 메시지만 필터링하여 저장 (중복 제거)
-    func saveNewMessagesFromServer(_ responses: [ChatResponse], roomId: String, currentUserNickname: String? = nil) -> Int {
+    func saveNewMessagesFromServer(_ entities: [ChatEntity], roomId: String, currentUserNickname: String? = nil) -> Int {
         var newMessagesCount = 0
-        
+
         // 기존 메시지 ID 수집
         let request: NSFetchRequest<GTChat> = GTChat.fetchRequest()
         request.predicate = NSPredicate(format: "roomId == %@", roomId)
         request.propertiesToFetch = ["chatId"]
-        
+
         do {
             let existingChats = try context.fetch(request)
             let existingChatIds = Set(existingChats.compactMap { $0.chatId })
-            
+
             // 새 메시지만 저장
-            for response in responses {
-                if !existingChatIds.contains(response.chatID) {
-                    let timestamp = parseDate(from: response.createdAt) ?? Date()
-                    
+            for entity in entities {
+                if !existingChatIds.contains(entity.id) {
+                    let timestamp = parseDate(from: entity.createdAt) ?? Date()
+
                     let _ = createChatFromServer(
-                        chatId: response.chatID,
-                        content: response.content,
-                        roomId: response.roomID,
-                        userId: response.sender.userID,
-                        senderNickname: response.sender.nick,
+                        chatId: entity.id,
+                        content: entity.content,
+                        roomId: entity.roomID,
+                        userId: entity.sender.userID ?? "",
+                        senderNickname: entity.sender.nick ?? "",
                         timestamp: timestamp,
-                        files: response.files.isEmpty ? nil : response.files,
+                        files: entity.files.isEmpty ? nil : entity.files,
                         currentUserNickname: currentUserNickname
                     )
-                    
+
                     newMessagesCount += 1
                 }
             }
-            
+
             if newMessagesCount > 0 {
                 saveContext()
                 print("💾 새 메시지 저장 완료: \(newMessagesCount)개")
             }
-            
+
         } catch {
             print("❌ 새 메시지 저장 실패: \(error)")
         }
-        
+
         return newMessagesCount
     }
     
