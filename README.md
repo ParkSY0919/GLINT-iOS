@@ -164,10 +164,7 @@ let output = context.createCGImage(ciImage, from: ciImage.extent)
 
 // After: 싱글톤 CIContext 재사용
 final class ImageFilterManager {
-    private static let sharedContext = CIContext(options: [
-        .useSoftwareRenderer: false,  // GPU 가속 사용
-        .cacheIntermediates: false    // 중간 결과 캐시 비활성화
-    ])
+    private static let sharedContext = CIContext()
 
     func applyFilter(_ image: CIImage) -> CGImage? {
         Self.sharedContext.createCGImage(image, from: image.extent)
