@@ -6,10 +6,11 @@
   <img
     width="100%"
     alt="GLINT표지"
-    src="https://github.com/user-attachments/assets/080b8ea4-fa1b-4430-bebb-4514b5d7b301"
+    src="https://github.com/user-attachments/assets/38efcdc7-80b7-4cfc-a29a-4b0b23920fb5"
     style="max-width: 900px; height: auto;"
   />
 </div>
+
 
 ---
 
