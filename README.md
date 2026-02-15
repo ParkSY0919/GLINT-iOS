@@ -6,7 +6,7 @@
   <img
     width="100%"
     alt="GLINT표지"
-    src="https://github.com/user-attachments/assets/38efcdc7-80b7-4cfc-a29a-4b0b23920fb5"
+    src="https://github.com/user-attachments/assets/05f82db4-c75b-4531-9e05-c3faa2a1e2f0"
     style="max-width: 900px; height: auto;"
   />
 </div>
